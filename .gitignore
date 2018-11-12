@@ -1,0 +1,5 @@
+# Dolphin directory attributes files
+.directory
+
+# macOS Finder directory attributes files
+.DS_Store
