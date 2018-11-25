@@ -4,5 +4,5 @@ install:
   - pip install -r requirements.txt
 
 script:
-  - pycodestyle scripts/*.py
+  # - pycodestyle scripts/*.py
   - shellcheck scripts/*.sh
