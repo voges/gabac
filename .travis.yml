@@ -45,7 +45,7 @@ before_script:
 script:
   - make
   - make tests
-  - ./tests
-  - ../ci/test_python_api.sh
   - make gabacify
+  - ../ci/test_gabac.sh
+  - ../ci/test_python_api.sh
   - ../ci/test_roundtrips.sh
