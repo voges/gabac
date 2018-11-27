@@ -17,5 +17,5 @@ cmake .. \
     -DCMAKE_BUILD_TYPE=Debug \
     -DGABAC_BUILD_SHARED_LIB=ON || exit -1
 make || exit -1
-make gabacify || exit -1
 make tests || exit -1
+make gabacify || exit -1

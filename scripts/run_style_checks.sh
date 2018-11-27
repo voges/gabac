@@ -2,11 +2,15 @@
 
 
 # -----------------------------------------------------------------------------
-# Gather all files to be checked
+# Get the Git root directory
 # -----------------------------------------------------------------------------
 
-# Get the Git root directory
 readonly git_root_dir="$(git rev-parse --show-toplevel)"
+
+
+# -----------------------------------------------------------------------------
+# Gather all files to be checked
+# -----------------------------------------------------------------------------
 
 # Gather all C++ files
 cpp_files=()
