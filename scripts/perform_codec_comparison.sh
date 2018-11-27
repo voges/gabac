@@ -107,7 +107,7 @@ tools+=("gabac-a")
 tools+=("gabac")
 #
 compression_commands=()
-compression_commands+=("$time --format=\"$time_format\" -o $test_file.gzip.enc.time $gzip -c $test_file >$test_file.gzip")
+compression_commands+=("$time --format=\"$time_format\" -o $test_file.gzip.enc.time $gzip -9 -c $test_file >$test_file.gzip")
 compression_commands+=("$time --format=\"$time_format\" -o $test_file.bzip2.enc.time $bzip2 -9 -c $test_file >$test_file.bzip2")
 compression_commands+=("$time --format=\"$time_format\" -o $test_file.xz.enc.time $xz -9 -c $test_file >$test_file.xz")
 compression_commands+=("$time --format=\"$time_format\" -o $test_file.rans0.enc.time $rans -o0 < $test_file >$test_file.rans0")
