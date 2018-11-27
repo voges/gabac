@@ -1,11 +1,13 @@
-#ifndef TESTS_GABAC_TEST_COMMON_H_
-#define TESTS_GABAC_TEST_COMMON_H_
+#ifndef GABAC_TEST_COMMON_H_
+#define GABAC_TEST_COMMON_H_
+
 
 #include <algorithm>
 #include <iostream>
 #include <limits>
 #include <random>
 #include <vector>
+
 
 template<typename T>
 inline void fillVectorRandomUniform(T min, T max, std::vector<T> *const vector){
@@ -27,6 +29,7 @@ inline void fillVectorRandomUniform(T min, T max, std::vector<T> *const vector){
     );
 }
 
+
 template<typename T>
 inline void fillVectorRandomGeometric(std::vector<uint64_t> *const vector){
     // First create an instance of an engine.
@@ -47,4 +50,5 @@ inline void fillVectorRandomGeometric(std::vector<uint64_t> *const vector){
     );
 }
 
-#endif  // TESTS_GABAC_TEST_COMMON_H_
+
+#endif  // GABAC_TEST_COMMON_H_
