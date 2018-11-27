@@ -10,7 +10,7 @@ if [ -d "$tmp_dir" ]; then
     printf "Directory '%s' already exists; aborting roundtrip tests\\n" "$tmp_dir"
     exit -1
 fi
-# printf "Creating tmp directory: %s\\n" "$tmp_dir"
+printf "Creating 'tmp' directory: %s\\n" "$tmp_dir"
 mkdir -p "$tmp_dir" || exit -1
 
 # Get the gabacify executable
@@ -43,6 +43,8 @@ uncompressed_files+=("$git_root_dir/tmp/one_mebibyte_random.gabac_uncompressed")
 
 # Do the test roundtrips
 for i in "${!input_files[@]}"; do
+    printf "Running roundtrip %s\\n" "$i"
+
     # Gather the i-th files
     input_file=${input_files[$i]}
     configuration_file=${configuration_files[$i]}
@@ -65,8 +67,10 @@ for i in "${!input_files[@]}"; do
 
     # Check
     diff "$input_file" "$uncompressed_file" || exit -1
+
+    printf "Success\\n"
 done
 
 # Delete the 'tmp' directory
 rm -rf "$tmp_dir" || exit -1
-# printf "Removed tmp directory: %s\\n" "$tmp_dir"
+printf "Removed 'tmp' directory: %s\\n" "$tmp_dir"

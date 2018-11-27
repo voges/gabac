@@ -6,13 +6,24 @@ readonly git_root_dir="$(git rev-parse --show-toplevel)"
 # Get the correct shared library extension, depending whether we are on
 # Linux (*.so) or macOS (*.dylib)
 shared_lib_extension=""
-if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
-    shared_lib_extension="so"
-elif [ "${TRAVIS_OS_NAME}" = "osx" ]; then
-    shared_lib_extension="dylib"
+if [ "${TRAVIS}" = "true" ]; then
+    if [ "${TRAVIS_OS_NAME}" = "linux" ]; then
+        shared_lib_extension="so"
+    elif [ "${TRAVIS_OS_NAME}" = "osx" ]; then
+        shared_lib_extension="dylib"
+    else
+        echo "Not a Linux or macOS build; skipping Python unit tests"
+        exit 0
+    fi
 else
-    echo "Not a Linux or macOS build; skipping Python unit tests"
-    exit 0
+    if [[ $(uname -s) == Linux* ]]; then
+        shared_lib_extension="so"
+    elif [[ $(uname -s) == Darwin* ]]; then
+        shared_lib_extension="dylib"
+    else
+        echo "Not a Linux or macOS build; skipping Python unit tests"
+        exit 0
+    fi
 fi
 
 # Go to the folder of gabac.py and fire up the unit tests
