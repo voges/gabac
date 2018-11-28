@@ -70,7 +70,7 @@ for i in "${!input_files[@]}"; do
 
     printf "Success\\n"
     
-    rm "$bytestream_file" "$uncompressed_file" "$configuration_file"
+    rm "$bytestream_file" "$uncompressed_file"
 done
 
 # Delete the 'tmp' directory

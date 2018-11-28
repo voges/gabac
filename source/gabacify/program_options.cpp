@@ -137,9 +137,6 @@ void ProgramOptions::validate(void)
         if(fileExists(this->outputFilePath)) {
             GABACIFY_DIE("Output file already existing: " + this->outputFilePath);
         }
-        if(fileExists(this->configurationFilePath)) {
-            GABACIFY_DIE("Output file already existing: " + this->configurationFilePath);
-        }
     }
     else if (this->task == "decode")
     {
