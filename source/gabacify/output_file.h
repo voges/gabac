@@ -3,8 +3,11 @@
 
 
 #include <string>
+#include <vector>
+#include <iostream>
 
 #include "gabacify/file.h"
+#include "gabacify/log.h"
 
 namespace gabacify {
 
@@ -24,7 +27,6 @@ class OutputFile : public File
             size_t numItems
     );
 };
-
 
 }  // namespace gabacify
 

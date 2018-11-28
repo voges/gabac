@@ -19,7 +19,7 @@
 #include "gabacify/helpers.h"
 #include "gabacify/input_file.h"
 #include "gabacify/log.h"
-#include "gabacify/output_file.h"
+#include "gabacify/tmp_file.h"
 
 
 namespace gabacify {
@@ -102,8 +102,8 @@ static void encodeWithConfiguration(
             gabac::transformEqualityCoding(sequence, &equalityFlags, &values);
             GABACIFY_LOG_DEBUG << "Generated transformed sequence 'equality flags' with size: " << equalityFlags.size();
             GABACIFY_LOG_DEBUG << "Generated transformed sequence 'values' with size: " << values.size();
-            OutputFile outputFileSubseq0(subseq0Path);
-            OutputFile outputFileSubseq1(subseq1Path);
+            TmpFile outputFileSubseq0(subseq0Path);
+            TmpFile outputFileSubseq1(subseq1Path);
             // Write equalityFlags
             std::vector<unsigned char> equalityFlagsBuffer;
             generateByteBuffer(equalityFlags, 1, &equalityFlagsBuffer);
@@ -159,9 +159,9 @@ static void encodeWithConfiguration(
           GABACIFY_LOG_DEBUG << "Generated transformed sequence 'pointers' with size: " << pointers.size();
           GABACIFY_LOG_DEBUG << "Generated transformed sequence 'lengths' with size: " << lengths.size();
           GABACIFY_LOG_DEBUG << "Generated transformed sequence 'raw values' with size: " << rawValues.size();
-          OutputFile outputFileSubseq0(subseq0Path);
-          OutputFile outputFileSubseq1(subseq1Path);
-          OutputFile outputFileSubseq2(subseq2Path);
+          TmpFile outputFileSubseq0(subseq0Path);
+          TmpFile outputFileSubseq1(subseq1Path);
+          TmpFile outputFileSubseq2(subseq2Path);
           //schrijf equalityFlags
           std::vector<unsigned char> equalityFlagsBuffer;
           generateByteBuffer(pointers, 4, &equalityFlagsBuffer);
@@ -209,8 +209,8 @@ static void encodeWithConfiguration(
           gabac::transformRleCoding(sequence, guard, &rawValues, &lengths);
           GABACIFY_LOG_DEBUG << "Generated transformed sequence 'raw values' with size: " << rawValues.size();
           GABACIFY_LOG_DEBUG << "Generated transformed sequence 'lengths' with size: " << lengths.size();
-          OutputFile outputFileSubseq0(subseq0Path);
-          OutputFile outputFileSubseq1(subseq1Path);
+          TmpFile outputFileSubseq0(subseq0Path);
+          TmpFile outputFileSubseq1(subseq1Path);
           //schrijf raw values
           std::vector<unsigned char> rawValueBuffer;
           generateByteBuffer(rawValues, wordSize, &rawValueBuffer);
@@ -374,8 +374,8 @@ static void encodeWithConfiguration(
               }
               GABACIFY_LOG_DEBUG << "Generated Lut transformed sequence with size: " << lutTransformedSequence.size();
               GABACIFY_LOG_DEBUG << "lut with size: " << inverseLut.size();
-              OutputFile outputFileSubseq0(inputFilePath+seqTransformExtension+lutTransformExtension);
-              OutputFile outputFileSubseq1(inputFilePath+seqTransformExtension+"."+std::to_string(i)+".lut.tmp");
+              TmpFile outputFileSubseq0(inputFilePath+seqTransformExtension+lutTransformExtension);
+              TmpFile outputFileSubseq1(inputFilePath+seqTransformExtension+"."+std::to_string(i)+".lut.tmp");
               //schrijf transformed values
               std::vector<unsigned char> transformedValueBuffer;
               generateByteBuffer(lutTransformedSequence, wordSize, &transformedValueBuffer);
@@ -508,13 +508,13 @@ void encode(
         }
 
         // Write the smallest bytestream
-        OutputFile outputFile(outputFilePath);
+        TmpFile outputFile(outputFilePath);
         outputFile.write(&smallestBytestream[0], 1, smallestBytestream.size());
         GABACIFY_LOG_INFO << "Wrote smallest bytestream of size " << smallestBytestream.size() << " to: " << outputFilePath;
 
         // Write the best configuration as JSON
         std::string jsonString = bestConfiguration.toJsonString();
-        OutputFile configurationFile(configurationFilePath);
+        TmpFile configurationFile(configurationFilePath);
         configurationFile.write(&jsonString[0], 1, jsonString.size());
         GABACIFY_LOG_INFO << "Wrote best configuration to: " << configurationFilePath;
     }
@@ -536,7 +536,7 @@ void encode(
         encodeWithConfiguration(inputFilePath, symbols, configuration, &bytestream);
 
         // Write the bytestream
-        OutputFile outputFile(outputFilePath);
+        TmpFile outputFile(outputFilePath);
         outputFile.write(&bytestream[0], 1, bytestream.size());
         GABACIFY_LOG_INFO << "Wrote bytestream of size " << bytestream.size() << " to: " << outputFilePath;
     }
