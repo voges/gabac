@@ -475,6 +475,8 @@ void encode(
         // Generate symbol stream from byte buffer
         std::vector<uint64_t> symbols;
         generateSymbolStream(buffer, wordSize, &symbols);
+        buffer.clear();
+        buffer.shrink_to_fit();
         // if (symbols.size()>2*1024*1024)
         //   symbols.erase(symbols.begin()+2*1024*1024,symbols.end());
 
@@ -530,6 +532,8 @@ void encode(
         // Generate symbol stream from byte buffer
         std::vector<uint64_t> symbols;
         generateSymbolStream(buffer, configuration.wordSize, &symbols);
+        buffer.clear();
+        buffer.shrink_to_fit();
 
         // Encode with the given configuration
         std::vector<unsigned char> bytestream;
