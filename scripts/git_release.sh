@@ -13,5 +13,5 @@ git checkout master || exit -1
 git merge develop --squash --strategy=recursive --strategy-option=theirs || exit -1
 git commit --message "$1" || exit -1
 git tag "$1" || exit -1
-git push origin master || exit -1
-git push origin "$1" || exit -1
+# git push origin master || exit -1
+# git push origin "$1" || exit -1
