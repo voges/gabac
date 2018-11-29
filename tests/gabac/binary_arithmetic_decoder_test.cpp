@@ -6,7 +6,7 @@
 #include "gtest/gtest.h"
 
 
-class BinarayArithmeticDecoderTest : public ::testing::Test
+class BinaryArithmeticDecoderTest : public ::testing::Test
 {
  protected:
     void SetUp() override{
@@ -23,7 +23,7 @@ class BinarayArithmeticDecoderTest : public ::testing::Test
 };
 
 
-TEST_F(BinarayArithmeticDecoderTest, decodeBinsEp){
+TEST_F(BinaryArithmeticDecoderTest, decodeBinsEp){
     gabac::BitInputStream bitInputStream(bitStream_);
     gabac::BinaryArithmeticDecoder bad(bitInputStream);
 
@@ -33,7 +33,7 @@ TEST_F(BinarayArithmeticDecoderTest, decodeBinsEp){
     EXPECT_ANY_THROW(bad.decodeBinsEP(8));
 }
 
-TEST_F(BinarayArithmeticDecoderTest, decodeBin){
+TEST_F(BinaryArithmeticDecoderTest, decodeBin){
     gabac::BitInputStream bitInputStream(bitStream_);
     gabac::BinaryArithmeticDecoder bad(bitInputStream);
 
@@ -121,7 +121,7 @@ TEST_F(BinarayArithmeticDecoderTest, decodeBin){
     EXPECT_EQ(0, bad.decodeBin(&contextModels_[cm++]));
 }
 
-TEST_F(BinarayArithmeticDecoderTest, decodeBinTrm){
+TEST_F(BinaryArithmeticDecoderTest, decodeBinTrm){
     gabac::BitInputStream bitInputStream(bitStream_);
     gabac::BinaryArithmeticDecoder bad(bitInputStream);
 
