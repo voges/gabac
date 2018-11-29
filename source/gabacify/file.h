@@ -48,7 +48,6 @@ class File
     FILE *m_fp;
     std::string m_path;
 
- private:
     void close();
 
     void open(

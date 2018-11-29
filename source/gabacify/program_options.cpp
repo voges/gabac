@@ -3,6 +3,7 @@
 #include <cassert>
 
 #include "gabacify/exceptions.h"
+#include "gabacify/helpers.h"
 #include "gabacify/log.h"
 
 
@@ -132,6 +133,10 @@ void ProgramOptions::validate(void)
             this->outputFilePath = this->inputFilePath + m_defaultBytestreamFilePathExtension;
             GABACIFY_LOG_INFO << "Using generated output file path: " << this->outputFilePath;
         }
+
+        if(fileExists(this->outputFilePath)) {
+            GABACIFY_DIE("Output file already existing: " + this->outputFilePath);
+        }
     }
     else if (this->task == "decode")
     {
@@ -157,6 +162,10 @@ void ProgramOptions::validate(void)
             this->outputFilePath.erase(pos, std::string::npos);
             this->outputFilePath += m_defaultUncompressedFilePathExtension;
             GABACIFY_LOG_INFO << "Using generated output file path: " << this->outputFilePath;
+        }
+
+        if(fileExists(this->outputFilePath)) {
+            GABACIFY_DIE("Output file already existing: " + this->outputFilePath);
         }
     }
     else

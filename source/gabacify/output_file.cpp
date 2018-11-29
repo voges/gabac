@@ -8,13 +8,17 @@
 
 namespace gabacify {
 
-
 OutputFile::OutputFile(
         const std::string& path
 )
-        : File(path, "wb")
+        : File(path, "ab")
 {
-    // Nothing to do here
+    // Check if file with content existed before by opening in append mode
+    // and getting size
+    if(size() != 0)
+        GABACIFY_DIE("Output file already exists: " + path);
+    close();
+    open(path, "wb");
 }
 
 

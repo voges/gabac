@@ -200,6 +200,7 @@ set(gabacify_source_files ${gabacify_source_files} ${gabacify_source_dir}/log.cp
 set(gabacify_source_files ${gabacify_source_files} ${gabacify_source_dir}/main.cpp)
 set(gabacify_source_files ${gabacify_source_files} ${gabacify_source_dir}/output_file.cpp)
 set(gabacify_source_files ${gabacify_source_files} ${gabacify_source_dir}/program_options.cpp)
+set(gabacify_header_files ${gabacify_header_files} ${gabacify_header_dir}/tmp_file.cpp)
 
 # List all header files (alphabetically)
 set(gabacify_header_files ${gabacify_header_files} ${gabacify_header_dir}/analysis.h)
@@ -213,6 +214,7 @@ set(gabacify_header_files ${gabacify_header_files} ${gabacify_header_dir}/input_
 set(gabacify_header_files ${gabacify_header_files} ${gabacify_header_dir}/log.h)
 set(gabacify_header_files ${gabacify_header_files} ${gabacify_header_dir}/output_file.h)
 set(gabacify_header_files ${gabacify_header_files} ${gabacify_header_dir}/program_options.h)
+set(gabacify_header_files ${gabacify_header_files} ${gabacify_header_dir}/tmp_file.h)
 
 # Group the source and header files
 source_group("gabacify Source Files" FILES ${gabacify_source_files})

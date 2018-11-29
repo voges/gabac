@@ -10,6 +10,7 @@
 #include "gabacify/exceptions.h"
 #include "gabacify/log.h"
 #include "gabacify/program_options.h"
+#include "gabacify/tmp_file.h"
 
 
 static void writeCommandLine(
@@ -18,7 +19,10 @@ static void writeCommandLine(
 ){
     std::vector<std::string> args(argv, (argv + argc));
     std::stringstream commandLine;
-    for (const auto& arg : args) { commandLine << arg << " "; }
+    for (const auto& arg : args)
+    {
+        commandLine << arg << " ";
+    }
     GABACIFY_LOG_DEBUG << "Command line: " << commandLine.str();
 }
 
@@ -59,19 +63,23 @@ static int gabacify_main(
     catch (const gabacify::RuntimeException& e)
     {
         GABACIFY_LOG_ERROR << "Runtime error: " << e.message();
+        gabacify::TmpFile::closeAll();
         return -1;
     }
     catch (const std::exception& e)
     {
         GABACIFY_LOG_ERROR << "Standard library error: " << e.what();
+        gabacify::TmpFile::closeAll();
         return -1;
     }
     catch (...)
     {
         GABACIFY_LOG_ERROR << "Unkown error occurred";
+        gabacify::TmpFile::closeAll();
         return -1;
     }
 
+    gabacify::TmpFile::closeAll();
     return 0;
 }
 
@@ -81,9 +89,23 @@ extern "C" void handleSignal(
 ){
     std::signal(sig, SIG_IGN);  // Ignore the signal
     GABACIFY_LOG_WARNING << "Catched signal: " << sig;
-    if (sig == SIGINT)
+    switch (sig)
     {
-        GABACIFY_LOG_WARNING << "Process killed by user";
+        case SIGINT:
+        case SIGILL:
+        case SIGABRT:
+        case SIGFPE:
+        case SIGSEGV:
+        case SIGTERM:
+        case SIGHUP:
+        case SIGQUIT:
+        case SIGTRAP:
+        case SIGKILL:
+        case SIGBUS:
+        case SIGSYS:
+        case SIGPIPE:
+            GABACIFY_LOG_WARNING << "Process killed";
+            gabacify::TmpFile::closeAll();
     }
     std::signal(sig, SIG_DFL);  // Invoke the default signal action
     std::raise(sig);

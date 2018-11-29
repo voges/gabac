@@ -69,6 +69,8 @@ for i in "${!input_files[@]}"; do
     diff "$input_file" "$uncompressed_file" || exit -1
 
     printf "Success\\n"
+    
+    rm "$bytestream_file" "$uncompressed_file"
 done
 
 # Delete the 'tmp' directory
