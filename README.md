@@ -21,6 +21,20 @@ Perform a test roundtrip from the ``build`` directory:
     ./gabacify decode -i ../resources/input_files/one_mebibyte_random.gabac_bytestream
     diff ../resources/input_files/one_mebibyte_random ../resources/input_files/one_mebibyte_random.gabac_uncompressed
 
+## Comparing GABAC to other codecs
+
+The Bash script ``scripts/perform_codec_comparison.sh`` can be used to compare the performance of GABAC to other tools. The scripts compresses and decompresses a test file using gzip, bzip2, xz (implementing the LZMA algorithm), rANS order 0 and rANS order 1 (see https://github.com/voges/rans.git), and gabacify when executing e.g. the following command from the ``scripts``directory:
+
+    ./perform_codec_comparison ../resources/input_files/one_mebibyte_random
+
+The compression and decompression times, the maximum RAM usage, and the compressed file sizes will be logged in the file ``../resources/input_files/one_mebibyte_random.codec_stats``.
+
+**NOTE**: gabacify is designed to run on pieces of data which sizes lie below 1 GB. The entire input file will be read into memory and several buffers will be allocated. The estimated RAM usage for compressing a 1 GB file lies between 10 GB and 30 GB.
+
+## Continuous integration
+
+Commits to this repository are continuously tested on **Travis CI** (https://travis-ci.org/voges/gabac). Take a look at ``.travis.yml`` to see what is being done on Travis' (virtual) machines.
+
 ## Build system
 
 We use **CMake** (https://cmake.org/) as build system and we provide a ``CMakeLists.txt`` to build GABAC.
