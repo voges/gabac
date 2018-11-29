@@ -1,6 +1,7 @@
 #include "gabacify/encode.h"
 
 #include <cassert>
+#include <functional>
 #include <iomanip>
 #include <limits>
 #include <utility>
@@ -31,16 +32,21 @@ static std::vector<unsigned char> tempSubseq1;
 static gabacify::Configuration configurationTempSubseq1;
 static std::vector<unsigned char> tempSubseq0Lut1;
 
+using SequenceTransform = std::function<void(const std::vector<uint64_t>& sequence,
+                                             std::vector<std::vector<uint64_t>> *const
+)>;
+
+//------------------------------------------------------------------------------
 
 static void appendToBytestream(
         const std::vector<unsigned char>& bytes,
-        std::vector<unsigned char> * const bytestream
+        std::vector<unsigned char> *const bytestream
 ){
     assert(bytestream != nullptr);
 
     // Append the size of 'bytes' to the bytestream
     std::vector<unsigned char> sizeBuffer;
-    generateByteBuffer({ static_cast<uint64_t>(bytes.size()) }, 4, &sizeBuffer);
+    generateByteBuffer({static_cast<uint64_t>(bytes.size())}, 4, &sizeBuffer);
     for (const auto& sizeByte : sizeBuffer)
     {
         bytestream->push_back(sizeByte);
@@ -50,183 +56,335 @@ static void appendToBytestream(
     bytestream->insert(bytestream->end(), bytes.begin(), bytes.end());
 }
 
+//------------------------------------------------------------------------------
+
+
+// Recovers transformed stream from file
+template<typename T = uint64_t>
+static void getTransformedFromFile(const std::vector<std::string>& paths,
+                                   const std::vector<unsigned int>& wordSizes,
+                                   std::vector<std::vector<T>> *const transformedSequences
+){
+    std::vector<std::unique_ptr<InputFile>> files;
+    for (const auto& p : paths)
+    {
+        // Freed automatically
+        files.push_back(std::unique_ptr<InputFile>(new InputFile(p)));
+    }
+    for (size_t i = 0; i < files.size(); ++i)
+    {
+        size_t bufferSize = files[i]->size();
+        std::vector<unsigned char> buffer(bufferSize);
+        files[i]->read(&buffer[0], 1, bufferSize);
+        transformedSequences->emplace_back();
+        generateSymbolStream(buffer, wordSizes[i], &(*transformedSequences).back());
+        GABACIFY_LOG_DEBUG << "Transformed sequence "
+                           << i
+                           << " read with size: "
+                           << transformedSequences->back().size();
+    }
+}
+
+//------------------------------------------------------------------------------
+
+
+// Saves transformed stream to file
+static void writeTransformedToFile(const std::vector<std::string>& paths,
+                                   const std::vector<unsigned int>& wordSizes,
+                                   const std::vector<std::vector<uint64_t>>& transformedSequences
+){
+    std::vector<std::unique_ptr<TmpFile>> files;
+    for (const auto& p : paths)
+    {
+        // Freed automatically
+        files.push_back(std::unique_ptr<TmpFile>(new TmpFile(p)));
+    }
+
+    for (size_t i = 0; i < transformedSequences.size(); ++i)
+    {
+        std::vector<unsigned char> buffer;
+        generateByteBuffer(transformedSequences.at(i), wordSizes[i], &buffer);
+        files[i]->write(&buffer[0], 1, buffer.size());
+    }
+
+}
+
+//------------------------------------------------------------------------------
+
+// Generates transformed stream using generator FUNC
+static void generateTransformed(const std::vector<uint64_t>& sequence,
+                                size_t streams,
+                                const SequenceTransform& func,
+                                std::vector<std::vector<uint64_t>> *const transformedSequences
+){
+    transformedSequences->resize(streams, std::vector<uint64_t>());
+    func(sequence, transformedSequences);
+    for (size_t i = 0; i < transformedSequences->size(); ++i)
+    {
+        GABACIFY_LOG_DEBUG << "Generated transformed sequence "
+                           << i
+                           << " with size: "
+                           << (*transformedSequences)[i].size();
+    }
+
+}
+
+//------------------------------------------------------------------------------
+
+static void getTransformed(const std::vector<uint64_t>& sequence,
+                           const std::vector<std::string>& paths,
+                           const std::vector<unsigned int>& wordSizes,
+                           const SequenceTransform& func,
+                           std::vector<std::vector<uint64_t>> *const transformedSequences
+){
+    transformedSequences->clear();
+
+    // Check if files existent
+    bool filesExist = true;
+    for (const auto& p : paths)
+    {
+        if (!fileExists(p))
+        {
+            filesExist = false;
+            break;
+        }
+    }
+
+    // Test if preprocessed files exist
+    if (filesExist)
+    {
+        getTransformedFromFile(paths, wordSizes, transformedSequences);
+    }
+    else
+    {
+        generateTransformed(sequence, paths.size(), func, transformedSequences);
+        writeTransformedToFile(paths, wordSizes, *transformedSequences);
+    }
+}
+
+//------------------------------------------------------------------------------
+
+struct SequenceConf
+{
+    std::vector<std::string> filepaths;
+    std::vector<unsigned int> wordsizes;
+    uint64_t param;
+    SequenceTransform transform;
+};
+
+//------------------------------------------------------------------------------
+
+static void createSequenceConf(const std::string& inputFilePath,
+                               unsigned int wordSize,
+                               const Configuration& configuration,
+                               std::vector<SequenceConf> *const settings
+){
+    settings->emplace_back();
+
+    // EqualityCoding
+    settings->emplace_back();
+    settings->back().filepaths = {inputFilePath + ".eq.equalityFlags.tmp", inputFilePath + ".eq.values.tmp"};
+    settings->back().wordsizes = {1, wordSize};
+    settings->back().param = 0;
+    settings->back().transform = [](const std::vector<uint64_t>& sequence,
+                                    std::vector<std::vector<uint64_t>> *const transformedSequences
+    )
+    {
+        gabac::transformEqualityCoding(
+                sequence,
+                &(*transformedSequences)[0],
+                &(*transformedSequences)[1]
+        );
+    };
+
+    // MatchCoding
+    settings->emplace_back();
+    auto windowSize = static_cast<uint32_t>(configuration.sequenceTransformationParameter);
+    settings->back().filepaths = {inputFilePath + ".match." + std::to_string(windowSize) + ".pointers.tmp",
+                                  inputFilePath + ".match." + std::to_string(windowSize) + ".lengths.tmp",
+                                  inputFilePath + ".match." + std::to_string(windowSize) + ".values.tmp"};
+    settings->back().wordsizes = {4, 4, wordSize};
+    settings->back().param = windowSize;
+    settings->back().transform = [windowSize](const std::vector<uint64_t>& sequence,
+                                              std::vector<std::vector<uint64_t>> *const transformedSequences
+    )
+    {
+        gabac::transformMatchCoding(
+                sequence,
+                windowSize,
+                &(*transformedSequences)[0],
+                &(*transformedSequences)[1],
+                &(*transformedSequences)[2]
+        );
+    };
+
+    // RleCoding
+    settings->emplace_back();
+    auto guard = static_cast<uint64_t>(configuration.sequenceTransformationParameter);
+    settings->back().filepaths = {
+            inputFilePath + ".rle." + std::to_string(guard) + ".values.tmp",
+            inputFilePath + ".rle." + std::to_string(guard) + ".lengths.tmp"};
+    settings->back().wordsizes = {wordSize, 4};
+    settings->back().param = guard;
+    settings->back().transform = [guard](const std::vector<uint64_t>& sequence,
+                                         std::vector<std::vector<uint64_t>> *const transformedSequences
+    )
+    {
+        gabac::transformRleCoding(
+                sequence,
+                guard,
+                &(*transformedSequences)[0],
+                &(*transformedSequences)[1]
+        );
+    };
+}
+
+//------------------------------------------------------------------------------
+
+static void doSymbolEncoding(const std::string& inputFilePath,
+                             const std::vector<uint64_t>& sequence,
+                             const Configuration& configuration,
+                             std::vector<std::vector<uint64_t>> *const transformedSequences
+){
+    assert(bytestream != nullptr);
+
+    std::vector<SequenceConf> settings;
+    createSequenceConf(inputFilePath, configuration.wordSize, configuration, &settings);
+
+    GABACIFY_LOG_TRACE << "Encoding sequence of length: " << sequence.size();
+
+    // Do the sequence transformation
+    if (configuration.sequenceTransformationId == gabac::SequenceTransformationId::no_transform)
+    {
+        GABACIFY_LOG_DEBUG << "Performing sequence transformation 'no_transform'";
+        transformedSequences->emplace_back(sequence);
+        GABACIFY_LOG_DEBUG << "Generated transformed sequence with size: " << transformedSequences->front().size();
+        return;
+    }
+    auto id = unsigned(configuration.sequenceTransformationId);
+    const std::string names[] = {"no", "equalityCoding", "matchCoding", "rleCoding"};
+    GABACIFY_LOG_DEBUG << "Performing sequence transformation " << names[id];
+    getTransformed(
+            sequence,
+            settings[id].filepaths,
+            settings[id].wordsizes,
+            settings[id].transform,
+            transformedSequences
+    );
+}
+
+//------------------------------------------------------------------------------
+
+static void doLutTransform(const std::string& inputFilePath,
+                           const Configuration& configuration,
+                           unsigned wordSize,
+                           unsigned index,
+                           const std::vector<std::vector<uint64_t>>& transformedSequences,
+                           std::vector<unsigned char> *const bytestream,
+                           std::vector<std::vector<uint64_t >> *const lutSequences
+){
+
+    // Extract information
+    GABACIFY_LOG_TRACE << "Processing transformed sequence: " << index;
+    auto transformedSequence = transformedSequences.at(index);
+    auto transformedSequenceConfiguration = configuration.transformedSequenceConfigurations.at(index);
+    std::vector<SequenceConf> conf;
+    createSequenceConf(inputFilePath, wordSize, configuration, &conf);
+    auto id = unsigned(configuration.sequenceTransformationId);
+    wordSize = conf[id].wordsizes[index];
+    std::string seqTransformExtension = conf[id].filepaths[index];
+
+
+    std::vector<unsigned char> inverseLutBitstream;
+    std::string lutTransformExtension;
+    if (transformedSequenceConfiguration.lutTransformationEnabled)
+    {
+        GABACIFY_LOG_TRACE << "LUT transform *en*abled";
+        lutTransformExtension = "." + std::to_string(index) + ".lutTransformed.tmp";
+        GABACIFY_LOG_DEBUG << "used file: " << seqTransformExtension << lutTransformExtension;
+        getTransformed(
+                transformedSequences[index],
+                {seqTransformExtension + lutTransformExtension,
+                 seqTransformExtension + "." + std::to_string(index) + ".lut.tmp"},
+                {wordSize, wordSize},
+                [](const std::vector<uint64_t>& sequence,
+                   std::vector<std::vector<uint64_t>> *const lutTransformedSequences
+                )
+                {
+                    gabac::transformLutTransform0(
+                            sequence,
+                            &(*lutTransformedSequences)[0],
+                            &(*lutTransformedSequences)[1]
+                    );
+                },
+                lutSequences
+        );
+
+        // GABACIFY_LOG_DEBUG<<"lut size before coding: "<<inverseLutTmp
+        auto *data = (int64_t *) (lutSequences->at(1).data());
+        gabac::encode(
+                std::vector<int64_t>(data, data + (*lutSequences)[1].size()),
+                gabac::BinarizationId::BI,
+                {wordSize * 8},
+                gabac::ContextSelectionId::bypass,
+                &inverseLutBitstream
+        );
+        appendToBytestream(inverseLutBitstream, bytestream);
+        GABACIFY_LOG_TRACE << "Wrote LUT bitstream with size: " << inverseLutBitstream.size();
+        if (index == 0)
+        {
+            tempSubseq0Lut0 = std::move(inverseLutBitstream);
+        }
+        else if (index == 1)
+        {
+            tempSubseq0Lut1 = std::move(inverseLutBitstream);
+        }
+    }
+    else
+    {
+        GABACIFY_LOG_TRACE << "LUT transform *dis*abled";
+        lutSequences->emplace_back(transformedSequences[index]);
+    }
+}
+
+//------------------------------------------------------------------------------
+
+static void doDiffTransform(const Configuration& configuration,
+                            unsigned index,
+                            std::vector<std::vector<uint64_t>>& lutTransformedSequences,
+                            std::vector<int64_t> *const diffAndLutTransformedSequence
+){
+    // Diff coding
+    auto transformedSequenceConfiguration = configuration.transformedSequenceConfigurations.at(index);
+    if (transformedSequenceConfiguration.diffCodingEnabled)
+    {
+        GABACIFY_LOG_TRACE << "Diff coding *en*abled";
+        gabac::transformDiffCoding(lutTransformedSequences[0], diffAndLutTransformedSequence);
+    }
+    else
+    {
+        GABACIFY_LOG_TRACE << "Diff coding *dis*abled";
+        for (const auto& lutTransformedSymbol : lutTransformedSequences[0])
+        {
+            assert(lutTransformedSymbol <= std::numeric_limits<int64_t>::max());
+            diffAndLutTransformedSequence->push_back(static_cast<int64_t>(lutTransformedSymbol));
+        }
+    }
+}
+
+//------------------------------------------------------------------------------
 
 static void encodeWithConfiguration(
         const std::string& inputFilePath,
         const std::vector<uint64_t>& sequence,
         const Configuration& configuration,
-        std::vector<unsigned char> * const bytestream
+        std::vector<unsigned char> *const bytestream
 ){
-    assert(bytestream != nullptr);
 
-    unsigned int wordSize = configuration.wordSize;
-
-    GABACIFY_LOG_TRACE << "Encoding sequence of length: " << sequence.size();
-    std::string subseq0Path;
-    std::string subseq1Path;
-    std::string subseq2Path;
-
-    // Do the sequence transformation
     std::vector<std::vector<uint64_t>> transformedSequences;
-    if (configuration.sequenceTransformationId == gabac::SequenceTransformationId::no_transform)
-    {
-        GABACIFY_LOG_DEBUG << "Performing sequence transformation 'no_transform'";
-        transformedSequences.push_back(std::move(sequence));
-        GABACIFY_LOG_DEBUG << "Generated transformed sequence with size: " << transformedSequences.front().size();
-    }
-    else if (configuration.sequenceTransformationId == gabac::SequenceTransformationId::equality_coding)
-    {
-        GABACIFY_LOG_DEBUG << "Performing sequence transformation 'equality_coding'";
-        subseq0Path = inputFilePath+".eq.equalityFlags.tmp";
-        subseq1Path = inputFilePath+".eq.values.tmp";
-        std::vector<uint64_t> equalityFlags;
-        std::vector<uint64_t> values;
-        //test if preprocessed files exist
-        if(fileExists(subseq0Path) && fileExists(subseq1Path))
-        {
-            InputFile inputFileSubseq0(subseq0Path);
-            InputFile inputFileSubseq1(subseq1Path);
-            size_t bufferSize = inputFileSubseq0.size();
-            std::vector<unsigned char> buffer(bufferSize);
-            inputFileSubseq0.read(&buffer[0], 1, bufferSize);
-            generateSymbolStream(buffer, 1, &equalityFlags);
-            bufferSize = inputFileSubseq1.size();
-            buffer.resize(bufferSize);
-            inputFileSubseq1.read(&buffer[0], 1, bufferSize);
-            generateSymbolStream(buffer, wordSize, &values);
-            GABACIFY_LOG_DEBUG << "Transformed sequence 'equality flags' read with size: " << equalityFlags.size();
-            GABACIFY_LOG_DEBUG << "Transformed sequence 'values' read with size: " << values.size();
-        }
-        else
-        {
-            gabac::transformEqualityCoding(sequence, &equalityFlags, &values);
-            GABACIFY_LOG_DEBUG << "Generated transformed sequence 'equality flags' with size: " << equalityFlags.size();
-            GABACIFY_LOG_DEBUG << "Generated transformed sequence 'values' with size: " << values.size();
-            TmpFile outputFileSubseq0(subseq0Path);
-            TmpFile outputFileSubseq1(subseq1Path);
-            // Write equalityFlags
-            std::vector<unsigned char> equalityFlagsBuffer;
-            generateByteBuffer(equalityFlags, 1, &equalityFlagsBuffer);
-            outputFileSubseq0.write(&equalityFlagsBuffer[0], 1, equalityFlagsBuffer.size());
-            // Write values
-            std::vector<unsigned char> valuesBuffer;
-            generateByteBuffer(values, wordSize, &valuesBuffer);
-            outputFileSubseq1.write(&valuesBuffer[0], 1, valuesBuffer.size());
-        }
-        transformedSequences.push_back(std::move(equalityFlags));
-        transformedSequences.push_back(std::move(values));
-    }
-    else if (configuration.sequenceTransformationId == gabac::SequenceTransformationId::match_coding)
-    {
-        GABACIFY_LOG_DEBUG << "Performing sequence transformation 'match_coding'";
-        auto windowSize = static_cast<uint32_t>(configuration.sequenceTransformationParameter);
-        subseq0Path = inputFilePath + ".match." + std::to_string(windowSize) + ".pointers.tmp";
-        subseq1Path = inputFilePath + ".match." + std::to_string(windowSize) + ".lengths.tmp";
-        subseq2Path = inputFilePath + ".match." + std::to_string(windowSize) + ".values.tmp";
-        if (configuration.sequenceTransformationParameter > std::numeric_limits<uint32_t>::max())
-        {
-            GABACIFY_DIE("Match coding window size must be smaller than 2^32");
-        }
-        GABACIFY_LOG_DEBUG << "Match coding window size: " << windowSize;
-        std::vector<uint64_t> pointers;
-        std::vector<uint64_t> lengths;
-        std::vector<uint64_t> rawValues;
-        //test if preprocessed files exist
-        if(fileExists(subseq0Path) && fileExists(subseq1Path) && fileExists(subseq2Path))
-        {
-            InputFile inputFileSubseq0(subseq0Path);
-            InputFile inputFileSubseq1(subseq1Path);
-            InputFile inputFileSubseq2(subseq2Path);
-            size_t bufferSize = inputFileSubseq0.size();
-            std::vector<unsigned char> buffer(bufferSize);
-            inputFileSubseq0.read(&buffer[0], 1, bufferSize);
-            generateSymbolStream(buffer, 4, &pointers);
-            bufferSize = inputFileSubseq1.size();
-            buffer.resize(bufferSize);
-            inputFileSubseq1.read(&buffer[0], 1, bufferSize);
-            generateSymbolStream(buffer, 4, &lengths);
-            bufferSize = inputFileSubseq2.size();
-            buffer.resize(bufferSize);
-            inputFileSubseq2.read(&buffer[0], 1, bufferSize);
-            generateSymbolStream(buffer, wordSize, &rawValues);
-            GABACIFY_LOG_DEBUG << "Transformed sequence 'pointers' read with size: " << pointers.size();
-            GABACIFY_LOG_DEBUG << "Transformed sequence 'lengths' read with size: " << lengths.size();
-            GABACIFY_LOG_DEBUG << "Transformed sequence 'values' read with size: " << rawValues.size();
-        }
-        else
-        {
-          gabac::transformMatchCoding(sequence, windowSize, &pointers, &lengths, &rawValues);
-          GABACIFY_LOG_DEBUG << "Generated transformed sequence 'pointers' with size: " << pointers.size();
-          GABACIFY_LOG_DEBUG << "Generated transformed sequence 'lengths' with size: " << lengths.size();
-          GABACIFY_LOG_DEBUG << "Generated transformed sequence 'raw values' with size: " << rawValues.size();
-          TmpFile outputFileSubseq0(subseq0Path);
-          TmpFile outputFileSubseq1(subseq1Path);
-          TmpFile outputFileSubseq2(subseq2Path);
-          //schrijf equalityFlags
-          std::vector<unsigned char> equalityFlagsBuffer;
-          generateByteBuffer(pointers, 4, &equalityFlagsBuffer);
-          outputFileSubseq0.write(&equalityFlagsBuffer[0], 1, equalityFlagsBuffer.size());
-          //schrijf lengths
-          std::vector<unsigned char> lengthsBuffer;
-          generateByteBuffer(lengths, 4, &lengthsBuffer);
-          outputFileSubseq1.write(&lengthsBuffer[0], 1, lengthsBuffer.size());
-          //schrijf rawValues
-          std::vector<unsigned char> valuesBuffer;
-          generateByteBuffer(rawValues, wordSize, &valuesBuffer);
-          outputFileSubseq2.write(&valuesBuffer[0], 1, valuesBuffer.size());
-        }
+    doSymbolEncoding(inputFilePath, sequence, configuration, &transformedSequences);
 
-        transformedSequences.push_back(std::move(pointers));
-        transformedSequences.push_back(std::move(lengths));
-        transformedSequences.push_back(std::move(rawValues));
-    }
-    else if (configuration.sequenceTransformationId == gabac::SequenceTransformationId::rle_coding)
-    {
-        GABACIFY_LOG_DEBUG << "Performing sequence transformation 'rle_coding'";
-        auto guard = static_cast<uint64_t>(configuration.sequenceTransformationParameter);
-        subseq0Path = inputFilePath+".rle."+std::to_string(guard)+".values.tmp";
-        subseq1Path = inputFilePath+".rle."+std::to_string(guard)+".lengths.tmp";
-        GABACIFY_LOG_DEBUG << "RLE coding guard: " << guard;
-        std::vector<uint64_t> rawValues;
-        std::vector<uint64_t> lengths;
-        if(fileExists(subseq0Path) && fileExists(subseq1Path))
-        {
-            InputFile inputFileSubseq0(subseq0Path);
-            InputFile inputFileSubseq1(subseq1Path);
-            size_t bufferSize = inputFileSubseq0.size();
-            std::vector<unsigned char> buffer(bufferSize);
-            inputFileSubseq0.read(&buffer[0], 1, bufferSize);
-            generateSymbolStream(buffer, wordSize, &rawValues);
-            bufferSize = inputFileSubseq1.size();
-            buffer.resize(bufferSize);
-            inputFileSubseq1.read(&buffer[0], 1, bufferSize);
-            generateSymbolStream(buffer, 4, &lengths);
-            GABACIFY_LOG_DEBUG << "Transformed sequence 'raw values' read with size: " << rawValues.size();
-            GABACIFY_LOG_DEBUG << "Transformed sequence 'lengths' read with size: " << lengths.size();
-        }
-        else
-        {
-          gabac::transformRleCoding(sequence, guard, &rawValues, &lengths);
-          GABACIFY_LOG_DEBUG << "Generated transformed sequence 'raw values' with size: " << rawValues.size();
-          GABACIFY_LOG_DEBUG << "Generated transformed sequence 'lengths' with size: " << lengths.size();
-          TmpFile outputFileSubseq0(subseq0Path);
-          TmpFile outputFileSubseq1(subseq1Path);
-          //schrijf raw values
-          std::vector<unsigned char> rawValueBuffer;
-          generateByteBuffer(rawValues, wordSize, &rawValueBuffer);
-          outputFileSubseq0.write(&rawValueBuffer[0], 1, rawValueBuffer.size());
-          //schrijf lengths
-          std::vector<unsigned char> lengthsBuffer;
-          generateByteBuffer(lengths, 4, &lengthsBuffer);
-          outputFileSubseq1.write(&lengthsBuffer[0], 1, lengthsBuffer.size());
-        }
-        transformedSequences.push_back(std::move(rawValues));
-        transformedSequences.push_back(std::move(lengths));
-    }
-    else
-    {
-        GABACIFY_DIE("Invalid sequence transformation ID");
-    }
+    unsigned wordSize = configuration.wordSize;
 
     // Loop through the transformed sequences
     for (size_t i = 0; i < transformedSequences.size(); i++)
@@ -235,7 +393,7 @@ static void encodeWithConfiguration(
         {
             if (configuration.equal(configurationTempSubseq0, i))
             {
-                GABACIFY_LOG_DEBUG<<"reuse of config";
+                GABACIFY_LOG_DEBUG << "reuse of config";
                 if (configuration.transformedSequenceConfigurations.at(i).lutTransformationEnabled)
                 {
                     appendToBytestream(tempSubseq0Lut0, bytestream);
@@ -243,12 +401,13 @@ static void encodeWithConfiguration(
                 appendToBytestream(tempSubseq0, bytestream);
                 continue;
             }
-        } else if (i == 1)
+        }
+        else if (i == 1)
         {
             //TODO: i wanted something like config1.equalTo(config2, i)
             if (configuration.equal(configurationTempSubseq1, i))
             {
-                GABACIFY_LOG_DEBUG<<"reuse of config";
+                GABACIFY_LOG_DEBUG << "reuse of config";
                 if (configuration.transformedSequenceConfigurations.at(i).lutTransformationEnabled)
                 {
                     appendToBytestream(tempSubseq0Lut1, bytestream);
@@ -264,169 +423,22 @@ static void encodeWithConfiguration(
             // sense.
         }
 
-        GABACIFY_LOG_TRACE << "Processing transformed sequence: " << i;
-        auto transformedSequence = transformedSequences.at(i);
-        auto transformedSequenceConfiguration = configuration.transformedSequenceConfigurations.at(i);
-        std::string seqTransformExtension="";
-        if(configuration.sequenceTransformationId == gabac::SequenceTransformationId::match_coding)
-        {
-          unsigned int windowSize = configuration.sequenceTransformationParameter;
-          switch(i)
-          {
-            case 0:
-                wordSize = 4;
-                seqTransformExtension = ".match." + std::to_string(windowSize) + ".pointers.tmp";
-                break;
-            case 1:
-                wordSize = 4;
-                seqTransformExtension = ".match." + std::to_string(windowSize) + ".lengths.tmp";
-                break;
-            case 2:
-                wordSize = configuration.wordSize;
-                seqTransformExtension = ".match." + std::to_string(windowSize) + ".values.tmp";
-                break;
-            default:
-                wordSize = configuration.wordSize;
-                break;
-          }
-        }
-        else if (configuration.sequenceTransformationId == gabac::SequenceTransformationId::equality_coding)
-        {
-          switch(i)
-          {
-            case 0:
-                wordSize=1;
-                seqTransformExtension = ".eq.equalityFlags.tmp";
-                break;
-            case 1:
-                wordSize=configuration.wordSize;
-                seqTransformExtension = ".eq.values.tmp";
-                break;
-            default:
-                wordSize = configuration.wordSize;
-                break;
-          }
-        }
-        else if (configuration.sequenceTransformationId == gabac::SequenceTransformationId::rle_coding)
-        {
-          unsigned int guard = configuration.sequenceTransformationParameter;
-          switch(i)
-          {
-            case 0:
-                wordSize=configuration.wordSize;
-                seqTransformExtension = ".rle."+std::to_string(guard)+".values.tmp";
-                break;
-            case 1:
-                wordSize=4;
-                seqTransformExtension = ".rle."+std::to_string(guard)+".lengths.tmp";
-                break;
-            default:
-                wordSize = configuration.wordSize;
-                break;
-          }
-        }
-        else
-        {
-            wordSize = configuration.wordSize;
-        }
+        std::vector<std::vector<uint64_t>> lutTransformedSequences;
+        doLutTransform(
+                inputFilePath,
+                configuration,
+                wordSize,
+                i,
+                transformedSequences,
+                bytestream,
+                &lutTransformedSequences
+        );
 
-        std::vector<uint64_t> lutTransformedSequence;
-        std::vector<unsigned char> inverseLutBitstream;
-        std::vector<int64_t> inverseLutTmp;
-        std::string lutTransformExtension = "";
-        if (transformedSequenceConfiguration.lutTransformationEnabled)
-        {
-            GABACIFY_LOG_TRACE << "LUT transform *en*abled";
-            lutTransformExtension="."+std::to_string(i)+".lutTransformed.tmp";
-            // Do the LUT transform
-            std::vector<uint64_t> inverseLut;
-            GABACIFY_LOG_DEBUG<<"used file: "+inputFilePath+seqTransformExtension+lutTransformExtension;
-            if(fileExists(inputFilePath+seqTransformExtension+lutTransformExtension))
-            {
-                GABACIFY_LOG_DEBUG<<"files exist";
-                InputFile inputFileSubseq0(inputFilePath+seqTransformExtension+lutTransformExtension);
-                InputFile inputFileSubseq1(inputFilePath+seqTransformExtension+"."+std::to_string(i)+".lut.tmp");
-                size_t bufferSize = inputFileSubseq0.size();
-                std::vector<unsigned char> buffer(bufferSize);
-                inputFileSubseq0.read(&buffer[0], 1, bufferSize);
-                generateSymbolStream(buffer, wordSize, &lutTransformedSequence);
-                //read lut
-                bufferSize = inputFileSubseq1.size();
-                buffer.resize(bufferSize);
-                inputFileSubseq1.read(&buffer[0], 1, bufferSize);
-                generateSymbolStream(buffer, wordSize, &inverseLut);
-                for (const auto& inverseLutEntry : inverseLut)
-                {
-                    assert(inverseLutEntry <= std::numeric_limits<int64_t>::max());
-                    inverseLutTmp.push_back(static_cast<int64_t>(inverseLutEntry));
-                }
-                GABACIFY_LOG_DEBUG << "Lut Transformed sequence read with size: " << lutTransformedSequence.size();
-                GABACIFY_LOG_DEBUG << "lut read with size: " << inverseLut.size();
-            }
-            else
-            {
-              GABACIFY_LOG_DEBUG<<"files do not exist";
-              gabac::transformLutTransform0(transformedSequence, &lutTransformedSequence, &inverseLut);
-              for (const auto& inverseLutEntry : inverseLut)
-              {
-                  assert(inverseLutEntry <= std::numeric_limits<int64_t>::max());
-                  inverseLutTmp.push_back(static_cast<int64_t>(inverseLutEntry));
-              }
-              GABACIFY_LOG_DEBUG << "Generated Lut transformed sequence with size: " << lutTransformedSequence.size();
-              GABACIFY_LOG_DEBUG << "lut with size: " << inverseLut.size();
-              TmpFile outputFileSubseq0(inputFilePath+seqTransformExtension+lutTransformExtension);
-              TmpFile outputFileSubseq1(inputFilePath+seqTransformExtension+"."+std::to_string(i)+".lut.tmp");
-              //schrijf transformed values
-              std::vector<unsigned char> transformedValueBuffer;
-              generateByteBuffer(lutTransformedSequence, wordSize, &transformedValueBuffer);
-              outputFileSubseq0.write(&transformedValueBuffer[0], 1, transformedValueBuffer.size());
-              //schrijf lut
-              std::vector<unsigned char> lutBuffer;
-              generateByteBuffer(inverseLut, wordSize, &lutBuffer);
-              outputFileSubseq1.write(&lutBuffer[0], 1, lutBuffer.size());
-            }
-            // GABACIFY_LOG_DEBUG<<"lut size before coding: "<<inverseLutTmp
-            gabac::encode(
-                inverseLutTmp,
-                gabac::BinarizationId::BI,
-                { wordSize * 8 },
-                gabac::ContextSelectionId::bypass,
-                &inverseLutBitstream
-            );
-            appendToBytestream(inverseLutBitstream, bytestream);
-            GABACIFY_LOG_TRACE << "Wrote LUT bitstream with size: " << inverseLutBitstream.size();
-            if (i == 0)
-            {
-              tempSubseq0Lut0 = std::move(inverseLutBitstream);
-            } else if (i == 1)
-            {
-              tempSubseq0Lut1 = std::move(inverseLutBitstream);
-            }
-        }
-        else
-        {
-            GABACIFY_LOG_TRACE << "LUT transform *dis*abled";
-            lutTransformedSequence = std::move(transformedSequence);
-        }
-
-        // Diff coding
         std::vector<int64_t> diffAndLutTransformedSequence;
-        if (transformedSequenceConfiguration.diffCodingEnabled)
-        {
-            GABACIFY_LOG_TRACE << "Diff coding *en*abled";
-            gabac::transformDiffCoding(lutTransformedSequence, &diffAndLutTransformedSequence);
-        }
-        else
-        {
-            GABACIFY_LOG_TRACE << "Diff coding *dis*abled";
-            for (const auto& lutTransformedSymbol : lutTransformedSequence)
-            {
-                assert(lutTransformedSymbol <= std::numeric_limits<int64_t>::max());
-                diffAndLutTransformedSequence.push_back(static_cast<int64_t>(lutTransformedSymbol));
-            }
-        }
+        doDiffTransform(configuration, i, lutTransformedSequences, &diffAndLutTransformedSequence);
 
         // Encoding
+        auto transformedSequenceConfiguration = configuration.transformedSequenceConfigurations.at(i);
         std::vector<unsigned char> bitstream;
         gabac::encode(
                 diffAndLutTransformedSequence,
@@ -439,17 +451,18 @@ static void encodeWithConfiguration(
         appendToBytestream(bitstream, bytestream);
         if (i == 0)
         {
-          tempSubseq0 = std::move(bitstream);
-          configurationTempSubseq0 = configuration;
+            tempSubseq0 = std::move(bitstream);
+            configurationTempSubseq0 = configuration;
         }
         else if (i == 1)
         {
-          tempSubseq1 = std::move(bitstream);
-          configurationTempSubseq1 = configuration;
+            tempSubseq1 = std::move(bitstream);
+            configurationTempSubseq1 = configuration;
         }
     }
 }
 
+//------------------------------------------------------------------------------
 
 void encode(
         const std::string& inputFilePath,
@@ -499,20 +512,27 @@ void encode(
                 smallestBytestream = std::move(bytestream);
                 smallestBytestreamSize = smallestBytestream.size();
                 bestConfiguration = configuration;
-                GABACIFY_LOG_INFO << "Found new best configuration (#" << configurationCounter << "; compressed size: " << smallestBytestream.size() << ")";
+                GABACIFY_LOG_INFO << "Found new best configuration (#"
+                                  << configurationCounter
+                                  << "; compressed size: "
+                                  << smallestBytestream.size()
+                                  << ")";
                 GABACIFY_LOG_INFO << configuration.toPrintableString();
             }
             configurationCounter++;
-            if(configurationCounter%1000==0)
+            if (configurationCounter % 1000 == 0)
             {
-              GABACIFY_LOG_INFO << "Progress: " <<configurationCounter<<" of "<<configurations.size();
+                GABACIFY_LOG_INFO << "Progress: " << configurationCounter << " of " << configurations.size();
             }
         }
 
         // Write the smallest bytestream
         TmpFile outputFile(outputFilePath);
         outputFile.write(&smallestBytestream[0], 1, smallestBytestream.size());
-        GABACIFY_LOG_INFO << "Wrote smallest bytestream of size " << smallestBytestream.size() << " to: " << outputFilePath;
+        GABACIFY_LOG_INFO << "Wrote smallest bytestream of size "
+                          << smallestBytestream.size()
+                          << " to: "
+                          << outputFilePath;
 
         // Write the best configuration as JSON
         std::string jsonString = bestConfiguration.toJsonString();
@@ -546,5 +566,6 @@ void encode(
     }
 }
 
+//------------------------------------------------------------------------------
 
 }  // namespace gabacify
