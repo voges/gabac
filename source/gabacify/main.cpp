@@ -63,12 +63,13 @@ static int gabacify_main(
     catch (const gabacify::RuntimeException& e)
     {
         GABACIFY_LOG_ERROR << "Runtime error: " << e.message();
-     //   gabacify::TmpFile::closeAll();
+        gabacify::TmpFile::closeAll();
         return -1;
     }
     catch (const std::exception& e)
     {
         GABACIFY_LOG_ERROR << "Standard library error: " << e.what();
+        gabacify::TmpFile::closeAll();
         return -1;
     }
     catch (...)
