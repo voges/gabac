@@ -19,6 +19,8 @@ struct TransformedSequenceConfiguration
     gabac::BinarizationId binarizationId;
     std::vector<unsigned int> binarizationParameters;
     gabac::ContextSelectionId contextSelectionId;
+
+    std::string toPrintableString() const;
 };
 
 
@@ -32,11 +34,6 @@ class Configuration
     );
 
     ~Configuration();
-
-    bool equal(
-            const Configuration& otherConfiguration,
-            unsigned int subsequenceId
-    ) const;
 
     std::string toJsonString() const;
 
