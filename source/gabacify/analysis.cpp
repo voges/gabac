@@ -343,6 +343,7 @@ void getOptimumOfSequenceTransform(const std::vector<uint64_t>& symbols,
 
             GABACIFY_LOG_TRACE << "Transformed and compressed sequence size: " << bestTransformedStream.size();
 
+            //appendToBytestream(bestTransformedStream, &completeStream);
             completeStream.insert(completeStream.end(),bestTransformedStream.begin(), bestTransformedStream.end());
             currentConf.transformedSequenceConfigurations[i] = std::move(bestConf);
         }

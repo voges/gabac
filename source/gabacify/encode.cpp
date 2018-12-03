@@ -251,9 +251,9 @@ void doLutTransform(bool enabled,
     {
         GABACIFY_LOG_TRACE << "LUT transform *dis*abled";
         (*lutSequences)[0] = transformedSequence;
-        appendToBytestream({}, bytestream);
-        GABACIFY_LOG_DEBUG << "Got uncompressed stream after LUT:" << lutSequences[0].size() << " bytes";
-        GABACIFY_LOG_DEBUG << "Got table after LUT:" << lutSequences[1].size() << " bytes";
+    //    appendToBytestream({}, bytestream);
+        GABACIFY_LOG_DEBUG << "Got uncompressed stream after LUT:" << (*lutSequences)[0].size() << " bytes";
+        GABACIFY_LOG_DEBUG << "Got table after LUT:" << (*lutSequences)[1].size() << " bytes";
         return;
     }
 
