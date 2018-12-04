@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <functional>
 #include <vector>
+#include <string>
 
 namespace gabac {
 

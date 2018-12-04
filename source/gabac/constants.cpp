@@ -4,7 +4,6 @@
 #include <cassert>
 #include <cstdint>
 #include <limits>
-#include <string>
 #include <vector>
 
 #include "gabac/equality_coding.h"
