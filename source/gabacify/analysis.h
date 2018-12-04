@@ -9,15 +9,11 @@
 
 namespace gabacify {
 
-
-void defineConfigurations(
-        const std::vector<uint64_t>& symbols,
-        unsigned int wordSize,
-        std::vector<Configuration> *configurations
+void encode_analyze(const std::string& inputFilePath,
+                    const std::string& configurationFilePath,
+                    const std::string& outputFilePath
 );
-
-
-}  // namespace gabacify
+}
 
 
 #endif  // GABACIFY_ANALYSIS_H_

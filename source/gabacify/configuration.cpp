@@ -78,52 +78,6 @@ Configuration::Configuration(
 Configuration::~Configuration() = default;
 
 
-bool Configuration::equal(
-        const Configuration& otherConfiguration,
-        unsigned int subsequenceId
-) const {
-    if (wordSize != otherConfiguration.wordSize)
-    {
-        return false;
-    }
-    else if (sequenceTransformationId != otherConfiguration.sequenceTransformationId)
-    {
-        return false;
-    }
-    else if (sequenceTransformationParameter != otherConfiguration.sequenceTransformationParameter)
-    {
-        return false;
-    }
-    else if (transformedSequenceConfigurations[subsequenceId].lutTransformationEnabled != otherConfiguration.transformedSequenceConfigurations[subsequenceId].lutTransformationEnabled)
-    {
-        return false;
-    }
-    else if (transformedSequenceConfigurations[subsequenceId].diffCodingEnabled != otherConfiguration.transformedSequenceConfigurations[subsequenceId].diffCodingEnabled)
-    {
-        return false;
-    }
-    else if (transformedSequenceConfigurations[subsequenceId].binarizationId != otherConfiguration.transformedSequenceConfigurations[subsequenceId].binarizationId)
-    {
-        return false;
-    }
-    else if (transformedSequenceConfigurations[subsequenceId].contextSelectionId != otherConfiguration.transformedSequenceConfigurations[subsequenceId].contextSelectionId)
-    {
-        return false;
-    }
-    else
-    {
-        for (size_t i = 0; i < transformedSequenceConfigurations[subsequenceId].binarizationParameters.size(); i++)
-        {
-            if (transformedSequenceConfigurations[subsequenceId].binarizationParameters[i] != otherConfiguration.transformedSequenceConfigurations[subsequenceId].binarizationParameters[i])
-            {
-                return false;
-            }
-        }
-    }
-    return true;
-}
-
-
 std::string Configuration::toJsonString() const
 {
     std::string jsonString;
@@ -215,21 +169,27 @@ std::string Configuration::toPrintableString() const
     s << this->sequenceTransformationParameter << "  |  ";
     for (const auto& transformedSequenceConfiguration : this->transformedSequenceConfigurations)
     {
-        s << "[";
-        s << static_cast<int>(transformedSequenceConfiguration.lutTransformationEnabled) << "  |  ";
-        s << static_cast<int>(transformedSequenceConfiguration.lutTransformationParameter) << "  |  ";
-        s << static_cast<int>(transformedSequenceConfiguration.diffCodingEnabled) << "  |  ";
-        s << static_cast<int>(transformedSequenceConfiguration.binarizationId) << "  |  ";
-        s << "[ ";
-        for (const auto& binarizationParameter : transformedSequenceConfiguration.binarizationParameters)
-        {
-            s << binarizationParameter << " ";
-        }
-        s << "]  |  ";
-        s << static_cast<int>(transformedSequenceConfiguration.contextSelectionId);
-        s << "]";
+        s << transformedSequenceConfiguration.toPrintableString();
     }
 
+    return s.str();
+}
+
+std::string TransformedSequenceConfiguration::toPrintableString() const {
+    std::stringstream s;
+    s << "[";
+    s << static_cast<int>(lutTransformationEnabled) << "  |  ";
+    s << static_cast<int>(lutTransformationParameter) << "  |  ";
+    s << static_cast<int>(diffCodingEnabled) << "  |  ";
+    s << static_cast<int>(binarizationId) << "  |  ";
+    s << "[ ";
+    for (const auto& binarizationParameter : binarizationParameters)
+    {
+        s << binarizationParameter << " ";
+    }
+    s << "]  |  ";
+    s << static_cast<int>(contextSelectionId);
+    s << "]";
     return s.str();
 }
 

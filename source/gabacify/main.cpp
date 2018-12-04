@@ -35,7 +35,7 @@ static int gabacify_main(
     {
         gabacify::initLog();
         gabacify::ProgramOptions programOptions(argc, argv);
-        gabacify::setLogLevel(programOptions.logLevel);
+        gabacify::setLogLevel("trace");
         writeCommandLine(argc, argv);
 
         if (programOptions.task == "encode")
