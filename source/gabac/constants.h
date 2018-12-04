@@ -3,12 +3,16 @@
 
 #ifdef __cplusplus
 
+#include <cstdint>
+#include <functional>
+#include <vector>
+
 namespace gabac {
 
 
 enum class SequenceTransformationId
 #else
-enum SequenceTransformationId
+    enum SequenceTransformationId
 #endif
 {
     no_transform = 0,
@@ -20,7 +24,7 @@ enum SequenceTransformationId
 #ifdef __cplusplus
 enum class BinarizationId
 #else
-enum BinarizationId
+    enum BinarizationId
 #endif
 {
     BI = 0,  /** Binary */
@@ -34,7 +38,7 @@ enum BinarizationId
 #ifdef __cplusplus
 enum class ContextSelectionId
 #else
-enum ContextSelectionId
+    enum ContextSelectionId
 #endif
 {
     bypass = 0,
@@ -44,7 +48,48 @@ enum ContextSelectionId
 };
 
 #ifdef __cplusplus
+
+
+using SequenceTransform = std::function<void(const std::vector<uint64_t>& sequence, const uint64_t param,
+                                             std::vector<std::vector<uint64_t>> *const
+)>;
+
+using InverseSequenceTransform = std::function<void(const std::vector<std::vector<uint64_t>>&, const uint64_t,
+                                                    std::vector<uint64_t> *const
+)>;
+
+using SignedBinarizationCheck = std::function<bool(int64_t min, int64_t max, uint64_t parameter
+)>;
+
+using UnsignedBinarizationCheck = std::function<bool(uint64_t min, uint64_t max, uint64_t parameter
+)>;
+
+
+struct TransformationProperties
+{
+    std::string name;
+    std::vector<std::string> streamNames;
+    std::vector<unsigned int> wordsizes; // Wordsizes of output streams
+    SequenceTransform transform; // Function for transformation
+    InverseSequenceTransform inverseTransform; // Function for inversetransformation
+};
+
+struct BinarizationProperties
+{
+    std::string name;
+    bool isSigned;
+    SignedBinarizationCheck sbCheck;
+    UnsignedBinarizationCheck ubCheck;
+};
+
+extern const std::vector<TransformationProperties> transformationInformation;
+extern const std::vector<BinarizationProperties> binarizationInformation;
+
+std::vector<unsigned> fixWordSizes(const std::vector<unsigned>& list, unsigned wordsize);
+
 }  // namespace gabac
+
 #endif
+
 
 #endif  /* GABAC_CONSTANTS_H_ */

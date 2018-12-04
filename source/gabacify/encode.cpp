@@ -8,12 +8,9 @@
 #include <utility>
 #include <vector>
 
-#include "gabac/diff_coding.h"
+#include "gabac/constants.h"
 #include "gabac/encoding.h"
-#include "gabac/equality_coding.h"
-#include "gabac/lut_transform.h"
-#include "gabac/match_coding.h"
-#include "gabac/rle_coding.h"
+#include "gabac/diff_coding.h"
 
 #include "gabacify/analysis.h"
 #include "gabacify/configuration.h"
@@ -46,180 +43,6 @@ void appendToBytestream(
 
 //------------------------------------------------------------------------------
 
-const std::vector<BinarizationProperties> binarizationInformation = {
-        {
-                "BI",
-                false,
-                [](int64_t min, int64_t max, uint64_t parameter) -> bool
-                {
-                    return min >= 0 && max < (1ll << parameter);
-                },
-                [](uint64_t min, uint64_t max, uint64_t parameter) -> bool
-                {
-                    return max < (1ll << parameter);
-                }
-        },
-        {
-                "TU",
-                false,
-                [](int64_t min, int64_t max, uint64_t parameter) -> bool
-                {
-                    return min >= 0 && max <= parameter;
-                },
-                [](uint64_t min, uint64_t max, uint64_t parameter) -> bool
-                {
-                    return max <= parameter;
-                }
-        },
-        {
-                "EG",
-                false,
-                [](int64_t min, int64_t max, uint64_t parameter) -> bool
-                {
-                    return min >= 0 && max <= ((1ll << 32)-1);
-                },
-                [](uint64_t min, uint64_t max, uint64_t parameter) -> bool
-                {
-                    return max <= ((1ll << 32)-1);
-                }
-        },
-        {
-                "SEG",
-                true,
-                [](int64_t min, int64_t max, uint64_t parameter) -> bool
-                {
-                    return min >= -(1ll << 16) && max <= ((1ll << 16)-1);
-                },
-                [](uint64_t min, uint64_t max, uint64_t parameter) -> bool
-                {
-                    return max <= ((1ll << 16)-1);
-                }
-        },
-        {
-                "TEG",
-                false,
-                [](int64_t min, int64_t max, uint64_t parameter) -> bool
-                {
-                    return min >= 0 && max <= ((1ll << (32-(parameter >> 1)))-1);
-                },
-                [](uint64_t min, uint64_t max, uint64_t parameter) -> bool
-                {
-                    return max <= ((1ll << (32-(parameter >> 1)))-1);
-                }
-        },
-        {
-                "STEG",
-                true,
-                [](int64_t min, int64_t max, uint64_t parameter) -> bool
-                {
-                    return min >= -((1ll << (16-(parameter >> 1)))-1) && max <= ((1ll << (16-(parameter >> 1)))-1);
-                },
-                [](uint64_t min, uint64_t max, uint64_t parameter) -> bool
-                {
-                    return max <= ((1ll << (16-(parameter >> 1)))-1);
-                }
-        }
-};
-
-//------------------------------------------------------------------------------
-
-const std::vector<TransformationProperties> transformationInformation = {
-        {
-                "no_transform", // Name
-                {"out"}, // StreamNames
-                {0}, // WordSizes (0: non fixed current stream wordsize)
-                [](const std::vector<uint64_t>& sequence, uint64_t,
-                   std::vector<std::vector<uint64_t>> *const transformedSequences
-                )
-                {
-                    (*transformedSequences)[0] = sequence;
-                }
-        },
-        {
-                "equality_coding", // Name
-                {"eq_flags",   "raw_symbols"}, // StreamNames
-                {1, 0}, // WordSizes (0: non fixed current stream wordsize)
-                [](const std::vector<uint64_t>& sequence, uint64_t,
-                   std::vector<std::vector<uint64_t>> *const transformedSequences
-                )
-                {
-                    gabac::transformEqualityCoding(
-                            sequence,
-                            &(*transformedSequences)[0],
-                            &(*transformedSequences)[1]
-                    );
-                }
-        },
-        {
-                "match_coding", // Name
-                {"pointers",   "lengths", "raw_values"}, // StreamNames
-                {4, 4, 0}, // WordSizes (0: non fixed current stream wordsize)
-                [](const std::vector<uint64_t>& sequence, uint64_t param,
-                   std::vector<std::vector<uint64_t>> *const transformedSequences
-                )
-                {
-                    gabac::transformMatchCoding(
-                            sequence,
-                            param,
-                            &(*transformedSequences)[0],
-                            &(*transformedSequences)[1],
-                            &(*transformedSequences)[2]
-                    );
-                }
-        },
-        {
-                "rle_coding", // Name
-                {"raw_values", "lengths"}, // StreamNames
-                {0, 4}, // WordSizes (0: non fixed current stream wordsize)
-                [](const std::vector<uint64_t>& sequence, uint64_t param,
-                   std::vector<std::vector<uint64_t>> *const transformedSequences
-                )
-                {
-                    gabac::transformRleCoding(
-                            sequence,
-                            param,
-                            &(*transformedSequences)[0],
-                            &(*transformedSequences)[1]
-                    );
-                }
-        },
-        {
-                "lut_coding", // Name
-                {"sequence",   "lut"}, // StreamNames
-                {0, 0}, // WordSizes (0: non fixed current stream wordsize)
-                [](const std::vector<uint64_t>& sequence, uint64_t,
-                   std::vector<std::vector<uint64_t>> *const transformedSequences
-                )
-                {
-                    gabac::transformLutTransform0(
-                            sequence,
-                            &(*transformedSequences)[0],
-                            &(*transformedSequences)[1]
-                    );
-                }
-        },
-        {
-                "diff_coding", // Name
-                {"sequence"}, // StreamNames
-                {0}, // WordSizes (0: non fixed current stream wordsize)
-                [](const std::vector<uint64_t>&, uint64_t,
-                   std::vector<std::vector<uint64_t>> *const
-                )
-                {
-                }
-        }
-};
-
-//------------------------------------------------------------------------------
-
-static std::vector<unsigned> fixWordSizes(const std::vector<unsigned>& list, unsigned wordsize){
-    std::vector<unsigned> ret = list;
-    std::replace(ret.begin(), ret.end(), 0u, wordsize);
-    return ret;
-}
-
-//------------------------------------------------------------------------------
-
 void doSequenceTransform(const std::vector<uint64_t>& sequence,
                          const gabac::SequenceTransformationId& transID,
                          uint64_t param,
@@ -228,13 +51,14 @@ void doSequenceTransform(const std::vector<uint64_t>& sequence,
     GABACIFY_LOG_TRACE << "Encoding sequence of length: " << sequence.size();
 
     auto id = unsigned(transID);
-    GABACIFY_LOG_DEBUG << "Performing sequence transformation " << transformationInformation[id].name;
+    GABACIFY_LOG_DEBUG << "Performing sequence transformation " << gabac::transformationInformation[id].name;
 
-    transformedSequences->resize(transformationInformation[id].streamNames.size());
-    transformationInformation[id].transform(sequence, param, transformedSequences);
+    transformedSequences->resize(gabac::transformationInformation[id].streamNames.size());
+    gabac::transformationInformation[id].transform(sequence, param, transformedSequences);
 
     GABACIFY_LOG_TRACE << "Got " << transformedSequences->size() << " sequences";
-    for (int i = 0; i < transformedSequences->size(); ++i) {
+    for (unsigned i = 0; i < transformedSequences->size(); ++i)
+    {
         GABACIFY_LOG_TRACE << i << ": " << (*transformedSequences)[i].size() << " bytes";
     }
 }
@@ -251,7 +75,7 @@ void doLutTransform(bool enabled,
     {
         GABACIFY_LOG_TRACE << "LUT transform *dis*abled";
         (*lutSequences)[0] = transformedSequence;
-    //    appendToBytestream({}, bytestream);
+        //    appendToBytestream({}, bytestream);
         GABACIFY_LOG_DEBUG << "Got uncompressed stream after LUT:" << (*lutSequences)[0].size() << " bytes";
         GABACIFY_LOG_DEBUG << "Got table after LUT:" << (*lutSequences)[1].size() << " bytes";
         return;
@@ -259,8 +83,8 @@ void doLutTransform(bool enabled,
 
     GABACIFY_LOG_TRACE << "LUT transform *en*abled";
     const unsigned LUT_INDEX = 4;
-    lutSequences->resize(transformationInformation[LUT_INDEX].streamNames.size());
-    transformationInformation[LUT_INDEX].transform(transformedSequence, 0, lutSequences);
+    lutSequences->resize(gabac::transformationInformation[LUT_INDEX].streamNames.size());
+    gabac::transformationInformation[LUT_INDEX].transform(transformedSequence, 0, lutSequences);
 
     GABACIFY_LOG_DEBUG << "Got uncompressed stream after LUT:" << (*lutSequences)[0].size() << " bytes";
     GABACIFY_LOG_DEBUG << "Got table after LUT:" << (*lutSequences)[1].size() << " bytes";
@@ -292,7 +116,9 @@ void doDiffTransform(bool enabled,
     {
         GABACIFY_LOG_TRACE << "Diff coding *en*abled";
         gabac::transformDiffCoding(lutTransformedSequence, diffAndLutTransformedSequence);
-        GABACIFY_LOG_DEBUG << "Got uncompressed stream after diff:" << diffAndLutTransformedSequence->size() << " bytes";
+        GABACIFY_LOG_DEBUG << "Got uncompressed stream after diff:"
+                           << diffAndLutTransformedSequence->size()
+                           << " bytes";
         return;
     }
 
@@ -377,8 +203,8 @@ static void encodeWithConfiguration(
     );
     sequence->clear();
     sequence->shrink_to_fit();
-    std::vector<unsigned> wordsizes = fixWordSizes(
-            transformationInformation[unsigned(configuration.sequenceTransformationId)].wordsizes,
+    std::vector<unsigned> wordsizes = gabac::fixWordSizes(
+            gabac::transformationInformation[unsigned(configuration.sequenceTransformationId)].wordsizes,
             configuration.wordSize
     );
 
