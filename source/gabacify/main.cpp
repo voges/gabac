@@ -35,7 +35,7 @@ static int gabacify_main(
     {
         gabacify::initLog();
         gabacify::ProgramOptions programOptions(argc, argv);
-        gabacify::setLogLevel("trace");
+        gabacify::setLogLevel(programOptions.logLevel);
         writeCommandLine(argc, argv);
 
         if (programOptions.task == "encode")
@@ -88,7 +88,7 @@ extern "C" void handleSignal(
         int sig
 ){
     std::signal(sig, SIG_IGN);  // Ignore the signal
-    GABACIFY_LOG_WARNING << "Catched signal: " << sig;
+    GABACIFY_LOG_WARNING << "Caught signal: " << sig;
     switch (sig)
     {
         case SIGINT:

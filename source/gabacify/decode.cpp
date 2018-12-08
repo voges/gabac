@@ -95,7 +95,6 @@ static void doDiffCoding(const std::vector<int64_t>& diffAndLutTransformedSequen
     }
 
 
-
     GABACIFY_LOG_TRACE << "Diff coding *dis*abled";
     lutTransformedSequence->reserve(diffAndLutTransformedSequence.size());
     for (const auto& diffAndLutTransformedSymbol : diffAndLutTransformedSequence)
@@ -151,7 +150,7 @@ static void doEntropyCoding(const std::vector<unsigned char>& bytestream,
 //------------------------------------------------------------------------------
 
 static void decodeWithConfiguration(
-        const std::vector<unsigned char>& bytestream,
+        std::vector<unsigned char>* bytestream,
         const Configuration& configuration,
         std::vector<uint64_t> *const sequence
 ){
@@ -180,12 +179,12 @@ static void decodeWithConfiguration(
         std::vector<uint64_t> inverseLut;
         if (transformedSequenceConfiguration.lutTransformationEnabled)
         {
-            decodeInverseLUT(bytestream, wordSize, &bytestreamPosition, &inverseLut);
+            decodeInverseLUT(*bytestream, wordSize, &bytestreamPosition, &inverseLut);
         }
 
         std::vector<int64_t> diffAndLutTransformedSequence;
         doEntropyCoding(
-                bytestream,
+                *bytestream,
                 configuration.transformedSequenceConfigurations[i],
                 &bytestreamPosition,
                 &diffAndLutTransformedSequence
@@ -216,6 +215,9 @@ static void decodeWithConfiguration(
 
         transformedSequences.push_back(std::move(transformedSequence));
     }
+
+    bytestream->clear();
+    bytestream->shrink_to_fit();
 
     gabac::transformationInformation[unsigned(configuration.sequenceTransformationId)].inverseTransform(
             transformedSequences,
@@ -251,11 +253,13 @@ void decode(
 
     // Decode with the given configuration
     std::vector<uint64_t> symbols;
-    decodeWithConfiguration(bytestream, configuration, &symbols);
+    decodeWithConfiguration(&bytestream, configuration, &symbols);
 
     // Generate byte buffer from symbol stream
     std::vector<unsigned char> buffer;
     generateByteBuffer(symbols, configuration.wordSize, &buffer);
+    symbols.clear();
+    symbols.shrink_to_fit();
 
     // Write the bytestream
     OutputFile outputFile(outputFilePath);
