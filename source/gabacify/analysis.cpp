@@ -28,8 +28,6 @@
 
 namespace gabacify {
 
-unsigned currentWordsize___; //TODO: Remove this unclean hack (Just here to force TEG for wordsizes longer than 1 byte)
-
 struct CandidateConfig
 {
     std::vector<gabac::SequenceTransformationId> candidateSequenceTransformationIds;
@@ -134,8 +132,9 @@ void getOptimumOfBinarization(const std::vector<int64_t>& diffTransformedSequenc
                               TransformedSequenceConfiguration *const currentConfig
 ){
 
-    const std::vector<std::vector<unsigned>> candidates = {{unsigned(std::ceil(std::log2(max)))},
-                                                           {unsigned(max)},
+    const unsigned BIPARAM = (max > 0) ? unsigned(std::ceil(std::log2(max))) : 1;
+    const std::vector<std::vector<unsigned>> candidates = {{std::min(BIPARAM, 32u)},
+                                                           {std::min(unsigned(max), 32u)},
                                                            {0},
                                                            {0},
                                                            getCandidateConfig().candidateBinarizationParameters,
@@ -186,7 +185,7 @@ void getOptimumOfDiffTransformedStream(const std::vector<int64_t>& diffTransform
                          ? getCandidateConfig().candidateUnsignedBinarizationIds
                          : getCandidateConfig().candidateSignedBinarizationIds; // TODO: avoid copy
 
-    if (currentWordsize___ != 1)
+    if (wordsize != 1 && min >= 0)
     {
         candidates = {gabac::BinarizationId::TEG};
     }
@@ -241,11 +240,17 @@ void getOptimumOfTransformedStream(const std::vector<uint64_t>& transformedSeque
 ){
     for (const auto& transID : getCandidateConfig().candidateLUTCodingParameters)
     {
+        if (wordsize > 1 && transID == true)
+        {
+            GABACIFY_LOG_DEBUG << "Skipped Lut transform for wordsize greater 1: wordsize " << wordsize;
+            continue;
+        }
         GABACIFY_LOG_DEBUG << "Trying LUT transformation: " << transID;
 
         std::vector<uint8_t> lutEnc;
         std::vector<std::vector<uint64_t>> lutStreams;
         TransformedSequenceConfiguration currentConfiguration;
+        currentConfiguration.lutTransformationParameter = 0;
         currentConfiguration.lutTransformationEnabled = transID;
 
         lutStreams.resize(2);
@@ -295,15 +300,17 @@ void getOptimumOfSequenceTransform(const std::vector<uint64_t>& symbols,
         bool error = false;
         for (unsigned i = 0; i < transformedSequences.size(); ++i)
         {
-            currentWordsize___ =
-                    gabac::transformationInformation[unsigned(currentConfig->sequenceTransformationId)].wordsizes[i];
+            unsigned currWordSize = gabac::fixWordSizes(
+                    gabac::transformationInformation[unsigned(currentConfig->sequenceTransformationId)].wordsizes,
+                    currentConfig->wordSize
+            )[i];
             GABACIFY_LOG_DEBUG << "Analyzing sequence: "
                                << gabac::transformationInformation[unsigned(currentConfig->sequenceTransformationId)].streamNames[i]
                                << "";
             std::vector<unsigned char> bestTransformedStream;
             getOptimumOfTransformedStream(
                     transformedSequences[i],
-                    currentConfig->wordSize,
+                    currWordSize,
                     &bestTransformedStream,
                     &(*currentConfig).transformedSequenceConfigurations[i]
             );
