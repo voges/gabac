@@ -50,7 +50,8 @@ static const CandidateConfig& getCandidateConfig(){
                     gabac::SequenceTransformationId::rle_coding
             },
             { // Match coding window sizes
-                    32
+                    32,
+                    256
             },
             { // RLE Guard
                     255
@@ -60,29 +61,27 @@ static const CandidateConfig& getCandidateConfig(){
                     true
             },
             { // Diff transform
-                    false
+                    false//,
+                    //true
             },
             { // Binarizations (unsigned)
                     gabac::BinarizationId::BI,
                     gabac::BinarizationId::TU,
                     gabac::BinarizationId::EG,
-                    gabac::BinarizationId::TEG,
+                    gabac::BinarizationId::TEG
             },
             { // Binarizations (signed)
                     gabac::BinarizationId::SEG,
                     gabac::BinarizationId::STEG
             },
             { // Binarization parameters (TEG and STEG only)
-                    1,
-                    2,
-                    7,
-                    15,
-                    30
+                    1,2,3,4,5,7,9,
+                    15,30,50,100,255
             },
             { // Context modes
                     // gabac::ContextSelectionId::bypass,
-                    // gabac::ContextSelectionId::adaptive_coding_order_0,
-                    // gabac::ContextSelectionId::adaptive_coding_order_1,
+                    gabac::ContextSelectionId::adaptive_coding_order_0,
+                    gabac::ContextSelectionId::adaptive_coding_order_1,
                     gabac::ContextSelectionId::adaptive_coding_order_2
             }
     };
@@ -102,7 +101,7 @@ void getOptimumOfBinarizationParameter(const std::vector<int64_t>& diffTransform
 
     for (const auto& transID : getCandidateConfig().candidateContextSelectionIds)
     {
-        GABACIFY_LOG_DEBUG << "Trying Context: " << unsigned(transID);
+        GABACIFY_LOG_TRACE << "Trying Context: " << unsigned(transID);
         std::vector<uint8_t> currentStream;
 
         currentConfig->contextSelectionId = transID;
@@ -142,11 +141,11 @@ void getOptimumOfBinarization(const std::vector<int64_t>& diffTransformedSequenc
 
     for (const auto& transID : candidates[unsigned(binID)])
     {
-        GABACIFY_LOG_DEBUG << "Trying Parameter: " << transID;
+        GABACIFY_LOG_TRACE << "Trying Parameter: " << transID;
 
         if (!gabac::binarizationInformation[unsigned(binID)].sbCheck(min, max, transID))
         {
-            GABACIFY_LOG_DEBUG << "NOT valid for this stream!" << transID;
+            GABACIFY_LOG_TRACE << "NOT valid for this stream!" << transID;
             continue;
         }
 
@@ -185,13 +184,9 @@ void getOptimumOfDiffTransformedStream(const std::vector<int64_t>& diffTransform
                          ? getCandidateConfig().candidateUnsignedBinarizationIds
                          : getCandidateConfig().candidateSignedBinarizationIds; // TODO: avoid copy
 
-    {
-        candidates = {gabac::BinarizationId::TEG};
-    }
-
     for (const auto& transID : candidates)
     {
-        GABACIFY_LOG_DEBUG << "Trying Binarization: " << unsigned(transID);
+        GABACIFY_LOG_TRACE << "Trying Binarization: " << unsigned(transID);
 
 
         currentConfig->binarizationId = transID;
@@ -430,6 +425,8 @@ void encode_analyze(const std::string& inputFilePath,
     std::string jsonString = bestConfig.toJsonString();
     OutputFile configurationFile(configurationFilePath);
     configurationFile.write(&jsonString[0], 1, jsonString.size());
+    GABACIFY_LOG_DEBUG << "with configuration: \n"
+                       << bestConfig.toPrintableString();
     GABACIFY_LOG_INFO << "Wrote best configuration to: " << configurationFilePath;
 }
 
