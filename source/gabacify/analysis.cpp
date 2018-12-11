@@ -185,7 +185,6 @@ void getOptimumOfDiffTransformedStream(const std::vector<int64_t>& diffTransform
                          ? getCandidateConfig().candidateUnsignedBinarizationIds
                          : getCandidateConfig().candidateSignedBinarizationIds; // TODO: avoid copy
 
-    if (wordsize != 1 && min >= 0)
     {
         candidates = {gabac::BinarizationId::TEG};
     }
