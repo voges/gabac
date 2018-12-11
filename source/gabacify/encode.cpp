@@ -76,8 +76,8 @@ void doLutTransform(bool enabled,
         GABACIFY_LOG_TRACE << "LUT transform *dis*abled";
         (*lutSequences)[0] = transformedSequence;
         //    appendToBytestream({}, bytestream);
-        GABACIFY_LOG_DEBUG << "Got uncompressed stream after LUT:" << (*lutSequences)[0].size() << " bytes";
-        GABACIFY_LOG_DEBUG << "Got table after LUT:" << (*lutSequences)[1].size() << " bytes";
+        GABACIFY_LOG_DEBUG << "Got uncompressed stream after LUT: " << (*lutSequences)[0].size() << " bytes";
+        GABACIFY_LOG_DEBUG << "Got table after LUT: " << (*lutSequences)[1].size() << " bytes";
         return;
     }
 
@@ -86,8 +86,8 @@ void doLutTransform(bool enabled,
     lutSequences->resize(gabac::transformationInformation[LUT_INDEX].streamNames.size());
     gabac::transformationInformation[LUT_INDEX].transform(transformedSequence, 0, lutSequences);
 
-    GABACIFY_LOG_DEBUG << "Got uncompressed stream after LUT:" << (*lutSequences)[0].size() << " bytes";
-    GABACIFY_LOG_DEBUG << "Got table after LUT:" << (*lutSequences)[1].size() << " bytes";
+    GABACIFY_LOG_DEBUG << "Got uncompressed stream after LUT: " << (*lutSequences)[0].size() << " bytes";
+    GABACIFY_LOG_DEBUG << "Got table after LUT: " << (*lutSequences)[1].size() << " bytes";
 
     // GABACIFY_LOG_DEBUG<<"lut size before coding: "<<inverseLutTmp
     auto *data = (int64_t *) (lutSequences->at(1).data());
@@ -116,7 +116,7 @@ void doDiffTransform(bool enabled,
     {
         GABACIFY_LOG_TRACE << "Diff coding *en*abled";
         gabac::transformDiffCoding(lutTransformedSequence, diffAndLutTransformedSequence);
-        GABACIFY_LOG_DEBUG << "Got uncompressed stream after diff:"
+        GABACIFY_LOG_DEBUG << "Got uncompressed stream after diff: "
                            << diffAndLutTransformedSequence->size()
                            << " bytes";
         return;
@@ -130,7 +130,7 @@ void doDiffTransform(bool enabled,
         assert(lutTransformedSymbol <= std::numeric_limits<int64_t>::max());
         diffAndLutTransformedSequence->push_back(static_cast<int64_t>(lutTransformedSymbol));
     }
-    GABACIFY_LOG_DEBUG << "Got uncompressed stream after diff:" << diffAndLutTransformedSequence->size() << " bytes";
+    GABACIFY_LOG_DEBUG << "Got uncompressed stream after diff: " << diffAndLutTransformedSequence->size() << " bytes";
 }
 
 //------------------------------------------------------------------------------
