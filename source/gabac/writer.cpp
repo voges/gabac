@@ -8,6 +8,13 @@
 #include "gabac/constants.h"
 #include "gabac/context_tables.h"
 
+//
+// #include binary_arithmetic_decoder.cpp from here instead of compiling it
+// separately, so that we may call inlined member functions of class
+// BinaryArithmeticDecoder in this file.
+//
+#include "binary_arithmetic_encoder.cpp"
+ 
 
 namespace gabac {
 
