@@ -97,9 +97,13 @@ static void inferLut0(
     std::unordered_map<uint64_t, uint64_t> freq;
 
 
+    const size_t MAX_LUT_SIZE = 1u << 20u; // 8MB table
     for (const auto& symbol : symbols)
     {
         freq[symbol]++;
+        if(freq.size() >= MAX_LUT_SIZE) {
+            return;
+        }
     }
 
     std::vector<std::pair<uint64_t, uint64_t>> freqVec;
