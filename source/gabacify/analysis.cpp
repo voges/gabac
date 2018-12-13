@@ -66,8 +66,8 @@ static const CandidateConfig& getCandidateConfig(){
                     true
             },
             { // Diff transform
-                    false,
-                    true
+                    false//,
+                    //true
             },
             { // Binarizations (unsigned)
                     gabac::BinarizationId::BI,
@@ -80,11 +80,11 @@ static const CandidateConfig& getCandidateConfig(){
                     gabac::BinarizationId::STEG
             },
             { // Binarization parameters (TEG and STEG only)
-                    1, 2, 3, 4, 5, 7, 9,
-                    15, 30, 50, 100, 255
+                    1, 2, 3, 5, 7, 9,
+                    15, 30, 255
             },
             { // Context modes
-                    gabac::ContextSelectionId::bypass,
+                    // gabac::ContextSelectionId::bypass,
                     gabac::ContextSelectionId::adaptive_coding_order_0,
                     gabac::ContextSelectionId::adaptive_coding_order_1,
                     gabac::ContextSelectionId::adaptive_coding_order_2
