@@ -30,6 +30,7 @@ namespace gabacify {
 
 struct CandidateConfig
 {
+    std::vector<unsigned> candidateWordsizes;
     std::vector<gabac::SequenceTransformationId> candidateSequenceTransformationIds;
     std::vector<uint32_t> candidateMatchCodingParameters;
     std::vector<uint32_t> candidateRLECodingParameters;
@@ -43,6 +44,10 @@ struct CandidateConfig
 
 static const CandidateConfig& getCandidateConfig(){
     static const CandidateConfig config = {
+            { // Wordsizes
+                    1,
+                    4
+            },
             { // Sequence Transformations
                     gabac::SequenceTransformationId::no_transform,
                     gabac::SequenceTransformationId::equality_coding,
@@ -61,8 +66,8 @@ static const CandidateConfig& getCandidateConfig(){
                     true
             },
             { // Diff transform
-                    false//,
-                    //true
+                    false,
+                    true
             },
             { // Binarizations (unsigned)
                     gabac::BinarizationId::BI,
@@ -75,11 +80,11 @@ static const CandidateConfig& getCandidateConfig(){
                     gabac::BinarizationId::STEG
             },
             { // Binarization parameters (TEG and STEG only)
-                    1,2,3,4,5,7,9,
-                    15,30,50,100,255
+                    1, 2, 3, 4, 5, 7, 9,
+                    15, 30, 50, 100, 255
             },
             { // Context modes
-                    // gabac::ContextSelectionId::bypass,
+                    gabac::ContextSelectionId::bypass,
                     gabac::ContextSelectionId::adaptive_coding_order_0,
                     gabac::ContextSelectionId::adaptive_coding_order_1,
                     gabac::ContextSelectionId::adaptive_coding_order_2
@@ -234,11 +239,6 @@ void getOptimumOfTransformedStream(const std::vector<uint64_t>& transformedSeque
 ){
     for (const auto& transID : getCandidateConfig().candidateLUTCodingParameters)
     {
-        if (wordsize > 1 && transID == true)
-        {
-            GABACIFY_LOG_DEBUG << "Skipped Lut transform for wordsize greater 1: wordsize " << wordsize;
-            continue;
-        }
         GABACIFY_LOG_DEBUG << "Trying LUT transformation: " << transID;
 
         std::vector<uint8_t> lutEnc;
@@ -249,6 +249,11 @@ void getOptimumOfTransformedStream(const std::vector<uint64_t>& transformedSeque
 
         lutStreams.resize(2);
         doLutTransform(transID, transformedSequence, wordsize, &lutEnc, &lutStreams);
+        if (lutStreams[0].size() != transformedSequence.size())
+        {
+            GABACIFY_LOG_DEBUG << "Lut transformed failed. Probably the symbol space is too large. Skipping. ";
+            continue;
+        }
         GABACIFY_LOG_DEBUG << "LutTransformedSequence uncompressed size: " << lutStreams[0].size() << " bytes";
         GABACIFY_LOG_DEBUG << "Lut table (uncompressed): " << lutStreams[1].size() << " bytes";
 
@@ -356,10 +361,9 @@ void getOptimumOfSequenceTransform(const std::vector<uint64_t>& symbols,
 
 void getOptimumOfSymbolSequence(const std::vector<uint64_t>& symbols,
                                 std::vector<uint8_t> *const bestByteStream,
-                                Configuration *const bestConfig
+                                Configuration *const bestConfig,
+                                Configuration *const currentConfiguration
 ){
-    Configuration currentConfiguration;
-    currentConfiguration.wordSize = 1;
     const std::vector<uint32_t> candidateDefaultParameters = {0};
     const std::vector<uint32_t> *params[] = {&candidateDefaultParameters,
                                              &candidateDefaultParameters,
@@ -370,14 +374,14 @@ void getOptimumOfSymbolSequence(const std::vector<uint64_t>& symbols,
         GABACIFY_LOG_DEBUG << "Trying sequence transformation: "
                            << gabac::transformationInformation[unsigned(transID)].name;
 
-        currentConfiguration.sequenceTransformationId = transID;
+        currentConfiguration->sequenceTransformationId = transID;
         // Core of analysis
         getOptimumOfSequenceTransform(
                 symbols,
                 *(params[unsigned(transID)]),
                 bestByteStream,
                 bestConfig,
-                &currentConfiguration
+                currentConfiguration
         );
 
         GABACIFY_LOG_TRACE << "Sequence transformed compressed size: " << bestByteStream->size();
@@ -390,27 +394,43 @@ void encode_analyze(const std::string& inputFilePath,
                     const std::string& configurationFilePath,
                     const std::string& outputFilePath
 ){
-    // In analysis mode we assume a word size of 1
-    unsigned int wordSize = 1;
-
-    InputFile inputFile(inputFilePath);
-    std::vector<unsigned char> buffer(inputFile.size());
-    inputFile.read(&buffer[0], 1, buffer.size());
-
-    // Generate symbol stream from byte buffer
-    std::vector<uint64_t> symbols;
-    generateSymbolStream(buffer, wordSize, &symbols);
-    buffer.clear();
-    buffer.shrink_to_fit();
-
     Configuration bestConfig;
     std::vector<unsigned char> bestByteStream;
-
-    getOptimumOfSymbolSequence(symbols, &bestByteStream, &bestConfig);
-
-    if (bestByteStream.empty())
+    for (const auto& w : getCandidateConfig().candidateWordsizes)
     {
-        GABACIFY_DIE("NO CONFIG FOUND");
+
+        InputFile inputFile(inputFilePath);
+
+        if (inputFile.size() % w != 0)
+        {
+            GABACIFY_LOG_INFO << "Input stream size "
+                              << inputFile.size()
+                              << " is not a multiple of word size "
+                              << w
+                              << "! Skipping word size.";
+            continue;
+        }
+
+        std::vector<unsigned char> buffer(inputFile.size());
+        inputFile.read(&buffer[0], 1, buffer.size());
+
+        Configuration currentConfig;
+
+        currentConfig.wordSize = w;
+
+        // Generate symbol stream from byte buffer
+        std::vector<uint64_t> symbols;
+        generateSymbolStream(buffer, w, &symbols);
+        buffer.clear();
+        buffer.shrink_to_fit();
+
+
+        getOptimumOfSymbolSequence(symbols, &bestByteStream, &bestConfig, &currentConfig);
+
+        if (bestByteStream.empty())
+        {
+            GABACIFY_DIE("NO CONFIG FOUND");
+        }
     }
 
     // Write the smallest bytestream
