@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <cstdint>
 #include <limits>
 #include <vector>
@@ -47,11 +48,11 @@ const std::vector<BinarizationProperties> binarizationInformation = {
                 false,
                 [](int64_t min, int64_t max, uint64_t) -> bool
                 {
-                    return min >= 0 && max <= int64_t((1ull << 32u) - 1u);
+                    return min >= 0 && max <= int64_t(1ull << 33u) - 2u;
                 },
                 [](uint64_t, uint64_t max, uint64_t) -> bool
                 {
-                    return max <= int64_t((1ull << 32u) - 1u);
+                    return max <= int64_t(1ull << 33u) - 2u;
                 }
         },
         {
@@ -59,11 +60,11 @@ const std::vector<BinarizationProperties> binarizationInformation = {
                 true,
                 [](int64_t min, int64_t max, uint64_t) -> bool
                 {
-                    return min >= -int64_t(1ull << 16u) && max <= int64_t((1ull << 16u) - 1u);
+                    return min >= -(int64_t(1ull << 32u) - 1u) && max <= int64_t(1ull << 32) - 2u;
                 },
                 [](uint64_t, uint64_t max, uint64_t) -> bool
                 {
-                    return max <= ((1ull << 16u) - 1u);
+                    return max <= ((1ull << 32u) - 2u);
                 }
         },
         {
@@ -71,11 +72,13 @@ const std::vector<BinarizationProperties> binarizationInformation = {
                 false,
                 [](int64_t min, int64_t max, uint64_t parameter) -> bool
                 {
-                    return min >= 0 && max <= int64_t((1ull << (32u - (parameter >> 1u))) - 1u);
+                    return min >= 0 &&
+                           max <= int64_t(parameter) + int64_t(1ull << (33 - int64_t(std::ceil(parameter / 2.0)))) - 2u;
                 },
                 [](uint64_t, uint64_t max, uint64_t parameter) -> bool
                 {
-                    return max <= ((1ull << (32u - (parameter >> 1u))) - 1u);
+                    return max <=
+                           uint64_t(parameter) + uint64_t(1ull << (33 - uint64_t(std::ceil(parameter / 2.0)))) - 2u;
                 }
         },
         {
@@ -83,12 +86,14 @@ const std::vector<BinarizationProperties> binarizationInformation = {
                 true,
                 [](int64_t min, int64_t max, uint64_t parameter) -> bool
                 {
-                    return min >= -int64_t((1ull << (16u - (parameter >> 1u))) - 1u) &&
-                           max <= int64_t((1ull << (16u - (parameter >> 1u))) - 1u);
+                    return min >=
+                           -(int64_t(parameter) + int64_t(1ull << (33 - int64_t(std::ceil(parameter / 2.0)))) - 2u) &&
+                           max <= int64_t(parameter) + int64_t(1ull << (33 - int64_t(std::ceil(parameter / 2.0)))) - 2u;
                 },
                 [](uint64_t, uint64_t max, uint64_t parameter) -> bool
                 {
-                    return max <= ((1ull << (16u - (parameter >> 1u))) - 1u);
+                    return max <=
+                           uint64_t(parameter) + uint64_t(1ull << (33 - uint64_t(std::ceil(parameter / 2.0)))) - 2u;
                 }
         }
 };
