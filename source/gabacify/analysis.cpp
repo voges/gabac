@@ -112,7 +112,7 @@ void getOptimumOfBinarizationParameter(const std::vector<int64_t>& diffTransform
         currentConfig->contextSelectionId = transID;
         gabac::encode(diffTransformedSequence, binID, {binParameter}, transID, &currentStream);
 
-        if ((currentStream.size() + lut.size() < bestByteStream->size()) || bestByteStream->empty())
+        if ((currentStream.size() + lut.size() + 4 < bestByteStream->size()) || bestByteStream->empty())
         {
             GABACIFY_LOG_TRACE << "Found new best context config: " << currentConfig->toPrintableString();
             *bestByteStream = lut;
