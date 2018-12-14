@@ -114,7 +114,7 @@ void getOptimumOfBinarizationParameter(const std::vector<int64_t>& diffTransform
 
         GABACIFY_LOG_TRACE << "Compressed size with parameter: " << currentStream.size();
 
-        if ((currentStream.size() + lut.size() < bestByteStream->size()) || bestByteStream->empty())
+        if ((currentStream.size() + lut.size() + 4 < bestByteStream->size()) || bestByteStream->empty())
         {
             GABACIFY_LOG_TRACE << "Found new best context config: " << currentConfig->toPrintableString();
             *bestByteStream = lut;
@@ -148,7 +148,7 @@ void getOptimumOfBinarization(const std::vector<int64_t>& diffTransformedSequenc
     {
         GABACIFY_LOG_TRACE << "Trying Parameter: " << transID;
 
-        if (!gabac::binarizationInformation[unsigned(binID)].sbCheck(min, max, transID))
+        if (!gabac::binarizationInformation[unsigned(binID)].sbCheck(min, max, transID) || transID > max)
         {
             GABACIFY_LOG_TRACE << "NOT valid for this stream!" << transID;
             continue;
