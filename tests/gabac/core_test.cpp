@@ -53,15 +53,6 @@ TEST_F(coreTest, encode){
                         &bitstream
                 ), "");
             }
-
-            binpam.resize(params[b] + 1u, 1);
-            EXPECT_DEATH(gabac::encode(
-                    s,
-                    gabac::BinarizationId(b),
-                    binpam,
-                    gabac::ContextSelectionId::adaptive_coding_order_0,
-                    &bitstream
-            ), "");
         }
     }
 }

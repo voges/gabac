@@ -95,7 +95,7 @@ int encode(
 #ifndef NDEBUG
     const unsigned int paramSize[unsigned(BinarizationId::STEG) + 1u] = {1, 1, 0, 0, 1, 1};
 #endif
-    assert(binarizationParameters.size() == paramSize[static_cast<int>(binarizationId)]);
+    assert(binarizationParameters.size() >= paramSize[static_cast<int>(binarizationId)]);
 
     bitstream->clear();
 

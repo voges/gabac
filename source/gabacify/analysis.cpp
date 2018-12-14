@@ -112,6 +112,8 @@ void getOptimumOfBinarizationParameter(const std::vector<int64_t>& diffTransform
         currentConfig->contextSelectionId = transID;
         gabac::encode(diffTransformedSequence, binID, {binParameter}, transID, &currentStream);
 
+        GABACIFY_LOG_TRACE << "Compressed size with parameter: " << currentStream.size();
+
         if ((currentStream.size() + lut.size() + 4 < bestByteStream->size()) || bestByteStream->empty())
         {
             GABACIFY_LOG_TRACE << "Found new best context config: " << currentConfig->toPrintableString();
@@ -320,8 +322,10 @@ void getOptimumOfSequenceTransform(const std::vector<uint64_t>& symbols,
 
             GABACIFY_LOG_TRACE << "Transformed and compressed sequence size: " << bestTransformedStream.size();
 
+            //appendToBytestream(bestTransformedStream, &completeStream);
+            completeStream.insert(completeStream.end(), bestTransformedStream.begin(), bestTransformedStream.end());
 
-            if (((completeStream.size() + bestTransformedStream.size()) >= bestByteStream->size()) &&
+            if ((completeStream.size() >= bestByteStream->size()) &&
                 (!bestByteStream->empty()))
             {
                 GABACIFY_LOG_TRACE << "Already bigger stream than current maximum (Sequence transform level): Skipping "
@@ -329,9 +333,6 @@ void getOptimumOfSequenceTransform(const std::vector<uint64_t>& symbols,
                 error = true;
                 break;
             }
-
-            //appendToBytestream(bestTransformedStream, &completeStream);
-            completeStream.insert(completeStream.end(), bestTransformedStream.begin(), bestTransformedStream.end());
         }
         if (error)
         {
