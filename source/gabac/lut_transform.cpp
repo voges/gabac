@@ -289,6 +289,9 @@ void transformLutTransform0(
 ){
     std::vector<std::pair<uint64_t, uint64_t>> lut;
     inferLut0(symbols, &lut, inverseLUT);
+    if(lut.empty()) {
+        return;
+    }
     transformLutTransform_core(0, symbols, lut, std::vector<uint64_t>(), transformedSymbols);
 }
 
