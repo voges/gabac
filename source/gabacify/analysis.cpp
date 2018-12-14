@@ -146,7 +146,7 @@ void getOptimumOfBinarization(const std::vector<int64_t>& diffTransformedSequenc
     {
         GABACIFY_LOG_TRACE << "Trying Parameter: " << transID;
 
-        if (!gabac::binarizationInformation[unsigned(binID)].sbCheck(min, max, transID))
+        if (!gabac::binarizationInformation[unsigned(binID)].sbCheck(min, max, transID) || transID > max)
         {
             GABACIFY_LOG_TRACE << "NOT valid for this stream!" << transID;
             continue;
