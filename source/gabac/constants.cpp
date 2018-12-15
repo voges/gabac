@@ -21,80 +21,81 @@ namespace gabac {
 const std::vector<BinarizationProperties> binarizationInformation = {
         {
                 "BI",
-                false,
-                [](int64_t min, int64_t max, uint64_t parameter) -> bool
+                1,
+                32,
+                [](uint64_t) -> int64_t
                 {
-                    return min >= 0 && max < int64_t(1ull << parameter);
+                    return 0;
                 },
-                [](uint64_t, uint64_t max, uint64_t parameter) -> bool
+                [](uint64_t parameter) -> int64_t
                 {
-                    return max < (1ull << parameter);
-                }
+                    return uint64_t((1ull << (parameter)) - 1u);
+                },
         },
         {
                 "TU",
-                false,
-                [](int64_t min, int64_t max, uint64_t parameter) -> bool
+                1,
+                32,
+                [](uint64_t) -> int64_t
                 {
-                    return min >= 0 && uint64_t(max) <= parameter;
+                    return 0;
                 },
-                [](uint64_t, uint64_t max, uint64_t parameter) -> bool
+                [](uint64_t parameter) -> int64_t
                 {
-                    return max <= parameter;
-                }
+                    return parameter;
+                },
         },
         {
                 "EG",
-                false,
-                [](int64_t min, int64_t max, uint64_t) -> bool
+                0,
+                0,
+                [](uint64_t) -> int64_t
                 {
-                    return min >= 0 && max <= int64_t(1ull << 33u) - 2u;
+                    return 0;
                 },
-                [](uint64_t, uint64_t max, uint64_t) -> bool
+                [](uint64_t) -> int64_t
                 {
-                    return max <= int64_t(1ull << 33u) - 2u;
-                }
+                    return std::numeric_limits<int32_t>::max();
+                },
         },
         {
                 "SEG",
-                true,
-                [](int64_t min, int64_t max, uint64_t) -> bool
+                0,
+                0,
+                [](uint64_t) -> int64_t
                 {
-                    return min >= -(int64_t(1ull << 32u) - 1u) && max <= int64_t(1ull << 32) - 2u;
+                    return std::numeric_limits<int32_t>::min() / 2;
                 },
-                [](uint64_t, uint64_t max, uint64_t) -> bool
+                [](uint64_t) -> int64_t
                 {
-                    return max <= ((1ull << 32u) - 2u);
-                }
+                    return std::numeric_limits<int32_t>::max() / 2;
+                },
         },
         {
                 "TEG",
-                false,
-                [](int64_t min, int64_t max, uint64_t parameter) -> bool
+                0,
+                255,
+                [](uint64_t) -> int64_t
                 {
-                    return min >= 0 &&
-                           max <= int64_t(parameter) + int64_t(1ull << (33 - int64_t(std::ceil(parameter / 2.0)))) - 2u;
+                    return 0;
                 },
-                [](uint64_t, uint64_t max, uint64_t parameter) -> bool
+                [](uint64_t param) -> int64_t
                 {
-                    return max <=
-                           uint64_t(parameter) + uint64_t(1ull << (33 - uint64_t(std::ceil(parameter / 2.0)))) - 2u;
-                }
+                    return std::numeric_limits<int32_t>::max() + param;
+                },
         },
         {
                 "STEG",
-                true,
-                [](int64_t min, int64_t max, uint64_t parameter) -> bool
+                0,
+                255,
+                [](uint64_t param) -> int64_t
                 {
-                    return min >=
-                           -(int64_t(parameter) + int64_t(1ull << (33 - int64_t(std::ceil(parameter / 2.0)))) - 2u) &&
-                           max <= int64_t(parameter) + int64_t(1ull << (33 - int64_t(std::ceil(parameter / 2.0)))) - 2u;
+                    return std::numeric_limits<int32_t>::min() / 2ll - param;
                 },
-                [](uint64_t, uint64_t max, uint64_t parameter) -> bool
+                [](uint64_t param) -> int64_t
                 {
-                    return max <=
-                           uint64_t(parameter) + uint64_t(1ull << (33 - uint64_t(std::ceil(parameter / 2.0)))) - 2u;
-                }
+                    return std::numeric_limits<int32_t>::max() / 2ll + param;
+                },
         }
 };
 

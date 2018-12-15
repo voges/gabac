@@ -62,7 +62,7 @@ using InverseSequenceTransform = std::function<void(const std::vector<std::vecto
 using SignedBinarizationCheck = std::function<bool(int64_t min, int64_t max, uint64_t parameter
 )>;
 
-using UnsignedBinarizationCheck = std::function<bool(uint64_t min, uint64_t max, uint64_t parameter
+using SignedBinarizationBorder = std::function<int64_t (uint64_t parameter
 )>;
 
 
@@ -78,9 +78,13 @@ struct TransformationProperties
 struct BinarizationProperties
 {
     std::string name;
-    bool isSigned;
-    SignedBinarizationCheck sbCheck;
-    UnsignedBinarizationCheck ubCheck;
+    int64_t paramMin;
+    int64_t paramMax;
+    SignedBinarizationBorder min;
+    SignedBinarizationBorder max;
+    bool sbCheck (int64_t minv, int64_t maxv, uint64_t parameter) const {
+        return minv >= this->min(parameter) && maxv <= this->max(parameter);
+    }
 };
 
 extern const std::vector<TransformationProperties> transformationInformation;
