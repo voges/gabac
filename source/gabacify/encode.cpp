@@ -67,9 +67,10 @@ void doSequenceTransform(const std::vector<uint64_t>& sequence,
 
 void doLutTransform(bool enabled,
                     const std::vector<uint64_t>& transformedSequence,
-                    unsigned int wordSize,
+                    unsigned int order,
                     std::vector<unsigned char> *const bytestream,
-                    std::vector<std::vector<uint64_t >> *const lutSequences
+                    std::vector<std::vector<uint64_t >> *const lutSequences,
+                    unsigned *bits0
 ){
     if (!enabled)
     {
@@ -84,25 +85,51 @@ void doLutTransform(bool enabled,
     GABACIFY_LOG_TRACE << "LUT transform *en*abled";
     const unsigned LUT_INDEX = 4;
     lutSequences->resize(gabac::transformationInformation[LUT_INDEX].streamNames.size());
-    gabac::transformationInformation[LUT_INDEX].transform(transformedSequence, 0, lutSequences);
+    gabac::transformationInformation[LUT_INDEX].transform(transformedSequence, order, lutSequences);
 
     GABACIFY_LOG_DEBUG << "Got uncompressed stream after LUT: " << (*lutSequences)[0].size() << " bytes";
-    GABACIFY_LOG_DEBUG << "Got table after LUT: " << (*lutSequences)[1].size() << " bytes";
+    GABACIFY_LOG_DEBUG << "Got table0 after LUT: " << (*lutSequences)[1].size() << " bytes";
+    GABACIFY_LOG_DEBUG << "Got table1 after LUT: " << (*lutSequences)[2].size() << " bytes";
 
     // GABACIFY_LOG_DEBUG<<"lut size before coding: "<<inverseLutTmp
     auto *data = (int64_t *) (lutSequences->at(1).data());
-    std::vector<unsigned char> inverseLutBitstream;
+    if(*bits0 == 0)
+    {
+        uint64_t  min=0, max=0;
+        deriveMinMaxUnsigned(lutSequences->at(1), sizeof(uint64_t), &min, &max);
+        *bits0 = unsigned(std::ceil(std::log2(max)));
+    }
+    std::vector<unsigned char> inverseLutBitstream0;
+    std::vector<unsigned char> inverseLutBitstream1;
     gabac::encode(
             std::vector<int64_t>(data, data + (*lutSequences)[1].size()),
             gabac::BinarizationId::BI,
-            {wordSize * 8},
+            {*bits0},
             gabac::ContextSelectionId::bypass,
-            &inverseLutBitstream
+            &inverseLutBitstream0
     );
 
+    appendToBytestream(inverseLutBitstream0, bytestream);
 
-    appendToBytestream(inverseLutBitstream, bytestream);
-    GABACIFY_LOG_TRACE << "Wrote LUT bitstream with size: " << inverseLutBitstream.size();
+    unsigned bits1 = 0;
+
+    if(order > 0) {
+        bits1 = unsigned((*lutSequences)[1].size());
+        bits1 = unsigned(std::ceil(std::log2(bits1)));
+        data = (int64_t *) (lutSequences->at(2).data());
+        gabac::encode(
+                std::vector<int64_t>(data, data + (*lutSequences)[2].size()),
+                gabac::BinarizationId::BI,
+                {bits1},
+                gabac::ContextSelectionId::bypass,
+                &inverseLutBitstream1
+        );
+
+        appendToBytestream(inverseLutBitstream1, bytestream);
+    }
+
+    GABACIFY_LOG_TRACE << "Wrote LUT bitstream0 with size: " << inverseLutBitstream0.size();
+    GABACIFY_LOG_TRACE << "Wrote LUT bitstream1 with size: " << inverseLutBitstream1.size();
 }
 
 //------------------------------------------------------------------------------
@@ -154,19 +181,20 @@ static void encodeStream(const TransformedSequenceConfiguration& conf,
 
 //------------------------------------------------------------------------------
 
-static void encodeSingleSequence(const unsigned wordsize,
-                                 const TransformedSequenceConfiguration& configuration,
+static void encodeSingleSequence(const TransformedSequenceConfiguration& configuration,
                                  std::vector<uint64_t> *const seq,
                                  std::vector<unsigned char> *const bytestream
 ){
     std::vector<std::vector<uint64_t>> lutTransformedSequences;
-    lutTransformedSequences.resize(2);
+    lutTransformedSequences.resize(3);
+    unsigned bits = configuration.lutBits;
     doLutTransform(
             configuration.lutTransformationEnabled,
             *seq,
-            wordsize,
+            configuration.lutOrder,
             bytestream,
-            &lutTransformedSequences
+            &lutTransformedSequences,
+            &bits
     );
     seq->clear();
     seq->shrink_to_fit();
@@ -212,7 +240,6 @@ static void encodeWithConfiguration(
     for (size_t i = 0; i < transformedSequences.size(); i++)
     {
         encodeSingleSequence(
-                wordsizes[i],
                 configuration.transformedSequenceConfigurations.at(i),
                 &(transformedSequences[i]),
                 bytestream

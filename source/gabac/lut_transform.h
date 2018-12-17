@@ -74,9 +74,11 @@ namespace gabac {
  * @param inverseLUT
  */
 void transformLutTransform0(
+        unsigned order,
         const std::vector<uint64_t>& symbols,
         std::vector<uint64_t> *transformedSymbols,
-        std::vector<uint64_t> *inverseLUT
+        std::vector<uint64_t> *inverseLUT,
+        std::vector<uint64_t> *inverseLUT1
 );
 
 /**
@@ -86,8 +88,10 @@ void transformLutTransform0(
  * @param symbols
  */
 void inverseTransformLutTransform0(
+        unsigned order,
         const std::vector<uint64_t>& transformedSymbols,
         const std::vector<uint64_t>& inverseLUT,
+        const std::vector<uint64_t>& inverseLUT1,
         std::vector<uint64_t> *symbols
 );
 

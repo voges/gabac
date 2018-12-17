@@ -27,10 +27,11 @@ void doDiffTransform(bool enabled,
 );
 
 void doLutTransform(bool enabled,
-                           const std::vector<uint64_t>& transformedSequence,
-                           unsigned int wordSize,
-                           std::vector<unsigned char> *bytestream,
-                           std::vector<std::vector<uint64_t >> *lutSequences
+                    const std::vector<uint64_t>& transformedSequence,
+                    unsigned int order,
+                    std::vector<unsigned char> *const bytestream,
+                    std::vector<std::vector<uint64_t >> *const lutSequences,
+                    unsigned *bits0
 );
 
 void doSequenceTransform(const std::vector<uint64_t>& sequence,

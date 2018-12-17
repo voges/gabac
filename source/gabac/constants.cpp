@@ -202,25 +202,29 @@ const std::vector<TransformationProperties> transformationInformation = {
         },
         {
                 "lut_coding", // Name
-                {"sequence",   "lut"}, // StreamNames
-                {0, 0}, // WordSizes (0: non fixed current stream wordsize)
-                [](const std::vector<uint64_t>& sequence, uint64_t,
+                {"sequence",   "lut0", "lut1"}, // StreamNames
+                {0, 0, 0}, // WordSizes (0: non fixed current stream wordsize)
+                [](const std::vector<uint64_t>& sequence, uint64_t order,
                    std::vector<std::vector<uint64_t>> *const transformedSequences
                 )
                 {
                     gabac::transformLutTransform0(
+                            order,
                             sequence,
                             &(*transformedSequences)[0],
-                            &(*transformedSequences)[1]
+                            &(*transformedSequences)[1],
+                            &(*transformedSequences)[2]
                     );
                 },
-                [](const std::vector<std::vector<uint64_t>>& transformedSequences, uint64_t,
+                [](const std::vector<std::vector<uint64_t>>& transformedSequences, uint64_t order,
                    std::vector<uint64_t> *const sequence
                 )
                 {
                     gabac::inverseTransformLutTransform0(
+                            order,
                             transformedSequences[0],
                             transformedSequences[1],
+                            transformedSequences[2],
                             sequence
                     );
                 }

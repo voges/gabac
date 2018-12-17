@@ -40,6 +40,7 @@ struct CandidateConfig
     std::vector<gabac::BinarizationId> candidateSignedBinarizationIds;
     std::vector<unsigned> candidateBinarizationParameters;
     std::vector<gabac::ContextSelectionId> candidateContextSelectionIds;
+    std::vector<unsigned> candidateLutOrder;
 };
 
 static const CandidateConfig& getCandidateConfig(){
@@ -50,20 +51,20 @@ static const CandidateConfig& getCandidateConfig(){
             },
             { // Sequence Transformations
                     gabac::SequenceTransformationId::no_transform,
-                    gabac::SequenceTransformationId::equality_coding,
-                    gabac::SequenceTransformationId::match_coding,
-                    gabac::SequenceTransformationId::rle_coding
+                       gabac::SequenceTransformationId::equality_coding,
+                          gabac::SequenceTransformationId::match_coding,
+                             gabac::SequenceTransformationId::rle_coding
             },
             { // Match coding window sizes
                     32,
-                    256
+                       256
             },
             { // RLE Guard
                     255
             },
             { // LUT transform
                     false,
-                    true
+                       true
             },
             { // Diff transform
                     false//,
@@ -71,13 +72,13 @@ static const CandidateConfig& getCandidateConfig(){
             },
             { // Binarizations (unsigned)
                     gabac::BinarizationId::BI,
-                    gabac::BinarizationId::TU,
-                    gabac::BinarizationId::EG,
-                    gabac::BinarizationId::TEG
+                       gabac::BinarizationId::TU,
+                          gabac::BinarizationId::EG,
+                             gabac::BinarizationId::TEG
             },
             { // Binarizations (signed)
                     gabac::BinarizationId::SEG,
-                    gabac::BinarizationId::STEG
+                       gabac::BinarizationId::STEG
             },
             { // Binarization parameters (TEG and STEG only)
                     1, 2, 3, 5, 7, 9,
@@ -86,8 +87,12 @@ static const CandidateConfig& getCandidateConfig(){
             { // Context modes
                     // gabac::ContextSelectionId::bypass,
                     gabac::ContextSelectionId::adaptive_coding_order_0,
-                    gabac::ContextSelectionId::adaptive_coding_order_1,
-                    gabac::ContextSelectionId::adaptive_coding_order_2
+                       gabac::ContextSelectionId::adaptive_coding_order_1,
+                          gabac::ContextSelectionId::adaptive_coding_order_2
+            },
+            { // LUT order
+                    0,
+                       1
             }
     };
     return config;
@@ -137,8 +142,8 @@ void getOptimumOfBinarization(const std::vector<int64_t>& diffTransformedSequenc
 ){
 
     const unsigned BIPARAM = (max > 0) ? unsigned(std::ceil(std::log2(max))) : 1;
-    const std::vector<std::vector<unsigned>> candidates = {{std::min(BIPARAM, 32u)},
-                                                           {std::min(unsigned(max), 32u)},
+    const std::vector<std::vector<unsigned>> candidates = {{std::min(BIPARAM, 63u)},
+                                                           {std::min(unsigned(max), 255u)},
                                                            {0},
                                                            {0},
                                                            getCandidateConfig().candidateBinarizationParameters,
@@ -232,23 +237,37 @@ void getOptimumOfLutTransformedStream(const std::vector<uint64_t>& lutTransforme
 
 //------------------------------------------------------------------------------
 
-void getOptimumOfTransformedStream(const std::vector<uint64_t>& transformedSequence,
-                                   unsigned wordsize,
-                                   std::vector<unsigned char> *const bestByteStream,
-                                   TransformedSequenceConfiguration *const bestConfig
+void getOptimumOfLutOrder(const std::vector<uint64_t>& transformedSequence,
+                          unsigned wordsize,
+                          std::vector<unsigned char> *const bestByteStream,
+                          TransformedSequenceConfiguration *const bestConfig,
+                          TransformedSequenceConfiguration *const currentConfig
 ){
     for (const auto& transID : getCandidateConfig().candidateLUTCodingParameters)
     {
+
+        if(transID == false && currentConfig->lutOrder != 0) {
+            continue;
+        }
+
         GABACIFY_LOG_DEBUG << "Trying LUT transformation: " << transID;
 
         std::vector<uint8_t> lutEnc;
         std::vector<std::vector<uint64_t>> lutStreams;
-        TransformedSequenceConfiguration currentConfiguration;
-        currentConfiguration.lutTransformationParameter = 0;
-        currentConfiguration.lutTransformationEnabled = transID;
 
-        lutStreams.resize(2);
-        doLutTransform(transID, transformedSequence, wordsize, &lutEnc, &lutStreams);
+        lutStreams.resize(3);
+
+        currentConfig->lutBits = 0;
+        currentConfig->lutTransformationEnabled = transID;
+
+        doLutTransform(
+                transID,
+                transformedSequence,
+                currentConfig->lutOrder,
+                &lutEnc,
+                &lutStreams,
+                &currentConfig->lutBits
+        );
         if (lutStreams[0].size() != transformedSequence.size())
         {
             GABACIFY_LOG_DEBUG << "Lut transformed failed. Probably the symbol space is too large. Skipping. ";
@@ -256,6 +275,7 @@ void getOptimumOfTransformedStream(const std::vector<uint64_t>& transformedSeque
         }
         GABACIFY_LOG_DEBUG << "LutTransformedSequence uncompressed size: " << lutStreams[0].size() << " bytes";
         GABACIFY_LOG_DEBUG << "Lut table (uncompressed): " << lutStreams[1].size() << " bytes";
+        GABACIFY_LOG_DEBUG << "Lut table1 (uncompressed): " << lutStreams[2].size() << " bytes";
 
         getOptimumOfLutTransformedStream(
                 lutStreams[0],
@@ -263,9 +283,24 @@ void getOptimumOfTransformedStream(const std::vector<uint64_t>& transformedSeque
                 bestByteStream,
                 lutEnc,
                 bestConfig,
-                &currentConfiguration
+                currentConfig
         );
 
+    }
+}
+
+//------------------------------------------------------------------------------
+
+void getOptimumOfTransformedStream(const std::vector<uint64_t>& transformedSequence,
+                                   unsigned wordsize,
+                                   std::vector<unsigned char> *const bestByteStream,
+                                   TransformedSequenceConfiguration *const bestConfig
+){
+    for (const auto& transID : getCandidateConfig().candidateLutOrder)
+    {
+        TransformedSequenceConfiguration currentConfiguration;
+        currentConfiguration.lutOrder = transID;
+        getOptimumOfLutOrder(transformedSequence, wordsize, bestByteStream, bestConfig, &currentConfiguration);
     }
 }
 

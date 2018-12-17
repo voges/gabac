@@ -19,8 +19,7 @@ Configuration::Configuration()
         : wordSize(0),
         sequenceTransformationId(gabac::SequenceTransformationId::no_transform),
         sequenceTransformationParameter(0),
-        transformedSequenceConfigurations()
-{
+        transformedSequenceConfigurations(){
     // Nothing to do here
 }
 
@@ -37,11 +36,12 @@ Configuration::Configuration(
 
         // Convert the property tree contents to our internal structure
         this->wordSize
-            = propertyTree.get<unsigned int>("word_size");
+                = propertyTree.get<unsigned int>("word_size");
         this->sequenceTransformationId
-            = static_cast<gabac::SequenceTransformationId>(propertyTree.get<unsigned int>("sequence_transformation_id"));
+                =
+                static_cast<gabac::SequenceTransformationId>(propertyTree.get<unsigned int>("sequence_transformation_id"));
         this->sequenceTransformationParameter
-            = propertyTree.get<unsigned int>("sequence_transformation_parameter");
+                = propertyTree.get<unsigned int>("sequence_transformation_parameter");
         for (const auto& child : propertyTree.get_child("transformed_sequences"))
         {
             // Declare a transformed sequence configuration
@@ -49,19 +49,22 @@ Configuration::Configuration(
 
             // Fill the transformed sequence configuration
             transformedSequenceConfiguration.lutTransformationEnabled
-                = static_cast<bool>(child.second.get<unsigned int>("lut_transformation_enabled"));
-            transformedSequenceConfiguration.lutTransformationParameter
-                = child.second.get<unsigned int>("lut_transformation_parameter");
+                    = static_cast<bool>(child.second.get<unsigned int>("lut_transformation_enabled"));
+            transformedSequenceConfiguration.lutBits
+                    = child.second.get<unsigned int>("lut_transformation_bits");
+            transformedSequenceConfiguration.lutOrder
+                    = child.second.get<unsigned int>("lut_transformation_order");
             transformedSequenceConfiguration.diffCodingEnabled
-                = child.second.get<bool>("diff_coding_enabled");
+                    = child.second.get<bool>("diff_coding_enabled");
             transformedSequenceConfiguration.binarizationId
-                = static_cast<gabac::BinarizationId>(child.second.get<unsigned int>("binarization_id"));
+                    = static_cast<gabac::BinarizationId>(child.second.get<unsigned int>("binarization_id"));
             for (const auto& grandchild : child.second.get_child("binarization_parameters"))
             {
-                transformedSequenceConfiguration.binarizationParameters.push_back(grandchild.second.get_value<unsigned int>());
+                transformedSequenceConfiguration.binarizationParameters
+                        .push_back(grandchild.second.get_value<unsigned int>());
             }
             transformedSequenceConfiguration.contextSelectionId
-                = static_cast<gabac::ContextSelectionId>(child.second.get<unsigned int>("context_selection_id"));
+                    = static_cast<gabac::ContextSelectionId>(child.second.get<unsigned int>("context_selection_id"));
 
             // Append the filled transformed sequence configuration to our
             // list of transformed sequence configurations
@@ -78,8 +81,7 @@ Configuration::Configuration(
 Configuration::~Configuration() = default;
 
 
-std::string Configuration::toJsonString() const
-{
+std::string Configuration::toJsonString() const{
     std::string jsonString;
 
     try
@@ -89,16 +91,16 @@ std::string Configuration::toJsonString() const
 
         // Convert the internal structure to a property tree
         root.put(
-            "word_size",
-            this->wordSize
+                "word_size",
+                this->wordSize
         );
         root.put(
-            "sequence_transformation_id",
-            static_cast<int>(this->sequenceTransformationId)
+                "sequence_transformation_id",
+                static_cast<int>(this->sequenceTransformationId)
         );
         root.put(
-            "sequence_transformation_parameter",
-            static_cast<int>(this->sequenceTransformationParameter)
+                "sequence_transformation_parameter",
+                static_cast<int>(this->sequenceTransformationParameter)
         );
         boost::property_tree::ptree transformedSequencesNode;
         for (const auto& transformedSequenceConfiguration : this->transformedSequenceConfigurations)
@@ -109,20 +111,24 @@ std::string Configuration::toJsonString() const
             // Fill the property tree for the transformed sequence
             // configuration
             transformedSequenceNode.put(
-                "lut_transformation_enabled",
-                static_cast<int>(transformedSequenceConfiguration.lutTransformationEnabled)
+                    "lut_transformation_enabled",
+                    static_cast<int>(transformedSequenceConfiguration.lutTransformationEnabled)
             );
             transformedSequenceNode.put(
-                "lut_transformation_parameter",
-                static_cast<int>(transformedSequenceConfiguration.lutTransformationParameter)
+                    "lut_transformation_bits",
+                    static_cast<int>(transformedSequenceConfiguration.lutBits)
             );
             transformedSequenceNode.put(
-                "diff_coding_enabled",
-                static_cast<int>(transformedSequenceConfiguration.diffCodingEnabled)
+                    "lut_transformation_order",
+                    static_cast<int>(transformedSequenceConfiguration.lutOrder)
             );
             transformedSequenceNode.put(
-                "binarization_id",
-                static_cast<int>(transformedSequenceConfiguration.binarizationId)
+                    "diff_coding_enabled",
+                    static_cast<int>(transformedSequenceConfiguration.diffCodingEnabled)
+            );
+            transformedSequenceNode.put(
+                    "binarization_id",
+                    static_cast<int>(transformedSequenceConfiguration.binarizationId)
             );
             boost::property_tree::ptree binarizationParametersNode;
             for (const auto& binarizationParameter : transformedSequenceConfiguration.binarizationParameters)
@@ -136,8 +142,8 @@ std::string Configuration::toJsonString() const
                     binarizationParametersNode
             );
             transformedSequenceNode.put(
-                "context_selection_id",
-                static_cast<int>(transformedSequenceConfiguration.contextSelectionId)
+                    "context_selection_id",
+                    static_cast<int>(transformedSequenceConfiguration.contextSelectionId)
             );
 
             // Add the filled property tree for the transformed sequence
@@ -160,8 +166,7 @@ std::string Configuration::toJsonString() const
 }
 
 
-std::string Configuration::toPrintableString() const
-{
+std::string Configuration::toPrintableString() const{
     std::stringstream s;
 
     s << this->wordSize << "  |  ";
@@ -175,11 +180,12 @@ std::string Configuration::toPrintableString() const
     return s.str();
 }
 
-std::string TransformedSequenceConfiguration::toPrintableString() const {
+std::string TransformedSequenceConfiguration::toPrintableString() const{
     std::stringstream s;
     s << "[";
     s << static_cast<int>(lutTransformationEnabled) << "  |  ";
-    s << static_cast<int>(lutTransformationParameter) << "  |  ";
+    s << static_cast<int>(lutBits) << "  |  ";
+    s << static_cast<int>(lutOrder) << "  |  ";
     s << static_cast<int>(diffCodingEnabled) << "  |  ";
     s << static_cast<int>(binarizationId) << "  |  ";
     s << "[ ";

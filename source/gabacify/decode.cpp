@@ -54,29 +54,58 @@ static size_t extractFromBytestream(
 //------------------------------------------------------------------------------
 
 static void decodeInverseLUT(const std::vector<unsigned char>& bytestream,
-                             unsigned wordSize,
                              size_t *const bytestreamPosition,
-                             std::vector<uint64_t> *const inverseLut
+                             unsigned bits0,
+                             unsigned order,
+                             std::vector<uint64_t> *const inverseLut,
+                             std::vector<uint64_t> *const inverseLut1
 ){
     // Decode the inverse LUT
     std::vector<unsigned char> inverseLutBitstream;
-    *bytestreamPosition = extractFromBytestream(bytestream, *bytestreamPosition, &inverseLutBitstream);
-    GABACIFY_LOG_TRACE << "Read LUT bitstream with size: " << inverseLutBitstream.size();
+    std::vector<unsigned char> inverseLut0bitstream;
+    std::vector<unsigned char> inverseLut1bitstream;
+    *bytestreamPosition = extractFromBytestream(bytestream, *bytestreamPosition, &inverseLut0bitstream);
+    if(order > 0) {
+        *bytestreamPosition = extractFromBytestream(bytestream, *bytestreamPosition, &inverseLut1bitstream);
+    }
+    GABACIFY_LOG_TRACE << "Read LUT0 bitstream with size: " << inverseLut0bitstream.size();
+    GABACIFY_LOG_TRACE << "Read LUT1 bitstream with size: " << inverseLut1bitstream.size();
     std::vector<int64_t> inverseLutTmp;
     gabac::decode(
-            inverseLutBitstream,
+            inverseLut0bitstream,
             gabac::BinarizationId::BI,
-            {wordSize * 8},
+            {bits0},
             gabac::ContextSelectionId::bypass,
             &inverseLutTmp
     );
 
     inverseLut->reserve(inverseLutTmp.size());
-
     for (const auto& inverseLutTmpEntry : inverseLutTmp)
     {
         assert(inverseLutTmpEntry >= 0);
         inverseLut->push_back(static_cast<uint64_t>(inverseLutTmpEntry));
+    }
+
+    if (order > 0)
+    {
+        unsigned bits1 = unsigned(inverseLut->size());
+
+        bits1 = unsigned(std::ceil(std::log2(bits1)));
+
+        inverseLutTmp.clear();
+        gabac::decode(
+                inverseLut1bitstream,
+                gabac::BinarizationId::BI,
+                {bits1},
+                gabac::ContextSelectionId::bypass,
+                &inverseLutTmp
+        );
+
+        for (const auto& inverseLutTmpEntry : inverseLutTmp)
+        {
+            assert(inverseLutTmpEntry >= 0);
+            inverseLut1->push_back(static_cast<uint64_t>(inverseLutTmpEntry));
+        }
     }
 }
 
@@ -108,6 +137,7 @@ static void doDiffCoding(const std::vector<int64_t>& diffAndLutTransformedSequen
 
 static void doLUTCoding(const std::vector<std::vector<uint64_t>>& lutSequences,
                         bool enabled,
+                        unsigned order,
                         std::vector<uint64_t> *const transformedSequence
 ){
     if (enabled)
@@ -116,7 +146,7 @@ static void doLUTCoding(const std::vector<std::vector<uint64_t>>& lutSequences,
 
         // Do the inverse LUT transform
         const unsigned LUT_INDEX = 4;
-        gabac::transformationInformation[LUT_INDEX].inverseTransform(lutSequences, 0, transformedSequence);
+        gabac::transformationInformation[LUT_INDEX].inverseTransform(lutSequences, order, transformedSequence);
         return;
     }
 
@@ -150,7 +180,7 @@ static void doEntropyCoding(const std::vector<unsigned char>& bytestream,
 //------------------------------------------------------------------------------
 
 static void decodeWithConfiguration(
-        std::vector<unsigned char>* bytestream,
+        std::vector<unsigned char> *bytestream,
         const Configuration& configuration,
         std::vector<uint64_t> *const sequence
 ){
@@ -170,16 +200,18 @@ static void decodeWithConfiguration(
         GABACIFY_LOG_TRACE << "Processing transformed sequence: " << i;
         auto transformedSequenceConfiguration = configuration.transformedSequenceConfigurations.at(i);
 
-        unsigned int wordSize =
-                gabac::fixWordSizes(
-                        gabac::transformationInformation[unsigned(configuration.sequenceTransformationId)].wordsizes,
-                        configuration.wordSize
-                )[i];
-
         std::vector<uint64_t> inverseLut;
+        std::vector<uint64_t> inverseLut1;
         if (transformedSequenceConfiguration.lutTransformationEnabled)
         {
-            decodeInverseLUT(*bytestream, wordSize, &bytestreamPosition, &inverseLut);
+            decodeInverseLUT(
+                    *bytestream,
+                    &bytestreamPosition,
+                    configuration.transformedSequenceConfigurations[i].lutBits,
+                    configuration.transformedSequenceConfigurations[i].lutOrder,
+                    &inverseLut,
+                    &inverseLut1
+            );
         }
 
         std::vector<int64_t> diffAndLutTransformedSequence;
@@ -190,7 +222,7 @@ static void decodeWithConfiguration(
                 &diffAndLutTransformedSequence
         );
 
-        std::vector<std::vector<uint64_t>> lutTransformedSequences(2);
+        std::vector<std::vector<uint64_t>> lutTransformedSequences(3);
         doDiffCoding(
                 diffAndLutTransformedSequence,
                 configuration.transformedSequenceConfigurations[i].diffCodingEnabled,
@@ -200,12 +232,14 @@ static void decodeWithConfiguration(
         diffAndLutTransformedSequence.shrink_to_fit();
 
         lutTransformedSequences[1] = std::move(inverseLut);
+        lutTransformedSequences[2] = std::move(inverseLut1);
 
         // LUT transform
         std::vector<uint64_t> transformedSequence;
         doLUTCoding(
                 lutTransformedSequences,
                 configuration.transformedSequenceConfigurations[i].lutTransformationEnabled,
+                configuration.transformedSequenceConfigurations[i].lutOrder,
                 &transformedSequence
         );
 

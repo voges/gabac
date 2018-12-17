@@ -14,7 +14,8 @@ namespace gabacify {
 struct TransformedSequenceConfiguration
 {
     bool lutTransformationEnabled;
-    unsigned int lutTransformationParameter;
+    unsigned int lutBits;
+    unsigned int lutOrder;
     bool diffCodingEnabled;
     gabac::BinarizationId binarizationId;
     std::vector<unsigned int> binarizationParameters;
