@@ -87,6 +87,10 @@ void doLutTransform(bool enabled,
     lutSequences->resize(gabac::transformationInformation[LUT_INDEX].streamNames.size());
     gabac::transformationInformation[LUT_INDEX].transform(transformedSequence, order, lutSequences);
 
+    if((*lutSequences)[0].empty()) {
+        return;
+    }
+
     GABACIFY_LOG_DEBUG << "Got uncompressed stream after LUT: " << (*lutSequences)[0].size() << " bytes";
     GABACIFY_LOG_DEBUG << "Got table0 after LUT: " << (*lutSequences)[1].size() << " bytes";
     GABACIFY_LOG_DEBUG << "Got table1 after LUT: " << (*lutSequences)[2].size() << " bytes";
@@ -97,7 +101,10 @@ void doLutTransform(bool enabled,
     {
         uint64_t  min=0, max=0;
         deriveMinMaxUnsigned(lutSequences->at(1), sizeof(uint64_t), &min, &max);
-        *bits0 = unsigned(std::ceil(std::log2(max)));
+        *bits0 = unsigned(std::ceil(std::log2(max + 1)));
+        if(max <= 1) {
+            *bits0 = 1;
+        }
     }
     std::vector<unsigned char> inverseLutBitstream0;
     std::vector<unsigned char> inverseLutBitstream1;

@@ -18,6 +18,7 @@ namespace gabac {
 
 //------------------------------------------------------------------------------
 
+
 const std::vector<BinarizationProperties> binarizationInformation = {
         {
                 "BI",

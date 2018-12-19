@@ -27,7 +27,7 @@ void deriveMinMax(  // warning: this should still support signed!!!!
     }
 
     // [wordsize, sign, min, max]
-    static const std::array<std::array<T, 3>, 3>
+    static const std::array<std::array<T, 3>, 4>
             aborts =
             {{{1, std::numeric_limits<typename std::conditional<std::is_signed<T>::value,
                     int8_t, uint8_t>::type>::min(),
@@ -40,7 +40,11 @@ void deriveMinMax(  // warning: this should still support signed!!!!
                      {4, std::numeric_limits<typename std::conditional<std::is_signed<T>::value,
                              int32_t, uint32_t>::type>::min(),
                              std::numeric_limits<typename std::conditional<std::is_signed<T>::value,
-                                     int32_t, uint32_t>::type>::max()}}};
+                                     int32_t, uint32_t>::type>::max()},
+                     {8, std::numeric_limits<typename std::conditional<std::is_signed<T>::value,
+                             int64_t, uint64_t>::type>::min(),
+                             std::numeric_limits<typename std::conditional<std::is_signed<T>::value,
+                                     int64_t, uint64_t>::type>::max()}}};
     std::array<T, 3> curstate{};
 
     auto it = std::find_if(

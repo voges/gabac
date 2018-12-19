@@ -141,7 +141,7 @@ void getOptimumOfBinarization(const std::vector<int64_t>& diffTransformedSequenc
                               TransformedSequenceConfiguration *const currentConfig
 ){
 
-    const unsigned BIPARAM = (max > 0) ? unsigned(std::ceil(std::log2(max))) : 1;
+    const unsigned BIPARAM = (max > 0) ? unsigned(std::ceil(std::log2(max + 1))) : 1;
     const std::vector<std::vector<unsigned>> candidates = {{std::min(BIPARAM, 63u)},
                                                            {std::min(unsigned(max), 255u)},
                                                            {0},
@@ -298,6 +298,7 @@ void getOptimumOfTransformedStream(const std::vector<uint64_t>& transformedSeque
 ){
     for (const auto& transID : getCandidateConfig().candidateLutOrder)
     {
+        GABACIFY_LOG_TRACE << "Trying LUT order: " << transID;
         TransformedSequenceConfiguration currentConfiguration;
         currentConfiguration.lutOrder = transID;
         getOptimumOfLutOrder(transformedSequence, wordsize, bestByteStream, bestConfig, &currentConfiguration);

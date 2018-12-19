@@ -81,6 +81,8 @@ int gabac_inverseTransformLutTransform0(
 
 namespace gabac {
 
+const size_t MAX_LUT_SIZE = 1u << 20u; // 8MB table
+
 static void inferLut0(
         const std::vector<uint64_t>& symbols,
         std::vector<std::pair<uint64_t, uint64_t>> *const lut,
@@ -97,7 +99,6 @@ static void inferLut0(
     std::unordered_map<uint64_t, uint64_t> freq;
 
 
-    const size_t MAX_LUT_SIZE = 1u << 20u; // 8MB table
     for (const auto& symbol : symbols)
     {
         freq[symbol]++;
@@ -311,6 +312,13 @@ void inferLut(
     {
         size *= inverseLut0->size();
     }
+
+    if (size >= MAX_LUT_SIZE)
+    {
+        lut0->clear();
+        return;
+    }
+
     std::vector<std::pair<uint64_t, uint64_t>> ctr(size, {std::numeric_limits<uint64_t>::max(), 0});
     std::vector<uint64_t> lastSymbols(ORDER + 1, 0);
 
@@ -432,6 +440,8 @@ void transformLutTransform0(
     inferLut(order, symbols, &lut, inverseLUT, &lut1, inverseLUT1);
     if (lut.empty())
     {
+        inverseLUT->clear();
+        inverseLUT1->clear();
         return;
     }
     transformLutTransform_core(order, symbols, lut, lut1, transformedSymbols);
