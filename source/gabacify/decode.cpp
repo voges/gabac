@@ -1,6 +1,7 @@
 #include "gabacify/decode.h"
 
 #include <cassert>
+#include <cmath>
 #include <vector>
 
 #include "gabac/constants.h"
