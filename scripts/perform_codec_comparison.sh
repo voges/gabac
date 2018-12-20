@@ -23,9 +23,9 @@ fi
 
 readonly gzip="/usr/bin/gzip"
 readonly bzip2="/usr/bin/bzip2"
-readonly gabacify="/Users/janvoges/Repositories/gabac-closed/build/gabacify"
+readonly gabacify="/Users/tparidae/github/gabac-public/build/gabacify"
 readonly xz="/usr/local/Cellar/xz/5.2.4/bin/xz"
-readonly rans="/Users/janvoges/Repositories/rans/build/rans"
+readonly rans="/Users/tparidae/github/rans/build/rans"
 # readonly time="/usr/bin/time" # Linux
 readonly time="/usr/local/Cellar/gnu-time/1.9/bin/gtime" # macOS w/ Homebrew
 
@@ -112,8 +112,8 @@ compression_commands+=("$time --format=\"$time_format\" -o $test_file.bzip2.enc.
 compression_commands+=("$time --format=\"$time_format\" -o $test_file.xz.enc.time $xz -9 -c $test_file >$test_file.xz")
 compression_commands+=("$time --format=\"$time_format\" -o $test_file.rans0.enc.time $rans -o0 < $test_file >$test_file.rans0")
 compression_commands+=("$time --format=\"$time_format\" -o $test_file.rans1.enc.time $rans -o1 < $test_file >$test_file.rans1")
-compression_commands+=("$time --format=\"$time_format\" -o $test_file.gabac-a.enc.time $gabacify encode -i $test_file -o $test_file.gabac-a 1>$test_file.gabac-a.enc.stdout 2>$test_file.gabac-a.enc.stderr") # Will generate $test_file.gabac_configuration.json
-compression_commands+=("$time --format=\"$time_format\" -o $test_file.gabac.enc.time $gabacify encode -i $test_file -c $test_file.gabac_configuration.json -o $test_file.gabac 1>$test_file.gabac.enc.stdout 2>$test_file.gabac.enc.stderr")
+compression_commands+=("$time --format=\"$time_format\" -o $test_file.gabac-a.enc.time $gabacify --task encode -i $test_file -o $test_file.gabac-a 1>$test_file.gabac-a.enc.stdout 2>$test_file.gabac-a.enc.stderr") # Will generate $test_file.gabac_configuration.json
+compression_commands+=("$time --format=\"$time_format\" -o $test_file.gabac.enc.time $gabacify --task encode -i $test_file -c $test_file.gabac_configuration.json -o $test_file.gabac 1>$test_file.gabac.enc.stdout 2>$test_file.gabac.enc.stderr")
 #
 decompression_commands=()
 decompression_commands+=("$time --format=\"$time_format\" -o $test_file.gzip.dec.time $gzip -d -c $test_file.gzip >$test_file.gzip.recon")
@@ -121,8 +121,8 @@ decompression_commands+=("$time --format=\"$time_format\" -o $test_file.bzip2.de
 decompression_commands+=("$time --format=\"$time_format\" -o $test_file.xz.dec.time $xz -d -c $test_file.xz >$test_file.xz.recon")
 decompression_commands+=("$time --format=\"$time_format\" -o $test_file.rans0.dec.time $rans -d < $test_file.rans0 >$test_file.rans0.recon")
 decompression_commands+=("$time --format=\"$time_format\" -o $test_file.rans1.dec.time $rans -d < $test_file.rans1 >$test_file.rans1.recon")
-decompression_commands+=("$time --format=\"$time_format\" -o $test_file.gabac-a.dec.time $gabacify decode -i $test_file.gabac-a -c $test_file.gabac_configuration.json -o $test_file.gabac-a.recon 1>$test_file.gabac-a.dec.stdout 2>$test_file.gabac-a.dec.stderr")
-decompression_commands+=("$time --format=\"$time_format\" -o $test_file.gabac.dec.time $gabacify decode -i $test_file.gabac -c $test_file.gabac_configuration.json -o $test_file.gabac.recon 1>$test_file.gabac.dec.stdout 2>$test_file.gabac.dec.stderr")
+decompression_commands+=("$time --format=\"$time_format\" -o $test_file.gabac-a.dec.time $gabacify --task decode -i $test_file.gabac-a -c $test_file.gabac_configuration.json -o $test_file.gabac-a.recon 1>$test_file.gabac-a.dec.stdout 2>$test_file.gabac-a.dec.stderr")
+decompression_commands+=("$time --format=\"$time_format\" -o $test_file.gabac.dec.time $gabacify --task decode -i $test_file.gabac -c $test_file.gabac_configuration.json -o $test_file.gabac.recon 1>$test_file.gabac.dec.stdout 2>$test_file.gabac.dec.stderr")
 
 
 # -----------------------------------------------------------------------------
