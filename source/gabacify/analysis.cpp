@@ -136,7 +136,7 @@ void getOptimumOfBinarization(const std::vector<int64_t>& diffTransformedSequenc
                               TransformedSequenceConfiguration *const currentConfig
 ){
 
-    const unsigned BIPARAM = (max > 0) ? unsigned(std::ceil(std::log2(max))) : 1;
+    const unsigned BIPARAM = (max > 0) ? unsigned(std::floor(std::log2(max))+1) : 1;
     const unsigned TUPARAM = (max > 0) ? max : 1;
     const std::vector<std::vector<unsigned>> candidates = {{std::min(BIPARAM, 32u)},
                                                            {std::min(TUPARAM, 32u)},
