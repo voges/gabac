@@ -13,8 +13,6 @@
 // BinaryArithmeticDecoder in this file.
 //
 #include "binary_arithmetic_decoder.cpp"
- 
-
 
 namespace gabac {
 
@@ -123,10 +121,9 @@ uint64_t Reader::readAsBIcabac(
 ){
     unsigned int bins = 0;
     unsigned int cm = ContextSelector::getContextForBi(offset, 0);
-    std::vector<ContextModel>::iterator scan = m_contextModels.begin() + cm;
     for (size_t i = 0; i < cLength; i++)
     {
-        bins = (bins << 1u) | m_decBinCabac.decodeBin(&*(scan++));
+        bins = (bins << 1u) | m_decBinCabac.decodeBin(&m_contextModels[cm++]);
     }
     return bins;
 }
@@ -154,8 +151,7 @@ uint64_t Reader::readAsTUcabac(
 ){
     unsigned int i = 0;
     unsigned int cm = ContextSelector::getContextForTu(offset, i);
-    std::vector<ContextModel>::iterator scan = m_contextModels.begin() + cm;
-    while (m_decBinCabac.decodeBin(&*scan) == 1)
+    while (m_decBinCabac.decodeBin(&m_contextModels[cm]) == 1)
     {
         i++;
         if (cMax == i)
@@ -164,7 +160,7 @@ uint64_t Reader::readAsTUcabac(
         }
         else
         {
-            scan++;
+            cm++;
         }
     }
     return i;
@@ -194,13 +190,10 @@ uint64_t Reader::readAsEGcabac(
         unsigned int offset
 ){
     unsigned int cm = ContextSelector::getContextForEg(offset, 0);
-    std::vector<ContextModel>::iterator scan = m_contextModels.begin() + cm;
-    unsigned int i = 0;
-
-    while (m_decBinCabac.decodeBin(&*scan) == 0)
+    unsigned int i = cm;
+    while (m_decBinCabac.decodeBin(&m_contextModels[cm]) == 0)
     {
-        i++;
-        scan++;
+        cm++;
     }
     i = cm - i;
     unsigned int bins = 0;
