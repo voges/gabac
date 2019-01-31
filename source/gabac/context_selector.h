@@ -34,12 +34,12 @@ class ContextSelector
             unsigned int contextSetIdx,
             unsigned int binIdx
     ) {
-        assert(binIdx < contexttables::CONTEXT_SET_LENGTH_TU);
+        assert(binIdx < contexttables::CONTEXT_SET_LENGTH);
         // TODO(Tom): add explanation for this assertion
         assert(contextSetIdx < 16);
 
         return (contexttables::OFFSET_TRUNCATED_UNARY_0
-                + (contextSetIdx * contexttables::CONTEXT_SET_LENGTH_TU)
+                + (contextSetIdx * contexttables::CONTEXT_SET_LENGTH)
                 + binIdx
         );
     }
@@ -48,12 +48,12 @@ class ContextSelector
             unsigned int contextSetIdx,
             unsigned int binIdx
     ) {
-        assert(binIdx < contexttables::CONTEXT_SET_LENGTH_EG);
+        assert(binIdx < contexttables::CONTEXT_SET_LENGTH);
         // TODO(Tom): add explanation for this assertion
         assert(contextSetIdx < 16);
 
         return (contexttables::OFFSET_EXPONENTIAL_GOLOMB_0
-                + (contextSetIdx * contexttables::CONTEXT_SET_LENGTH_EG)
+                + (contextSetIdx * contexttables::CONTEXT_SET_LENGTH)
                 + binIdx
         );
     }
