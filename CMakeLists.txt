@@ -131,7 +131,7 @@ set(gabac_source_files ${gabac_source_files} ${gabac_source_dir}/bit_input_strea
 set(gabac_source_files ${gabac_source_files} ${gabac_source_dir}/bit_output_stream.cpp)
 set(gabac_source_files ${gabac_source_files} ${gabac_source_dir}/constants.cpp)
 set(gabac_source_files ${gabac_source_files} ${gabac_source_dir}/context_model.cpp)
-set(gabac_source_files ${gabac_source_files} ${gabac_source_dir}/context_selector.cpp)
+#set(gabac_source_files ${gabac_source_files} ${gabac_source_dir}/context_selector.cpp)
 set(gabac_source_files ${gabac_source_files} ${gabac_source_dir}/context_tables.cpp)
 set(gabac_source_files ${gabac_source_files} ${gabac_source_dir}/decoding.cpp)
 set(gabac_source_files ${gabac_source_files} ${gabac_source_dir}/diff_coding.cpp)
