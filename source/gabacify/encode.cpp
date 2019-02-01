@@ -28,13 +28,13 @@ namespace gabacify {
 
 // Appends the size of a stream and the actual bytes to bytestream
 void appendToBytestream(
-        const std::vector<unsigned char>& bytes,
-        std::vector<unsigned char> *const bytestream
+        const gabac::DataStream& bytes,
+        gabac::DataStream *const bytestream
 ){
     assert(bytestream != nullptr);
 
     // Append the size of 'bytes' to the bytestream
-    std::vector<unsigned char> sizeBuffer;
+    gabac::DataStream sizeBuffer;
     generateByteBuffer({static_cast<uint64_t>(bytes.size())}, 4, &sizeBuffer);
     bytestream->insert(bytestream->end(), sizeBuffer.begin(), sizeBuffer.end());
 
@@ -44,10 +44,10 @@ void appendToBytestream(
 
 //------------------------------------------------------------------------------
 
-void doSequenceTransform(const std::vector<uint64_t>& sequence,
+void doSequenceTransform(const gabac::DataStream& sequence,
                          const gabac::SequenceTransformationId& transID,
                          uint64_t param,
-                         std::vector<std::vector<uint64_t>> *const transformedSequences
+                         std::vector<gabac::DataStream> *const transformedSequences
 ){
     GABACIFY_LOG_TRACE << "Encoding sequence of length: " << sequence.size();
 
@@ -67,10 +67,10 @@ void doSequenceTransform(const std::vector<uint64_t>& sequence,
 //------------------------------------------------------------------------------
 
 void doLutTransform(bool enabled,
-                    const std::vector<uint64_t>& transformedSequence,
+                    const gabac::DataStream& transformedSequence,
                     unsigned int order,
-                    std::vector<unsigned char> *const bytestream,
-                    std::vector<std::vector<uint64_t >> *const lutSequences,
+                    gabac::DataStream *const bytestream,
+                    std::vector<gabac::DataStream> *const lutSequences,
                     unsigned *bits0
 ){
     if (!enabled)
@@ -97,7 +97,6 @@ void doLutTransform(bool enabled,
     GABACIFY_LOG_DEBUG << "Got table1 after LUT: " << (*lutSequences)[2].size() << " bytes";
 
     // GABACIFY_LOG_DEBUG<<"lut size before coding: "<<inverseLutTmp
-    auto *data = (int64_t *) (lutSequences->at(1).data());
     if(*bits0 == 0)
     {
         uint64_t  min=0, max=0;
@@ -107,10 +106,10 @@ void doLutTransform(bool enabled,
             *bits0 = 1;
         }
     }
-    std::vector<unsigned char> inverseLutBitstream0;
-    std::vector<unsigned char> inverseLutBitstream1;
+    gabac::DataStream inverseLutBitstream0;
+    gabac::DataStream inverseLutBitstream1;
     gabac::encode(
-            std::vector<int64_t>(data, data + (*lutSequences)[1].size()),
+            lutSequences->at(1),
             gabac::BinarizationId::BI,
             {*bits0},
             gabac::ContextSelectionId::bypass,
@@ -124,9 +123,8 @@ void doLutTransform(bool enabled,
     if(order > 0) {
         bits1 = unsigned((*lutSequences)[1].size());
         bits1 = unsigned(std::ceil(std::log2(bits1)));
-        data = (int64_t *) (lutSequences->at(2).data());
         gabac::encode(
-                std::vector<int64_t>(data, data + (*lutSequences)[2].size()),
+                lutSequences->at(2),
                 gabac::BinarizationId::BI,
                 {bits1},
                 gabac::ContextSelectionId::bypass,
@@ -143,8 +141,8 @@ void doLutTransform(bool enabled,
 //------------------------------------------------------------------------------
 
 void doDiffTransform(bool enabled,
-                     const std::vector<uint64_t>& lutTransformedSequence,
-                     std::vector<int64_t> *const diffAndLutTransformedSequence
+                     const gabac::DataStream& lutTransformedSequence,
+                     gabac::DataStream *const diffAndLutTransformedSequence
 ){
     // Diff coding
     if (enabled)
@@ -171,11 +169,11 @@ void doDiffTransform(bool enabled,
 //------------------------------------------------------------------------------
 
 static void encodeStream(const TransformedSequenceConfiguration& conf,
-                         const std::vector<int64_t>& diffAndLutTransformedSequence,
-                         std::vector<uint8_t> *const bytestream
+                         const gabac::DataStream& diffAndLutTransformedSequence,
+                         gabac::DataStream *const bytestream
 ){
     // Encoding
-    std::vector<unsigned char> bitstream;
+    gabac::DataStream bitstream;
     gabac::encode(
             diffAndLutTransformedSequence,
             conf.binarizationId,
@@ -190,10 +188,10 @@ static void encodeStream(const TransformedSequenceConfiguration& conf,
 //------------------------------------------------------------------------------
 
 static void encodeSingleSequence(const TransformedSequenceConfiguration& configuration,
-                                 std::vector<uint64_t> *const seq,
-                                 std::vector<unsigned char> *const bytestream
+                                 gabac::DataStream *const seq,
+                                 gabac::DataStream *const bytestream
 ){
-    std::vector<std::vector<uint64_t>> lutTransformedSequences;
+    std::vector<gabac::DataStream> lutTransformedSequences;
     lutTransformedSequences.resize(3);
     unsigned bits = configuration.lutBits;
     doLutTransform(
@@ -207,7 +205,7 @@ static void encodeSingleSequence(const TransformedSequenceConfiguration& configu
     seq->clear();
     seq->shrink_to_fit();
 
-    std::vector<int64_t> diffAndLutTransformedSequence;
+    gabac::DataStream diffAndLutTransformedSequence;
     doDiffTransform(
             configuration.diffCodingEnabled,
             lutTransformedSequences[0],
@@ -225,12 +223,12 @@ static void encodeSingleSequence(const TransformedSequenceConfiguration& configu
 
 static void encodeWithConfiguration(
         const Configuration& configuration,
-        std::vector<uint64_t> *const sequence,
-        std::vector<unsigned char> *const bytestream
+        gabac::DataStream *const sequence,
+        gabac::DataStream *const bytestream
 ){
 
 
-    std::vector<std::vector<uint64_t>> transformedSequences;
+    std::vector<gabac::DataStream> transformedSequences;
     doSequenceTransform(
             *sequence,
             configuration.sequenceTransformationId,
@@ -265,8 +263,8 @@ void encode_plain(const std::string& inputFilePath,
 ){
     // Read in the entire input file
     InputFile inputFile(inputFilePath);
-    std::vector<unsigned char> buffer(inputFile.size());
-    inputFile.read(&buffer[0], 1, buffer.size());
+    gabac::DataStream buffer(inputFile.size());
+    inputFile.read(buffer.getData(), 1, buffer.size());
     // Read the entire configuration file as a string and convert the JSON
     // input string to the internal GABAC configuration
     InputFile configurationFile(configurationFilePath);
@@ -275,7 +273,7 @@ void encode_plain(const std::string& inputFilePath,
     Configuration configuration(jsonInput);
 
     // Generate symbol stream from byte buffer
-    std::vector<uint64_t> symbols;
+    gabac::DataStream symbols;
     generateSymbolStream(buffer, configuration.wordSize, &symbols);
     buffer.clear();
     buffer.shrink_to_fit();
@@ -286,7 +284,7 @@ void encode_plain(const std::string& inputFilePath,
 
     // Write the bytestream
     OutputFile outputFile(outputFilePath);
-    outputFile.write(&buffer[0], 1, buffer.size());
+    outputFile.write(buffer.getData(), 1, buffer.size());
     GABACIFY_LOG_INFO << "Wrote bytestream of size " << buffer.size() << " to: " << outputFilePath;
     buffer.clear();
     buffer.shrink_to_fit();

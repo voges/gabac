@@ -29,21 +29,21 @@ int gabac_inverseTransformDiffCoding(
 }  // extern "C"
 
 
-#include <vector>
+#include "gabac/data_stream.h"
 
 
 namespace gabac {
 
 
 void transformDiffCoding(
-        const std::vector<uint64_t>& symbols,
-        std::vector<int64_t> *transformedSymbols
+        const DataStream& symbols,
+        DataStream *transformedSymbols
 );
 
 
 void inverseTransformDiffCoding(
-        const std::vector<int64_t>& transformedSymbols,
-        std::vector<uint64_t> *symbols
+        const DataStream& transformedSymbols,
+        DataStream *symbols
 );
 
 

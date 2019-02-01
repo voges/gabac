@@ -5,6 +5,8 @@
 #include <cstdlib>
 #include <vector>
 
+#include "gabac/data_stream.h"
+
 using std::size_t;
 
 namespace gabac {
@@ -14,7 +16,7 @@ class BitInputStream
 {
  public:
     explicit BitInputStream(
-            const std::vector<unsigned char>& bitstream
+            const gabac::DataStream& bitstream
     );
 
     ~BitInputStream();
@@ -30,7 +32,7 @@ class BitInputStream
             unsigned int numBits
     );
 
-    std::vector<unsigned char> m_bitstream;
+    gabac::DataStream m_bitstream;
 
     size_t m_bitstreamIndex;
 

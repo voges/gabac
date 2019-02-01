@@ -11,10 +11,9 @@
 
 namespace gabacify {
 
-
 template<typename T>
 void deriveMinMax(  // warning: this should still support signed!!!!
-        const std::vector<T>& symbols,
+        const gabac::DataStream& symbols,
         unsigned int word_size,
         T *const min,
         T *const max
@@ -79,7 +78,7 @@ void deriveMinMax(  // warning: this should still support signed!!!!
 
 
 void deriveMinMaxSigned(
-        const std::vector<int64_t>& symbols,
+        const gabac::DataStream& symbols,
         unsigned int word_size,
         int64_t *const min,
         int64_t *const max
@@ -89,7 +88,7 @@ void deriveMinMaxSigned(
 
 
 void deriveMinMaxUnsigned(
-        const std::vector<uint64_t>& symbols,
+        const gabac::DataStream& symbols,
         unsigned int word_size,
         uint64_t *const min,
         uint64_t *const max
@@ -107,9 +106,9 @@ bool fileExists(
 
 
 void generateByteBuffer(
-        const std::vector<uint64_t>& symbols,
+        const gabac::DataStream& symbols,
         unsigned int wordSize,
-        std::vector<unsigned char> * const buffer
+        gabac::DataStream * const buffer
 ){
     assert((wordSize == 1) || (wordSize == 2) || (wordSize == 4) || (wordSize == 8));
     assert(buffer != nullptr);
@@ -174,9 +173,9 @@ void generateByteBuffer(
 
 
 void generateSymbolStream(
-        const std::vector<unsigned char>& buffer,
+        const gabac::DataStream& buffer,
         unsigned int wordSize,
-        std::vector<uint64_t> * const symbols
+        gabac::DataStream * const symbols
 ){
     assert((wordSize == 1) || (wordSize == 2) || (wordSize == 4) || (wordSize == 8));
     assert((buffer.size() % wordSize) == 0);
@@ -250,7 +249,7 @@ void generateSymbolStream(
 
 
 double shannonEntropy(
-        const std::vector<uint64_t>& data
+        const gabac::DataStream& data
 ){
     size_t size = data.size();
     double entropy = 0;

@@ -29,9 +29,9 @@
         return GABAC_FAILURE;
     }
 
-    std::vector<uint64_t> symbolsVecCpp(symbols, symbols + symbolsSize);
-    std::vector<uint64_t> transformedVec;
-    std::vector<uint64_t> invLutVec;
+    DataStream symbolsVecCpp(symbols, symbols + symbolsSize);
+    DataStream transformedVec;
+    DataStream invLutVec;
 
     gabac::transformLutTransform0(symbolsVecCpp, &transformedVec, &invLutVec);
 
@@ -62,9 +62,9 @@ int gabac_inverseTransformLutTransform0(
         return GABAC_FAILURE;
     }
 
-    std::vector<uint64_t> transSymVec(transformedSymbols, transformedSymbols + transformedSymbolsSize);
-    std::vector<uint64_t> invLutVec(inverseLUT, inverseLUT + inverseLUTSize);
-    std::vector<uint64_t> symVec;
+    DataStream transSymVec(transformedSymbols, transformedSymbols + transformedSymbolsSize);
+    DataStream invLutVec(inverseLUT, inverseLUT + inverseLUTSize);
+    DataStream symVec;
 
     gabac::inverseTransformLutTransform0(transSymVec, invLutVec, &symVec);
 
@@ -84,9 +84,9 @@ namespace gabac {
 const size_t MAX_LUT_SIZE = 1u << 20u; // 8MB table
 
 static void inferLut0(
-        const std::vector<uint64_t>& symbols,
+        const DataStream& symbols,
         std::vector<std::pair<uint64_t, uint64_t>> *const lut,
-        std::vector<uint64_t> *const inverseLut
+        DataStream *const inverseLut
 ){
     // Clear
     lut->clear();
@@ -180,10 +180,10 @@ static uint64_t lut0SingleTransform(
 
 static void transformLutTransform_core(
         const size_t ORDER,
-        const std::vector<uint64_t>& symbols,
+        const DataStream& symbols,
         const std::vector<std::pair<uint64_t, uint64_t>>& lut0,
-        const std::vector<uint64_t>& lut,
-        std::vector<uint64_t> *const transformedSymbols
+        const DataStream& lut,
+        DataStream *const transformedSymbols
 ){
     assert(transformedSymbols != nullptr);
 
@@ -195,7 +195,7 @@ static void transformLutTransform_core(
         return;
     }
 
-    std::vector<uint64_t> lastSymbols(ORDER + 1, 0);
+    std::vector<uint64_t >lastSymbols(ORDER + 1, 0);
 
     // Do the LUT transform
     for (const auto& symbol : symbols)
@@ -232,10 +232,10 @@ static void transformLutTransform_core(
 
 static void inverseTransformLutTransform_core(
         const size_t ORDER,
-        const std::vector<uint64_t>& transformedSymbols,
-        const std::vector<uint64_t>& inverseLut0,
-        const std::vector<uint64_t>& inverseLut,
-        std::vector<uint64_t> *const symbols
+        const DataStream& transformedSymbols,
+        const DataStream& inverseLut0,
+        const DataStream& inverseLut,
+        DataStream *const symbols
 ){
     assert(symbols != nullptr);
 
@@ -284,11 +284,11 @@ static void inverseTransformLutTransform_core(
 
 void inferLut(
         const size_t ORDER,
-        const std::vector<uint64_t>& symbols,
+        const DataStream& symbols,
         std::vector<std::pair<uint64_t, uint64_t>> *const lut0,
-        std::vector<uint64_t> *const inverseLut0,
-        std::vector<uint64_t> *const lut1,
-        std::vector<uint64_t> *const inverseLut1
+        DataStream *const inverseLut0,
+        DataStream *const lut1,
+        DataStream *const inverseLut1
 ){
     // Clear
     lut1->clear();
@@ -430,13 +430,13 @@ void inferLut(
 
 void transformLutTransform0(
         unsigned order,
-        const std::vector<uint64_t>& symbols,
-        std::vector<uint64_t> *transformedSymbols,
-        std::vector<uint64_t> *inverseLUT,
-        std::vector<uint64_t> *inverseLUT1
+        const DataStream& symbols,
+        DataStream *transformedSymbols,
+        DataStream *inverseLUT,
+        DataStream *inverseLUT1
 ){
     std::vector<std::pair<uint64_t, uint64_t>> lut;
-    std::vector<uint64_t> lut1;
+    DataStream lut1(0, symbols.getWordSize());
     inferLut(order, symbols, &lut, inverseLUT, &lut1, inverseLUT1);
     if (lut.empty())
     {
@@ -451,10 +451,10 @@ void transformLutTransform0(
 
 void inverseTransformLutTransform0(
         unsigned order,
-        const std::vector<uint64_t>& transformedSymbols,
-        const std::vector<uint64_t>& inverseLUT,
-        const std::vector<uint64_t>& inverseLUT1,
-        std::vector<uint64_t> *symbols
+        const DataStream& transformedSymbols,
+        const DataStream& inverseLUT,
+        const DataStream& inverseLUT1,
+        DataStream *symbols
 ){
     inverseTransformLutTransform_core(order, transformedSymbols, inverseLUT, inverseLUT1, symbols);
 }

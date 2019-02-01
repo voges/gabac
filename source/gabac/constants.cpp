@@ -107,14 +107,14 @@ const std::vector<TransformationProperties> transformationInformation = {
                 "no_transform", // Name
                 {"out"}, // StreamNames
                 {0}, // WordSizes (0: non fixed current stream wordsize)
-                [](const std::vector<uint64_t>& sequence, uint64_t,
-                   std::vector<std::vector<uint64_t>> *const transformedSequences
+                [](const DataStream& sequence, uint64_t,
+                   std::vector<DataStream> *const transformedSequences
                 )
                 {
                     (*transformedSequences)[0] = sequence;
                 },
-                [](const std::vector<std::vector<uint64_t>>& transformedSequences, uint64_t,
-                   std::vector<uint64_t> *const sequence
+                [](const std::vector<DataStream>& transformedSequences, uint64_t,
+                   DataStream *const sequence
                 )
                 {
                     *sequence = transformedSequences[0];
@@ -124,8 +124,8 @@ const std::vector<TransformationProperties> transformationInformation = {
                 "equality_coding", // Name
                 {"eq_flags",   "raw_symbols"}, // StreamNames
                 {1, 0}, // WordSizes (0: non fixed current stream wordsize)
-                [](const std::vector<uint64_t>& sequence, uint64_t,
-                   std::vector<std::vector<uint64_t>> *const transformedSequences
+                [](const DataStream& sequence, uint64_t,
+                   std::vector<DataStream> *const transformedSequences
                 )
                 {
                     gabac::transformEqualityCoding(
@@ -134,8 +134,8 @@ const std::vector<TransformationProperties> transformationInformation = {
                             &(*transformedSequences)[1]
                     );
                 },
-                [](const std::vector<std::vector<uint64_t>>& transformedSequences, uint64_t,
-                   std::vector<uint64_t> *const sequence
+                [](const std::vector<DataStream>& transformedSequences, uint64_t,
+                   DataStream *const sequence
                 )
                 {
                     gabac::inverseTransformEqualityCoding(
@@ -149,8 +149,8 @@ const std::vector<TransformationProperties> transformationInformation = {
                 "match_coding", // Name
                 {"pointers",   "lengths", "raw_values"}, // StreamNames
                 {4, 4, 0}, // WordSizes (0: non fixed current stream wordsize)
-                [](const std::vector<uint64_t>& sequence, uint64_t param,
-                   std::vector<std::vector<uint64_t>> *const transformedSequences
+                [](const DataStream& sequence, uint64_t param,
+                   std::vector<DataStream> *const transformedSequences
                 )
                 {
                     assert(param <= std::numeric_limits<uint32_t>::max());
@@ -162,8 +162,8 @@ const std::vector<TransformationProperties> transformationInformation = {
                             &(*transformedSequences)[2]
                     );
                 },
-                [](const std::vector<std::vector<uint64_t>>& transformedSequences, uint64_t,
-                   std::vector<uint64_t> *const sequence
+                [](const std::vector<DataStream>& transformedSequences, uint64_t,
+                   DataStream *const sequence
                 )
                 {
                     gabac::inverseTransformMatchCoding(
@@ -178,8 +178,8 @@ const std::vector<TransformationProperties> transformationInformation = {
                 "rle_coding", // Name
                 {"raw_values", "lengths"}, // StreamNames
                 {0, 4}, // WordSizes (0: non fixed current stream wordsize)
-                [](const std::vector<uint64_t>& sequence, uint64_t param,
-                   std::vector<std::vector<uint64_t>> *const transformedSequences
+                [](const DataStream& sequence, uint64_t param,
+                   std::vector<DataStream> *const transformedSequences
                 )
                 {
                     gabac::transformRleCoding(
@@ -189,8 +189,8 @@ const std::vector<TransformationProperties> transformationInformation = {
                             &(*transformedSequences)[1]
                     );
                 },
-                [](const std::vector<std::vector<uint64_t>>& transformedSequences, uint64_t param,
-                   std::vector<uint64_t> *const sequence
+                [](const std::vector<DataStream>& transformedSequences, uint64_t param,
+                   DataStream *const sequence
                 )
                 {
                     gabac::inverseTransformRleCoding(
@@ -205,8 +205,8 @@ const std::vector<TransformationProperties> transformationInformation = {
                 "lut_coding", // Name
                 {"sequence",   "lut0", "lut1"}, // StreamNames
                 {0, 0, 0}, // WordSizes (0: non fixed current stream wordsize)
-                [](const std::vector<uint64_t>& sequence, uint64_t order,
-                   std::vector<std::vector<uint64_t>> *const transformedSequences
+                [](const DataStream& sequence, uint64_t order,
+                   std::vector<DataStream> *const transformedSequences
                 )
                 {
                     gabac::transformLutTransform0(
@@ -217,8 +217,8 @@ const std::vector<TransformationProperties> transformationInformation = {
                             &(*transformedSequences)[2]
                     );
                 },
-                [](const std::vector<std::vector<uint64_t>>& transformedSequences, uint64_t order,
-                   std::vector<uint64_t> *const sequence
+                [](const std::vector<DataStream>& transformedSequences, uint64_t order,
+                   DataStream *const sequence
                 )
                 {
                     gabac::inverseTransformLutTransform0(
@@ -234,13 +234,13 @@ const std::vector<TransformationProperties> transformationInformation = {
                 "diff_coding", // Name
                 {"sequence"}, // StreamNames
                 {0}, // WordSizes (0: non fixed current stream wordsize)
-                [](const std::vector<uint64_t>&, uint64_t,
-                   std::vector<std::vector<uint64_t>> *const
+                [](const DataStream&, uint64_t,
+                   std::vector<DataStream> *const
                 )
                 {
                 },
-                [](const std::vector<std::vector<uint64_t>>&, uint64_t,
-                   std::vector<uint64_t> *const
+                [](const std::vector<DataStream>&, uint64_t,
+                   DataStream *const
                 )
                 {
                 }

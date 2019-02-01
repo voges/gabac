@@ -7,7 +7,7 @@
 #include "gabac/return_codes.h"
 
 
-int gabac_transformDiffCoding(
+/*int gabac_transformDiffCoding(
         const uint64_t *const symbols,
         const size_t symbolsSize,
         int64_t **const transformedSymbols
@@ -76,15 +76,15 @@ int gabac_inverseTransformDiffCoding(
     }
 
     return GABAC_SUCCESS;
-}
+}*/
 
 
 namespace gabac {
 
 
 void transformDiffCoding(
-        const std::vector<uint64_t>& symbols,
-        std::vector<int64_t> *const transformedSymbols
+        const DataStream& symbols,
+        DataStream *const transformedSymbols
 ){
     assert(transformedSymbols != nullptr);
 
@@ -116,8 +116,8 @@ void transformDiffCoding(
 
 
 void inverseTransformDiffCoding(
-        const std::vector<int64_t>& transformedSymbols,
-        std::vector<uint64_t> *const symbols
+        const DataStream& transformedSymbols,
+        DataStream *const symbols
 ){
     assert(symbols != nullptr);
 

@@ -9,6 +9,7 @@
 #include "gabac/constants.h"
 #include "gabac/context_model.h"
 #include "gabac/context_selector.h"
+#include "gabac/data_stream.h"
 #include "gabac/binary_arithmetic_encoder.h"
 
 using std::size_t;
@@ -19,7 +20,7 @@ class Writer
 {
  public:
     explicit Writer(
-            std::vector<unsigned char> *bitstream
+            DataStream *bitstream
     );
 
     ~Writer();

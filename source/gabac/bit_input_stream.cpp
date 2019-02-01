@@ -9,7 +9,7 @@ namespace gabac {
 
 
 static unsigned char readIn(
-        const std::vector<unsigned char>& bitstream,
+        const DataStream& bitstream,
         size_t *const bitstreamIndex
 ){
     unsigned char byte = bitstream.at(*bitstreamIndex);
@@ -19,7 +19,7 @@ static unsigned char readIn(
 
 
 BitInputStream::BitInputStream(
-        const std::vector<unsigned char>& bitstream
+        const DataStream& bitstream
 )
         : m_bitstream(bitstream), m_heldBits(0), m_numHeldBits(0){
     reset();

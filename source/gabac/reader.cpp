@@ -12,7 +12,7 @@ namespace gabac {
 
 
 Reader::Reader(
-        const std::vector<unsigned char>& bitstream
+        const DataStream& bitstream
 )
         : m_bitInputStream(bitstream),
         m_contextSelector(),

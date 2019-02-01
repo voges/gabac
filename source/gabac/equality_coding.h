@@ -33,23 +33,23 @@ int gabac_inverseTransformEqualityCoding(
 }  // extern "C"
 
 
-#include <vector>
+#include "gabac/data_stream.h"
 
 
 namespace gabac {
 
 
 void transformEqualityCoding(
-        const std::vector<uint64_t>& symbols,
-        std::vector<uint64_t> *equalityFlags,
-        std::vector<uint64_t> *values
+        const gabac::DataStream& symbols,
+        gabac::DataStream *equalityFlags,
+        gabac::DataStream *values
 );
 
 
 void inverseTransformEqualityCoding(
-        const std::vector<uint64_t>& equalityFlags,
-        const std::vector<uint64_t>& values,
-        std::vector<uint64_t> *symbols
+        const gabac::DataStream& equalityFlags,
+        const gabac::DataStream& values,
+        gabac::DataStream *symbols
 );
 
 

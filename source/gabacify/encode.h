@@ -17,27 +17,27 @@ void encode(
 );
 
 void appendToBytestream(
-        const std::vector<unsigned char>& bytes,
-        std::vector<unsigned char> *bytestream
+        const gabac::DataStream& bytes,
+        gabac::DataStream *bytestream
 );
 
 void doDiffTransform(bool enabled,
-                            const std::vector<uint64_t>& lutTransformedSequence,
-                            std::vector<int64_t> *diffAndLutTransformedSequence
+                     const gabac::DataStream& lutTransformedSequence,
+                     gabac::DataStream *diffAndLutTransformedSequence
 );
 
 void doLutTransform(bool enabled,
-                    const std::vector<uint64_t>& transformedSequence,
+                    const gabac::DataStream& transformedSequence,
                     unsigned int order,
-                    std::vector<unsigned char> *const bytestream,
-                    std::vector<std::vector<uint64_t >> *const lutSequences,
+                    gabac::DataStream *const bytestream,
+                    std::vector<gabac::DataStream> *const lutSequences,
                     unsigned *bits0
 );
 
-void doSequenceTransform(const std::vector<uint64_t>& sequence,
-                                const gabac::SequenceTransformationId& transID,
-                                uint64_t param,
-                                std::vector<std::vector<uint64_t>> *transformedSequences
+void doSequenceTransform(const gabac::DataStream& sequence,
+                         const gabac::SequenceTransformationId& transID,
+                         uint64_t param,
+                         std::vector<gabac::DataStream> *transformedSequences
 );
 
 

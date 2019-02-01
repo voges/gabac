@@ -44,24 +44,25 @@ int gabac_inverseTransformMatchCoding(
 #include <cstdint>
 #include <vector>
 
+#include "gabac/data_stream.h"
 
 namespace gabac {
 
 
 void transformMatchCoding(
-        const std::vector<uint64_t>& symbols,
+        const DataStream& symbols,
         uint32_t windowSize,
-        std::vector<uint64_t> *pointers,
-        std::vector<uint64_t> *lengths,
-        std::vector<uint64_t> *rawValues
+        DataStream *pointers,
+        DataStream *lengths,
+        DataStream *rawValues
 );
 
 
 void inverseTransformMatchCoding(
-        const std::vector<uint64_t>& pointers,
-        const std::vector<uint64_t>& lengths,
-        const std::vector<uint64_t>& rawValues,
-        std::vector<uint64_t> *symbols
+        const DataStream& pointers,
+        const DataStream& lengths,
+        const DataStream& rawValues,
+        DataStream *symbols
 );
 
 

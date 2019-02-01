@@ -13,7 +13,7 @@
 // C wrapper BEGIN
 // ----------------------------------------------------------------------------
 
-
+/*
 int gabac_decode(
         unsigned char *const bitstream,
         size_t bitstreamSize,
@@ -76,7 +76,7 @@ int gabac_decode(
     return GABAC_SUCCESS;
 }
 
-
+*/
 // ----------------------------------------------------------------------------
 // C wrapper END
 // ----------------------------------------------------------------------------
@@ -86,11 +86,11 @@ namespace gabac {
 
 
 int decode(
-        const std::vector<unsigned char>& bitstream,
+        const DataStream& bitstream,
         const BinarizationId& binarizationId,
         const std::vector<unsigned int>& binarizationParameters,
         const ContextSelectionId& contextSelectionId,
-        std::vector<int64_t> *const symbols
+        DataStream *const symbols
 ){
     if (symbols == nullptr)
     {

@@ -5,8 +5,9 @@
 #include <iostream>
 
 #include "gabac/return_codes.h"
+#include "gabac/data_stream.h"
 
-
+/*
 int gabac_transformEqualityCoding(
         const uint64_t *const symbols,
         const size_t symbolsSize,
@@ -96,16 +97,16 @@ int gabac_inverseTransformEqualityCoding(
     }
 
     return GABAC_SUCCESS;
-}
+}*/
 
 
 namespace gabac {
 
 
 void transformEqualityCoding(
-        const std::vector<uint64_t>& symbols,
-        std::vector<uint64_t> *const equalityFlags,
-        std::vector<uint64_t> *const values
+        const DataStream& symbols,
+        DataStream *const equalityFlags,
+        DataStream *const values
 ){
     assert(equalityFlags != nullptr);
     assert(values != nullptr);
@@ -145,9 +146,9 @@ void transformEqualityCoding(
 // ----------------------------------------------------------------------------
 
 void inverseTransformEqualityCoding(
-        const std::vector<uint64_t>& equalityFlags,
-        const std::vector<uint64_t>& values,
-        std::vector<uint64_t> *const symbols
+        const DataStream& equalityFlags,
+        const DataStream& values,
+        DataStream *const symbols
 ){
     assert(symbols != nullptr);
 

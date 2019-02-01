@@ -3,7 +3,7 @@
 
 
 #include <vector>
-
+#include "gabac/data_stream.h"
 
 namespace gabac {
 
@@ -12,7 +12,7 @@ class BitOutputStream
 {
  public:
     explicit BitOutputStream(
-            std::vector<unsigned char> *bitstream
+            DataStream *bitstream
     );
 
     ~BitOutputStream();
@@ -27,7 +27,7 @@ class BitOutputStream
     void writeAlignZero();
 
  private:
-    std::vector<unsigned char> *m_bitstream;
+    DataStream *m_bitstream;
 
     unsigned char m_heldBits;
 

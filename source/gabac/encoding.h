@@ -30,17 +30,18 @@ int gabac_encode(
 #include <vector>
 
 #include "gabac/constants.h"
+#include "gabac/data_stream.h"
 
 
 namespace gabac {
 
 
 int encode(
-        const std::vector<int64_t>& symbols,
+        const DataStream& symbols,
         const BinarizationId& binarizationId,
         const std::vector<unsigned int>& binarizationParameters,
         const ContextSelectionId& contextSelectionId,
-        std::vector<unsigned char> *bitstream
+        DataStream *bitstream
 );
 
 

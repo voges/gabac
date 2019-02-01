@@ -8,6 +8,8 @@
 #include <vector>
 #include <string>
 
+#include "gabac/data_stream.h"
+
 namespace gabac {
 
 
@@ -50,13 +52,12 @@ enum class ContextSelectionId
 
 #ifdef __cplusplus
 
-
-using SequenceTransform = std::function<void(const std::vector<uint64_t>& sequence, const uint64_t param,
-                                             std::vector<std::vector<uint64_t>> *const
+using SequenceTransform = std::function<void(const gabac::DataStream& sequence, const uint64_t param,
+                                             std::vector<gabac::DataStream> *const
 )>;
 
-using InverseSequenceTransform = std::function<void(const std::vector<std::vector<uint64_t>>&, const uint64_t,
-                                                    std::vector<uint64_t> *const
+using InverseSequenceTransform = std::function<void(const std::vector<gabac::DataStream>&, const uint64_t,
+                                                    gabac::DataStream *const
 )>;
 
 using SignedBinarizationCheck = std::function<bool(int64_t min, int64_t max, uint64_t parameter

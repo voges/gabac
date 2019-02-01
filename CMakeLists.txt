@@ -17,7 +17,6 @@ project("gabac")
 set(gabac OFF CACHE BOOL "Build shared GABAC library.")
 message(STATUS "GABAC_BUILD_SHARED_LIB=${GABAC_BUILD_SHARED_LIB}")
 
-
 #==============================================================================
 # Compiler
 #==============================================================================
@@ -162,7 +161,7 @@ set(gabac_header_files ${gabac_header_files} ${gabac_header_dir}/reader.h)
 set(gabac_header_files ${gabac_header_files} ${gabac_header_dir}/release.h)
 set(gabac_header_files ${gabac_header_files} ${gabac_header_dir}/return_codes.h)
 set(gabac_header_files ${gabac_header_files} ${gabac_header_dir}/rle_coding.h)
-set(gabac_header_files ${gabac_header_files} ${gabac_header_dir}/writer.h source/gabac/constants.cpp)
+set(gabac_header_files ${gabac_header_files} ${gabac_header_dir}/writer.h source/gabac/constants.cpp source/gabac/data_stream.cpp source/gabac/data_stream.h)
 
 # Group the source and header files
 source_group("GABAC Source Files" FILES ${gabac_source_files})

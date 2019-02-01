@@ -5,6 +5,7 @@
 
 #include "gabac/return_codes.h"
 
+/*
 
 int gabac_transformRleCoding(
         const uint64_t * const symbols,
@@ -24,9 +25,9 @@ int gabac_transformRleCoding(
     try
     {
         // C++-style vectors to receive input data / accumulate output data
-        std::vector<uint64_t> symbolsVector(symbols, (symbols + symbolsSize));
-        std::vector<uint64_t> rawValuesVector;
-        std::vector<uint64_t> lengthsVector;
+        gabac::DataStream symbolsVector(symbols, (symbols + symbolsSize));
+        gabac::DataStream rawValuesVector;
+        gabac::DataStream lengthsVector;
 
         // Execute
         gabac::transformRleCoding(symbolsVector, guard, &rawValuesVector, &lengthsVector);
@@ -65,9 +66,9 @@ int gabac_inverseTransformRleCoding(
     try
     {
         // C++-style vectors to receive input data / accumulate output data
-        std::vector<uint64_t> rawValuesVector(rawValues, (rawValues + rawValuesSize));
-        std::vector<uint64_t> lengthsVector(lengths, (lengths + lengthsSize));
-        std::vector<uint64_t> symbolsVector;
+        gabac::DataStream rawValuesVector(rawValues, (rawValues + rawValuesSize));
+        gabac::DataStream lengthsVector(lengths, (lengths + lengthsSize));
+        gabac::DataStream symbolsVector;
 
         // Execute
         gabac::inverseTransformRleCoding(rawValuesVector, lengthsVector, guard, &symbolsVector);
@@ -83,17 +84,17 @@ int gabac_inverseTransformRleCoding(
     }
 
     return GABAC_SUCCESS;
-}
+}*/
 
 
 namespace gabac {
 
 
 void transformRleCoding(
-        const std::vector<uint64_t>& symbols,
+        const gabac::DataStream& symbols,
         const uint64_t guard,
-        std::vector<uint64_t> * const rawValues,
-        std::vector<uint64_t> * const lengths
+        gabac::DataStream * const rawValues,
+        gabac::DataStream * const lengths
 ){
     assert(guard > 0);
     assert(rawValues != nullptr);
@@ -124,10 +125,10 @@ void transformRleCoding(
 
 
 void inverseTransformRleCoding(
-        const std::vector<uint64_t>& rawValues,
-        const std::vector<uint64_t>& lengths,
+        const gabac::DataStream& rawValues,
+        const gabac::DataStream& lengths,
         const uint64_t guard,
-        std::vector<uint64_t> * const symbols
+        gabac::DataStream * const symbols
 ){
     assert(!rawValues.empty());
     assert(!lengths.empty());

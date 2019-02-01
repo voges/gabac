@@ -40,23 +40,24 @@ int gabac_inverseTransformRleCoding(
 #include <cstdint>
 #include <vector>
 
+#include "gabac/data_stream.h"
 
 namespace gabac {
 
 
 void transformRleCoding(
-        const std::vector<uint64_t>& symbols,
+        const DataStream& symbols,
         uint64_t guard,
-        std::vector<uint64_t> *rawValues,
-        std::vector<uint64_t> *lengths
+        DataStream *rawValues,
+        DataStream *lengths
 );
 
 
 void inverseTransformRleCoding(
-        const std::vector<uint64_t>& rawValues,
-        const std::vector<uint64_t>& lengths,
+        const DataStream& rawValues,
+        const DataStream& lengths,
         uint64_t guard,
-        std::vector<uint64_t> *symbols
+        DataStream *symbols
 );
 
 

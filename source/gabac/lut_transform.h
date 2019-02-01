@@ -65,6 +65,8 @@ int gabac_inverseTransformLutTransform0(
 #include <utility>
 #include <vector>
 
+#include "gabac/data_stream.h"
+
 namespace gabac {
 
 /**
@@ -75,10 +77,10 @@ namespace gabac {
  */
 void transformLutTransform0(
         unsigned order,
-        const std::vector<uint64_t>& symbols,
-        std::vector<uint64_t> *transformedSymbols,
-        std::vector<uint64_t> *inverseLUT,
-        std::vector<uint64_t> *inverseLUT1
+        const DataStream& symbols,
+        DataStream *transformedSymbols,
+        DataStream *inverseLUT,
+        DataStream *inverseLUT1
 );
 
 /**
@@ -89,10 +91,10 @@ void transformLutTransform0(
  */
 void inverseTransformLutTransform0(
         unsigned order,
-        const std::vector<uint64_t>& transformedSymbols,
-        const std::vector<uint64_t>& inverseLUT,
-        const std::vector<uint64_t>& inverseLUT1,
-        std::vector<uint64_t> *symbols
+        const DataStream& transformedSymbols,
+        const DataStream& inverseLUT,
+        const DataStream& inverseLUT1,
+        DataStream *symbols
 );
 
 }  // namespace gabac

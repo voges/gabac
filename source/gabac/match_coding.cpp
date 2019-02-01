@@ -11,7 +11,7 @@
 // C wrapper BEGIN
 // ----------------------------------------------------------------------------
 
-
+/*
 int gabac_transformMatchCoding(
         const uint64_t *const symbols,
         const size_t symbolsSize,
@@ -53,10 +53,10 @@ int gabac_transformMatchCoding(
     }
 
     // C++-style vectors to receive input data / accumulate output data
-    std::vector<uint64_t> symbolsVector(symbols, (symbols + symbolsSize));
-    std::vector<uint64_t> pointersVector;
-    std::vector<uint64_t> lengthsVector;
-    std::vector<uint64_t> rawValuesVector;
+    gabac::DataStream symbolsVector(symbols, (symbols + symbolsSize));
+    gabac::DataStream pointersVector;
+    gabac::DataStream lengthsVector;
+    gabac::DataStream rawValuesVector;
 
     // Execute
     try
@@ -122,13 +122,13 @@ int gabac_inverseTransformMatchCoding(
     }
 
     // C++-style vectors to receive input data / accumulate output data
-    std::vector<uint64_t> pointersVector(pointers, (pointers + pointersSize));
-    std::vector<uint64_t> lengthsVector(lengths, (lengths + lengthsSize));
-    std::vector<uint64_t> rawValuesVector(
+    gabac::DataStream pointersVector(pointers, (pointers + pointersSize));
+    gabac::DataStream lengthsVector(lengths, (lengths + lengthsSize));
+    gabac::DataStream rawValuesVector(
             rawValues,
             (rawValues + rawValuesSize)
     );
-    std::vector<uint64_t> symbolsVector;
+    gabac::DataStream symbolsVector;
 
     // Execute
     try
@@ -151,7 +151,7 @@ int gabac_inverseTransformMatchCoding(
     std::copy(symbolsVector.begin(), symbolsVector.end(), *symbols);
 
     return GABAC_SUCCESS;
-}
+}*/
 
 
 // ----------------------------------------------------------------------------
@@ -163,11 +163,11 @@ namespace gabac {
 
 
 void transformMatchCoding(
-        const std::vector<uint64_t>& symbols,
+        const gabac::DataStream& symbols,
         const uint32_t windowSize,
-        std::vector<uint64_t> *const pointers,
-        std::vector<uint64_t> *const lengths,
-        std::vector<uint64_t> *const rawValues
+        gabac::DataStream *const pointers,
+        gabac::DataStream *const lengths,
+        gabac::DataStream *const rawValues
 ){
     assert(pointers != nullptr);
     assert(lengths != nullptr);
@@ -228,10 +228,10 @@ void transformMatchCoding(
 // ----------------------------------------------------------------------------
 
 void inverseTransformMatchCoding(
-        const std::vector<uint64_t>& pointers,
-        const std::vector<uint64_t>& lengths,
-        const std::vector<uint64_t>& rawValues,
-        std::vector<uint64_t> *const symbols
+        const gabac::DataStream& pointers,
+        const gabac::DataStream& lengths,
+        const gabac::DataStream& rawValues,
+        gabac::DataStream *const symbols
 ){
     assert(symbols != nullptr);
     assert(lengths.size() == pointers.size() + rawValues.size());

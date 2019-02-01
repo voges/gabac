@@ -42,20 +42,20 @@ int gabac_decode(
 // ----------------------------------------------------------------------------
 
 
-#include <vector>
 
 #include "gabac/constants.h"
+#include "gabac/data_stream.h"
 
 
 namespace gabac {
 
 
 int decode(
-        const std::vector<unsigned char>& bitstream,
+        const gabac::DataStream& bitstream,
         const BinarizationId& binarizationId,
         const std::vector<unsigned int>& binarizationParameters,
         const ContextSelectionId& contextSelectionId,
-        std::vector<int64_t> *symbols
+        gabac::DataStream *symbols
 );
 
 

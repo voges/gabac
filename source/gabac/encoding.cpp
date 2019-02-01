@@ -13,7 +13,7 @@
 // C wrapper BEGIN
 // ----------------------------------------------------------------------------
 
-
+/*
 int gabac_encode(
         int64_t *const symbols,
         size_t symbolsSize,
@@ -42,7 +42,7 @@ int gabac_encode(
     }
 
     // C++-style vectors to receive input data / accumulate output data
-    std::vector<int64_t> symbolsVector(
+    DataStream symbolsVector(
             symbols,
             (symbols + symbolsSize)
     );
@@ -73,7 +73,7 @@ int gabac_encode(
     std::copy(bitstreamVector.begin(), bitstreamVector.end(), *bitstream);
 
     return GABAC_SUCCESS;
-}
+}*/
 
 
 // ----------------------------------------------------------------------------
@@ -85,11 +85,11 @@ namespace gabac {
 
 
 int encode(
-        const std::vector<int64_t>& symbols,
+        const DataStream& symbols,
         const BinarizationId& binarizationId,
         const std::vector<unsigned int>& binarizationParameters,
         const ContextSelectionId& contextSelectionId,
-        std::vector<unsigned char> *const bitstream
+        DataStream *const bitstream
 ){
     assert(bitstream != nullptr);
 #ifndef NDEBUG
