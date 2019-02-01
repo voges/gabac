@@ -51,8 +51,8 @@ static const CandidateConfig& getCandidateConfig(){
             },
             { // Sequence Transformations
                     gabac::SequenceTransformationId::no_transform,
-                       gabac::SequenceTransformationId::equality_coding,
-                          gabac::SequenceTransformationId::match_coding,
+            //           gabac::SequenceTransformationId::equality_coding,
+            //              gabac::SequenceTransformationId::match_coding,
                              gabac::SequenceTransformationId::rle_coding
             },
             { // Match coding window sizes

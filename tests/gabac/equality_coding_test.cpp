@@ -17,7 +17,7 @@ class equalityCodingTest : public ::testing::Test
         // Code here will be called immediately after each test
     }
 };
-
+/*
 
 TEST_F(equalityCodingTest, transformEqualityCoding){
     {
@@ -147,4 +147,4 @@ TEST_F(equalityCodingTest, roundTripCoding){
     EXPECT_EQ(decodedSymbols.size(), symbols.size());
     EXPECT_EQ(decodedSymbols, symbols);
     symbols.clear();
-}
+}*/

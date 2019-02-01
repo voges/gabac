@@ -19,7 +19,7 @@ class BitInputStreamTest : public ::testing::Test
 
 
 TEST_F(BitInputStreamTest, readByte){
-    std::vector<unsigned char> bitstream = {0xFF};
+    gabac::DataStream bitstream = {0xFF};
     gabac::BitInputStream bitInputStream(bitstream);
     EXPECT_EQ(bitstream[0], bitInputStream.readByte());
 }

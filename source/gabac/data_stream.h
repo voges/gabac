@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <cstdint>
+#include <stdexcept>
 
 namespace gabac {
 
@@ -12,7 +13,21 @@ class DataStream
     uint8_t wordSize;
     std::vector<uint8_t> data;
  public:
+    bool operator==(const DataStream& d) const{
+        return wordSize == d.wordSize && data == d.data;
+    }
+    DataStream& operator=(const std::initializer_list<uint64_t >& il){
+        resize(il.size());
+        size_t ctr = 0;
+        for(const auto& v : il) {
+            set(ctr, v);
+            ++ctr;
+        }
+        return *this;
+    }
     void set(size_t index, uint64_t val) {
+        if(index >= data.size())
+            throw std::runtime_error("Invalid Index");
         void* ptr = &(data[wordSize*index]);
 
         switch(wordSize) {
@@ -32,6 +47,8 @@ class DataStream
         }
     }
     uint64_t get(size_t index) const {
+        if(index >= data.size())
+            throw std::runtime_error("Invalid Index");
         uint64_t ret;
         const void* ptr = &(data[wordSize*index]);
         switch(wordSize) {
@@ -166,7 +183,7 @@ class DataStream
     }
 
     size_t size() const {
-        return data.size();
+        return data.size() / wordSize;
     }
 
     void reserve (size_t size) {
@@ -182,7 +199,7 @@ class DataStream
     }
 
     void resize(size_t size) {
-        data.resize(size);
+        data.resize(size * wordSize);
     }
 
     bool empty() const {
@@ -198,11 +215,11 @@ class DataStream
     }
 
     ConstIterator end () const {
-        return {this, data.size()};
+        return {this, data.size() / wordSize};
     }
 
     Iterator end () {
-        return {this, data.size()};
+        return {this, data.size() / wordSize};
     }
 
     void push_back (uint64_t val) {
@@ -226,6 +243,13 @@ class DataStream
         return wordSize;
     }
 
+    void swap (DataStream& d) {
+        size_t tmp = wordSize;
+        wordSize = d.wordSize;
+        d.wordSize = tmp;
+        data.swap(d.data);
+    }
+
 
     template<typename IT1, typename IT2>
     void insert(const IT1& pos, const IT2& start, const IT2& end) {
@@ -234,7 +258,7 @@ class DataStream
         data.insert(data.begin() + pos.getOffset(), start.getStream()->data.begin() + start.getOffset(), end.getStream()->data.begin() + end.getOffset());
     }
 
-    DataStream (size_t size = 0, size_t wsize = 1) : wordSize(wsize), data(size) {
+    DataStream (size_t size = 0, size_t wsize = 1) : wordSize(wsize), data(size * wsize) {
     }
 
 

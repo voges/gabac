@@ -18,7 +18,7 @@ class BitOutputStreamTest : public ::testing::Test
 
 
 TEST_F(BitOutputStreamTest, write){
-    std::vector<unsigned char> bitstream = {};
+    gabac::DataStream bitstream = {};
     gabac::BitOutputStream bitOutputStream(&bitstream);
     EXPECT_NO_THROW(bitOutputStream.write(0xFF, 8));
     EXPECT_NO_THROW(bitOutputStream.write(0xFF, 16));
@@ -27,7 +27,7 @@ TEST_F(BitOutputStreamTest, write){
 }
 
 TEST_F(BitOutputStreamTest, writeAlignZero){
-    std::vector<unsigned char> bitstream = {};
+    gabac::DataStream bitstream = {};
     gabac::BitOutputStream bitOutputStream(&bitstream);
     bitOutputStream.write(0xFF, 2);
     EXPECT_NO_THROW(bitOutputStream.writeAlignZero());

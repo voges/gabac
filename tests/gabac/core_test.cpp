@@ -32,9 +32,10 @@ class coreTest : public ::testing::Test
 constexpr unsigned int coreTest::params[];
 
 TEST_F(coreTest, encode){
-    std::vector<std::vector<int64_t>> symbols = {{},
-                                                 {1, 2, 3}};
-    std::vector<unsigned char> bitstream = {1, 3, 4};
+    std::vector<gabac::DataStream> symbols = {gabac::DataStream(0, 8), gabac::DataStream(0, 8)};
+    symbols[1] = {1, 2, 3};
+    gabac::DataStream bitstream;
+    bitstream = {1, 3, 4};
 
     // Check parameter lengths
     for (const auto& s : symbols)
@@ -87,16 +88,15 @@ TEST_F(coreTest, roundTrip){
                                          "order1",
                                          "order2"};
 
-    std::vector<unsigned char> bitstream = {};
-    std::vector<int64_t> decodedSymbols = {};
+    gabac::DataStream bitstream;
+    gabac::DataStream decodedSymbols(0,8);
 
     // Roundtrips
     for (int c = 0; c < 4; ++c)
     {
         for (int b = 0; b < 6; ++b)
         {
-            std::vector<int64_t> sym;
-            sym.resize(1024);
+            gabac::DataStream sym(1024, 8);
             fillVectorRandomUniform(intervals[b][0], intervals[b][1], &sym);
             std::cout
                     << "---> Testing binarization " + binNames[b] + " and context selection " + ctxNames[c] + "..."

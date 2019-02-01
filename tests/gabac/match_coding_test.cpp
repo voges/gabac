@@ -28,7 +28,7 @@ class matchCodingTest : public ::testing::Test
         // Code here will be called immediately after each test
     }
 };
-
+/*
 
 TEST_F(matchCodingTest, transformMatchCoding){
     std::vector<uint64_t> symbols;
@@ -270,4 +270,4 @@ TEST_F(matchCodingTest, roundTripCoding){
         EXPECT_EQ(symbols, decodedSymbols);
     }
     symbols.clear();
-}
+}*/

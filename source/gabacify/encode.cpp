@@ -33,10 +33,12 @@ void appendToBytestream(
 ){
     assert(bytestream != nullptr);
 
-    // Append the size of 'bytes' to the bytestream
-    gabac::DataStream sizeBuffer;
-    generateByteBuffer({static_cast<uint64_t>(bytes.size())}, 4, &sizeBuffer);
-    bytestream->insert(bytestream->end(), sizeBuffer.begin(), sizeBuffer.end());
+    uint32_t size = bytes.size()*bytes.getWordSize();
+    uint8_t* ptr = (uint8_t*)&size;
+    bytestream->push_back(ptr[0]);
+    bytestream->push_back(ptr[1]);
+    bytestream->push_back(ptr[2]);
+    bytestream->push_back(ptr[3]);
 
     // Append 'bytes' to the bytestream
     bytestream->insert(bytestream->end(), bytes.begin(), bytes.end());
@@ -86,6 +88,9 @@ void doLutTransform(bool enabled,
     GABACIFY_LOG_TRACE << "LUT transform *en*abled";
     const unsigned LUT_INDEX = 4;
     lutSequences->resize(gabac::transformationInformation[LUT_INDEX].streamNames.size());
+    for(size_t i = 0; i < lutSequences->size(); ++i) {
+        (*lutSequences)[i] = gabac::DataStream(0,gabac::fixWordSizes( gabac::transformationInformation[LUT_INDEX].wordsizes, transformedSequence.getWordSize())[i]);
+    }
     gabac::transformationInformation[LUT_INDEX].transform(transformedSequence, order, lutSequences);
 
     if((*lutSequences)[0].empty()) {
@@ -205,7 +210,7 @@ static void encodeSingleSequence(const TransformedSequenceConfiguration& configu
     seq->clear();
     seq->shrink_to_fit();
 
-    gabac::DataStream diffAndLutTransformedSequence;
+    gabac::DataStream diffAndLutTransformedSequence(0, lutTransformedSequences[0].getWordSize());
     doDiffTransform(
             configuration.diffCodingEnabled,
             lutTransformedSequences[0],
@@ -261,31 +266,28 @@ void encode_plain(const std::string& inputFilePath,
                   const std::string& configurationFilePath,
                   const std::string& outputFilePath
 ){
-    // Read in the entire input file
-    InputFile inputFile(inputFilePath);
-    gabac::DataStream buffer(inputFile.size());
-    inputFile.read(buffer.getData(), 1, buffer.size());
-    // Read the entire configuration file as a string and convert the JSON
-    // input string to the internal GABAC configuration
     InputFile configurationFile(configurationFilePath);
     std::string jsonInput("\0", configurationFile.size());
     configurationFile.read(&jsonInput[0], 1, jsonInput.size());
     Configuration configuration(jsonInput);
 
-    // Generate symbol stream from byte buffer
-    gabac::DataStream symbols;
-    generateSymbolStream(buffer, configuration.wordSize, &symbols);
-    buffer.clear();
-    buffer.shrink_to_fit();
+    // Read in the entire input file
+    InputFile inputFile(inputFilePath);
+    gabac::DataStream symbols(inputFile.size() / configuration.wordSize, configuration.wordSize);
+    inputFile.read(symbols.getData(), 1, symbols.size());
+    // Read the entire configuration file as a string and convert the JSON
+    // input string to the internal GABAC configuration
 
+    // Generate symbol stream from byte buffer
+    gabac::DataStream buffer(0, 1);
     encodeWithConfiguration(configuration, &symbols, &buffer);
     symbols.clear();
     symbols.shrink_to_fit();
 
     // Write the bytestream
     OutputFile outputFile(outputFilePath);
-    outputFile.write(buffer.getData(), 1, buffer.size());
-    GABACIFY_LOG_INFO << "Wrote bytestream of size " << buffer.size() << " to: " << outputFilePath;
+    outputFile.write(buffer.getData(), 1, buffer.size() * buffer.getWordSize());
+    GABACIFY_LOG_INFO << "Wrote bytestream of size " << buffer.size() * buffer.getWordSize() << " to: " << outputFilePath;
     buffer.clear();
     buffer.shrink_to_fit();
 }

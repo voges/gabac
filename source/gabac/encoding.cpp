@@ -105,7 +105,9 @@ int encode(
     unsigned int previousSymbol = 0;
     unsigned int previousPreviousSymbol = 0;
 
-    for (int64_t symbol : symbols)
+    size_t ctr = 0;
+
+    for (uint64_t symbol : symbols)
     {
         if (contextSelectionId == ContextSelectionId::bypass)
         {
@@ -176,6 +178,7 @@ int encode(
         {
             return GABAC_FAILURE;
         }
+        ++ctr;
     }
 
     writer.reset();

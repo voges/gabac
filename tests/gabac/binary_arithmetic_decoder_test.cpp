@@ -18,7 +18,7 @@ class BinaryArithmeticDecoderTest : public ::testing::Test
         // Code here will be called immediately after each test
     }
 
-    std::vector<unsigned char> bitStream_;
+    gabac::DataStream bitStream_;
     std::vector<gabac::ContextModel> contextModels_;
 };
 

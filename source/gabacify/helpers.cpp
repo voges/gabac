@@ -93,7 +93,16 @@ void deriveMinMaxUnsigned(
         uint64_t *const min,
         uint64_t *const max
 ){
-    deriveMinMax(symbols, word_size, min, max);
+    *min = std::numeric_limits<uint64_t>::max();
+    *max = std::numeric_limits<uint64_t >::min();
+    for(const auto& v : symbols) {
+        if(v < *min) {
+            *min = v;
+        }
+        if(v > *max) {
+            *max = v;
+        }
+    }
 }
 
 

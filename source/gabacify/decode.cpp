@@ -289,7 +289,8 @@ void decode(
     InputFile inputFile(inputFilePath);
     size_t bytestreamSize = inputFile.size();
     gabac::DataStream bytestream(bytestreamSize, 1);
-    inputFile.read(bytestream.getData(), 1, bytestreamSize);
+    std::vector<uint8_t> tmp(bytestreamSize);
+    inputFile.read(tmp.data(), 1, bytestream.size());
 
     // Read the entire configuration file as a string and convert the JSON
     // input string to the internal GABAC configuration
@@ -302,16 +303,10 @@ void decode(
     gabac::DataStream symbols(0, configuration.wordSize);
     decodeWithConfiguration(&bytestream, configuration, &symbols);
 
-    // Generate byte buffer from symbol stream
-    gabac::DataStream buffer(0, 1);
-    generateByteBuffer(symbols, configuration.wordSize, &buffer);
-    symbols.clear();
-    symbols.shrink_to_fit();
-
     // Write the bytestream
     OutputFile outputFile(outputFilePath);
-    outputFile.write(buffer.getData(), 1, buffer.size());
-    GABACIFY_LOG_INFO << "Wrote buffer of size " << buffer.size() << " to: " << outputFilePath;
+    outputFile.write(symbols.getData(), 1, symbols.size() * symbols.getWordSize());
+    GABACIFY_LOG_INFO << "Wrote buffer of size " << symbols.size() * symbols.getWordSize() << " to: " << outputFilePath;
 }
 
 //------------------------------------------------------------------------------
