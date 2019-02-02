@@ -216,7 +216,7 @@ void getOptimumOfDiffTransformedStream(const gabac::DataStream& diffTransformedS
 
 //------------------------------------------------------------------------------
 
-void getOptimumOfLutTransformedStream(const gabac::DataStream& lutTransformedSequence,
+void getOptimumOfLutTransformedStream(gabac::DataStream& lutTransformedSequence,
                                       unsigned wordsize,
                                       gabac::DataStream *const bestByteStream,
                                       const gabac::DataStream& lut,

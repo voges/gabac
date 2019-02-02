@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <stdexcept>
 #include <cassert>
+#include <cstring>
 
 namespace gabac {
 
@@ -27,64 +28,16 @@ class DataStream
         return *this;
     }
 
-    inline void set1(size_t index, uint64_t val) {
-        assert(index < data.size() / wordSize);
-        void* ptr = &(data[wordSize*index]);
-        *(static_cast<uint8_t *>(ptr)) = uint8_t(val);
-    }
-
-    inline void set2(size_t index, uint64_t val) {
-        assert(index < data.size() / wordSize);
-        void* ptr = &(data[wordSize*index]);
-        *(static_cast<uint16_t *>(ptr)) = uint16_t(val);
-    }
-
-    inline void set4(size_t index, uint64_t val) {
-        assert(index < data.size() / wordSize);
-        void* ptr = &(data[wordSize*index]);
-        *(static_cast<uint32_t *>(ptr)) = uint32_t(val);
-    }
-
-    inline void set8(size_t index, uint64_t val) {
-        assert(index < data.size() / wordSize);
-        void* ptr = &(data[wordSize*index]);
-        *(static_cast<uint64_t *>(ptr)) = uint64_t(val);
-    }
-
-    inline uint64_t get1(size_t index) const {
-        assert(index < data.size() / wordSize);
-        const void* ptr = &(data[wordSize*index]);
-        return *(static_cast<const uint8_t *>(ptr));
-    }
-
-    inline uint64_t get2(size_t index) const {
-        assert(index < data.size() / wordSize);
-        const void* ptr = &(data[wordSize*index]);
-        return *(static_cast<const uint16_t *>(ptr));
-    }
-
-    inline uint64_t get4(size_t index) const {
-        assert(index < data.size() / wordSize);
-        const void* ptr = &(data[wordSize*index]);
-        return *(static_cast<const uint32_t *>(ptr));
-    }
-
-    inline uint64_t get8(size_t index) const {
-        assert(index < data.size() / wordSize);
-        const void* ptr = &(data[wordSize*index]);
-        return *(static_cast<const uint64_t *>(ptr));
-    }
-
-    void (DataStream::*setptr)(size_t index, uint64_t val);
-
-    uint64_t (DataStream::*getptr)(size_t index) const;
-
     inline uint64_t get(size_t index) const {
-        return (this->*getptr)(index);
+        // return (this->*getptr)(index);
+        uint64_t ret = 0;
+        memcpy(&ret, data.data()+index*wordSize, wordSize);
+        return ret;
     }
 
     inline void set(size_t index, uint64_t val) {
-        (this->*setptr)(index, val);
+        //  (this->*setptr)(index, val);
+        memcpy(data.data()+index*wordSize, &val, wordSize);
     }
 
     template<typename T>
@@ -285,25 +238,6 @@ class DataStream
     }
 
     DataStream (size_t size = 0, size_t wsize = 1) : wordSize(wsize), data(size * wsize) {
-        switch(wordSize) {
-            case 1:
-                this->setptr = &DataStream::set1;
-                this->getptr = &DataStream::get1;
-                break;
-            case 2:
-                this->setptr = &DataStream::set2;
-                this->getptr = &DataStream::get2;
-                break;
-            case 4:
-                this->setptr = &DataStream::set4;
-                this->getptr = &DataStream::get4;
-                break;
-            case 8:
-                //Fall through
-            default:
-                this->setptr = &DataStream::set8;
-                this->getptr = &DataStream::get8;
-        }
     }
 
 

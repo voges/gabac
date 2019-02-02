@@ -22,7 +22,7 @@ void appendToBytestream(
 );
 
 void doDiffTransform(bool enabled,
-                     const gabac::DataStream& lutTransformedSequence,
+                     gabac::DataStream& lutTransformedSequence,
                      gabac::DataStream *diffAndLutTransformedSequence
 );
 

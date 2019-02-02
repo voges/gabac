@@ -146,7 +146,7 @@ void doLutTransform(bool enabled,
 //------------------------------------------------------------------------------
 
 void doDiffTransform(bool enabled,
-                     const gabac::DataStream& lutTransformedSequence,
+                     gabac::DataStream& lutTransformedSequence,
                      gabac::DataStream *const diffAndLutTransformedSequence
 ){
     // Diff coding
@@ -163,12 +163,7 @@ void doDiffTransform(bool enabled,
     diffAndLutTransformedSequence->reserve(lutTransformedSequence.size());
 
     GABACIFY_LOG_TRACE << "Diff coding *dis*abled";
-    for (size_t i = 0; i < lutTransformedSequence.size(); ++i)
-    {
-        uint64_t lutTransformedSymbol = lutTransformedSequence.get(i);
-        assert(lutTransformedSymbol <= std::numeric_limits<int64_t>::max());
-        diffAndLutTransformedSequence->push_back(static_cast<int64_t>(lutTransformedSymbol));
-    }
+    lutTransformedSequence.swap(*diffAndLutTransformedSequence);
     GABACIFY_LOG_DEBUG << "Got uncompressed stream after diff: " << diffAndLutTransformedSequence->size() << " bytes";
 }
 
