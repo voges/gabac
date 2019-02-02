@@ -274,7 +274,7 @@ void encode_plain(const std::string& inputFilePath,
     // Read in the entire input file
     InputFile inputFile(inputFilePath);
     gabac::DataStream symbols(inputFile.size() / configuration.wordSize, configuration.wordSize);
-    inputFile.read(symbols.getData(), 1, symbols.size());
+    inputFile.read(symbols.getData(), 1, symbols.size()*configuration.wordSize);
     // Read the entire configuration file as a string and convert the JSON
     // input string to the internal GABAC configuration
 

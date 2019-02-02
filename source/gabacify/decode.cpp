@@ -236,6 +236,7 @@ static void decodeWithConfiguration(
         );
 
         std::vector<gabac::DataStream> lutTransformedSequences(3);
+        lutTransformedSequences[0] = gabac::DataStream(0, configuration.wordSize);
         doDiffCoding(
                 diffAndLutTransformedSequence,
                 configuration.transformedSequenceConfigurations[i].diffCodingEnabled,
@@ -289,8 +290,7 @@ void decode(
     InputFile inputFile(inputFilePath);
     size_t bytestreamSize = inputFile.size();
     gabac::DataStream bytestream(bytestreamSize, 1);
-    std::vector<uint8_t> tmp(bytestreamSize);
-    inputFile.read(tmp.data(), 1, bytestream.size());
+    inputFile.read(bytestream.getData(), 1, bytestream.size());
 
     // Read the entire configuration file as a string and convert the JSON
     // input string to the internal GABAC configuration

@@ -47,7 +47,7 @@ class DataStream
         }
     }
     uint64_t get(size_t index) const {
-        if(index >= data.size())
+        if(index >= data.size() / wordSize)
             throw std::runtime_error("Invalid Index");
         uint64_t ret;
         const void* ptr = &(data[wordSize*index]);
@@ -180,6 +180,14 @@ class DataStream
 
     ConstProxy front () const{
         return (*this)[0];
+    }
+
+    Proxy back () {
+        return (*this)[data.size() / wordSize - 1];
+    }
+
+    ConstProxy back () const{
+        return (*this)[data.size() / wordSize - 1];
     }
 
     size_t size() const {
