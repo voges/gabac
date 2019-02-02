@@ -98,19 +98,19 @@ void transformDiffCoding(
     {
 #ifndef NDEBUG
         uint64_t diff = 0;
-        if (previousSymbol < symbols[i])
+        if (previousSymbol < symbols.get(i))
         {
-            diff = symbols[i] - previousSymbol;
+            diff = symbols.get(i) - previousSymbol;
             assert(diff <= static_cast<uint64_t>(std::numeric_limits<int64_t>::max()));
         }
         else  // previousSymbol >= symbols[i]
         {
-            diff = previousSymbol - symbols[i];
+            diff = previousSymbol - symbols.get(i);
             assert(diff <= static_cast<uint64_t>(std::numeric_limits<int64_t>::max()) + 1);
         }
 #endif  // NDEBUG
-        (*transformedSymbols)[i] = symbols[i] - previousSymbol;
-        previousSymbol = symbols[i];
+        transformedSymbols->set(i, symbols.get(i) - previousSymbol);
+        previousSymbol = symbols.get(i);
     }
 }
 
@@ -129,22 +129,22 @@ void inverseTransformDiffCoding(
     for (size_t i = 0; i < transformedSymbols.size(); i++)
     {
 #ifndef NDEBUG
-        if (transformedSymbols[i] < 0)
+        if (transformedSymbols.get(i) < 0)
         {
-            if (transformedSymbols[i] == std::numeric_limits<int64_t>::min())
+            if (transformedSymbols.get(i) == std::numeric_limits<int64_t>::min())
             {
                 assert(previousSymbol >= static_cast<uint64_t>(std::numeric_limits<int64_t>::max()));
             }
-            assert(previousSymbol >= static_cast<uint64_t>(-1 * transformedSymbols[i]));
+            assert(previousSymbol >= static_cast<uint64_t>(-1 * transformedSymbols.get(i)));
         }
         else  // transformedSymbols[i] >= 0
         {
             assert(std::numeric_limits<uint64_t>::max() - previousSymbol >=
-                   static_cast<uint64_t>(transformedSymbols[i]));
+                   static_cast<uint64_t>(transformedSymbols.get(i)));
         }
 #endif  // NDEBUG
-        (*symbols)[i] = previousSymbol + transformedSymbols[i];
-        previousSymbol = (*symbols)[i];
+        (*symbols).set(i, previousSymbol + transformedSymbols.get(i));
+        previousSymbol = (*symbols).get(i);
     }
 }
 

@@ -4,6 +4,7 @@
 #include <vector>
 #include <cstdint>
 #include <stdexcept>
+#include <cassert>
 
 namespace gabac {
 
@@ -25,48 +26,65 @@ class DataStream
         }
         return *this;
     }
-    void set(size_t index, uint64_t val) {
-        if(index >= data.size())
-            throw std::runtime_error("Invalid Index");
-        void* ptr = &(data[wordSize*index]);
 
-        switch(wordSize) {
-            case 1:
-                *(static_cast<uint8_t *>(ptr)) = uint8_t(val);
-                break;
-            case 2:
-                *(static_cast<uint16_t *>(ptr)) = uint16_t(val);
-                break;
-            case 4:
-                *(static_cast<uint32_t *>(ptr)) = uint32_t(val);
-                break;
-            case 8:
-                //Fall through
-            default:
-                *(static_cast<uint64_t *>(ptr)) = val;
-        }
+    inline void set1(size_t index, uint64_t val) {
+        assert(index < data.size() / wordSize);
+        void* ptr = &(data[wordSize*index]);
+        *(static_cast<uint8_t *>(ptr)) = uint8_t(val);
     }
-    uint64_t get(size_t index) const {
-        if(index >= data.size() / wordSize)
-            throw std::runtime_error("Invalid Index");
-        uint64_t ret;
+
+    inline void set2(size_t index, uint64_t val) {
+        assert(index < data.size() / wordSize);
+        void* ptr = &(data[wordSize*index]);
+        *(static_cast<uint16_t *>(ptr)) = uint16_t(val);
+    }
+
+    inline void set4(size_t index, uint64_t val) {
+        assert(index < data.size() / wordSize);
+        void* ptr = &(data[wordSize*index]);
+        *(static_cast<uint32_t *>(ptr)) = uint32_t(val);
+    }
+
+    inline void set8(size_t index, uint64_t val) {
+        assert(index < data.size() / wordSize);
+        void* ptr = &(data[wordSize*index]);
+        *(static_cast<uint64_t *>(ptr)) = uint64_t(val);
+    }
+
+    inline uint64_t get1(size_t index) const {
+        assert(index < data.size() / wordSize);
         const void* ptr = &(data[wordSize*index]);
-        switch(wordSize) {
-            case 1:
-                ret = *(static_cast<const uint8_t *>(ptr));
-                break;
-            case 2:
-                ret = *(static_cast<const uint16_t *>(ptr));
-                break;
-            case 4:
-                ret = *(static_cast<const uint32_t *>(ptr));
-                break;
-            case 8:
-                //Fall through
-            default:
-                ret = *(static_cast<const uint64_t *>(ptr));
-        }
-        return ret;
+        return *(static_cast<const uint8_t *>(ptr));
+    }
+
+    inline uint64_t get2(size_t index) const {
+        assert(index < data.size() / wordSize);
+        const void* ptr = &(data[wordSize*index]);
+        return *(static_cast<const uint16_t *>(ptr));
+    }
+
+    inline uint64_t get4(size_t index) const {
+        assert(index < data.size() / wordSize);
+        const void* ptr = &(data[wordSize*index]);
+        return *(static_cast<const uint32_t *>(ptr));
+    }
+
+    inline uint64_t get8(size_t index) const {
+        assert(index < data.size() / wordSize);
+        const void* ptr = &(data[wordSize*index]);
+        return *(static_cast<const uint64_t *>(ptr));
+    }
+
+    void (DataStream::*setptr)(size_t index, uint64_t val);
+
+    uint64_t (DataStream::*getptr)(size_t index) const;
+
+    inline uint64_t get(size_t index) const {
+        return (this->*getptr)(index);
+    }
+
+    inline void set(size_t index, uint64_t val) {
+        (this->*setptr)(index, val);
     }
 
     template<typename T>
@@ -156,15 +174,15 @@ class DataStream
     using ConstIterator = IteratorCore<const DataStream*>;
 
 
-    Proxy operator[] (size_t index) {
+/*    Proxy operator[] (size_t index) {
         return {this, index};
     }
 
     ConstProxy operator[] (size_t index) const {
         return {this, index};
-    }
+    }*/
 
-    Proxy at (size_t index) {
+  /*  Proxy at (size_t index) {
         //TODO: check
         return {this, index};
     }
@@ -172,23 +190,23 @@ class DataStream
     ConstProxy at (size_t index) const {
         //TODO: check
         return {this, index};
-    }
+    } */
 
-    Proxy front () {
-        return (*this)[0];
+ /*   Proxy front () {
+        return {this, 0};
     }
 
     ConstProxy front () const{
-        return (*this)[0];
-    }
+        return {this, 0};
+    }*/
 
-    Proxy back () {
-        return (*this)[data.size() / wordSize - 1];
+    /*Proxy back () {
+        return {this, data.size() / wordSize - 1};
     }
 
     ConstProxy back () const{
-        return (*this)[data.size() / wordSize - 1];
-    }
+        return {this, data.size() / wordSize - 1};
+    }*/
 
     size_t size() const {
         return data.size() / wordSize;
@@ -267,6 +285,25 @@ class DataStream
     }
 
     DataStream (size_t size = 0, size_t wsize = 1) : wordSize(wsize), data(size * wsize) {
+        switch(wordSize) {
+            case 1:
+                this->setptr = &DataStream::set1;
+                this->getptr = &DataStream::get1;
+                break;
+            case 2:
+                this->setptr = &DataStream::set2;
+                this->getptr = &DataStream::get2;
+                break;
+            case 4:
+                this->setptr = &DataStream::set4;
+                this->getptr = &DataStream::get4;
+                break;
+            case 8:
+                //Fall through
+            default:
+                this->setptr = &DataStream::set8;
+                this->getptr = &DataStream::get8;
+        }
     }
 
 

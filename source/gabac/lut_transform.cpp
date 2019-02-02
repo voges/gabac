@@ -99,8 +99,9 @@ static void inferLut0(
     std::unordered_map<uint64_t, uint64_t> freq;
 
 
-    for (const auto& symbol : symbols)
+    for (size_t i = 0; i < symbols.size(); ++i)
     {
+        uint64_t symbol = symbols.get(i);
         freq[symbol]++;
         if (freq.size() >= MAX_LUT_SIZE)
         {
@@ -198,8 +199,9 @@ static void transformLutTransform_core(
     std::vector<uint64_t >lastSymbols(ORDER + 1, 0);
 
     // Do the LUT transform
-    for (const auto& symbol : symbols)
+    for (size_t i = 0; i < symbols.size(); ++i)
     {
+        uint64_t symbol = symbols.get(i);
         // Update history
         for (size_t i = ORDER; i > 0; --i)
         {
@@ -222,7 +224,7 @@ static void transformLutTransform_core(
         uint64_t transformed = lastSymbols[0];
         if (ORDER > 0)
         {
-            transformed = lut[index];
+            transformed = lut.get(index);
         }
         transformedSymbols->emplace_back(transformed);
     }
@@ -250,8 +252,9 @@ static void inverseTransformLutTransform_core(
     std::vector<uint64_t> lastSymbols(ORDER + 1, 0);
 
     // Do the LUT transform
-    for (const auto& symbol : transformedSymbols)
+    for (size_t i = 0; i < transformedSymbols.size(); ++i)
     {
+        uint64_t symbol = transformedSymbols.get(i);
         // Update history
         for (size_t i = ORDER; i > 0; --i)
         {
@@ -261,7 +264,7 @@ static void inverseTransformLutTransform_core(
 
         if (ORDER == 0)
         {
-            symbols->emplace_back(inverseLut0[lastSymbols[0]]);
+            symbols->emplace_back(inverseLut0.get(lastSymbols[0]));
             continue;
         }
 
@@ -276,9 +279,9 @@ static void inverseTransformLutTransform_core(
         index += lastSymbols[0];
 
         // Transform
-        uint64_t unTransformed = inverseLut[index];
+        uint64_t unTransformed = inverseLut.get(index);
         lastSymbols[0] = unTransformed;
-        symbols->emplace_back(inverseLut0[unTransformed]);
+        symbols->emplace_back(inverseLut0.get(unTransformed));
     }
 }
 
@@ -322,8 +325,9 @@ void inferLut(
     std::vector<std::pair<uint64_t, uint64_t>> ctr(size, {std::numeric_limits<uint64_t>::max(), 0});
     std::vector<uint64_t> lastSymbols(ORDER + 1, 0);
 
-    for (const auto& symbol : symbols)
+    for (size_t i = 0; i < symbols.size(); ++i)
     {
+        uint64_t symbol = symbols.get(i);
         // Update history
         for (size_t i = ORDER; i > 0; --i)
         {

@@ -163,8 +163,9 @@ void doDiffTransform(bool enabled,
     diffAndLutTransformedSequence->reserve(lutTransformedSequence.size());
 
     GABACIFY_LOG_TRACE << "Diff coding *dis*abled";
-    for (const auto& lutTransformedSymbol : lutTransformedSequence)
+    for (size_t i = 0; i < lutTransformedSequence.size(); ++i)
     {
+        uint64_t lutTransformedSymbol = lutTransformedSequence.get(i);
         assert(lutTransformedSymbol <= std::numeric_limits<int64_t>::max());
         diffAndLutTransformedSequence->push_back(static_cast<int64_t>(lutTransformedSymbol));
     }

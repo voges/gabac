@@ -200,7 +200,7 @@ void transformMatchCoding(
             uint64_t offset = i;
             while (
                     (offset < symbolsSize)
-                    && (symbols[offset] == (symbols[w + offset - i])))
+                    && (symbols.get(offset) == (symbols.get(w + offset - i))))
             {
                 offset++;
             }
@@ -214,7 +214,7 @@ void transformMatchCoding(
         if (length < 2)
         {
             lengths->push_back(0);
-            rawValues->push_back(symbols[i]);
+            rawValues->push_back(symbols.get(i));
         }
         else
         {
@@ -246,18 +246,18 @@ void inverseTransformMatchCoding(
     size_t t2 = 0;
     for (t1 = 0; t1 < lengths.size(); t1++)
     {
-        uint64_t length = lengths[t1];
+        uint64_t length = lengths.get(t1);
         if (length == 0)
         {
-            symbols->push_back(rawValues[t2++]);
+            symbols->push_back(rawValues.get(t2++));
             n++;
         }
         else
         {
-            uint64_t pointer = pointers[t0++];
+            uint64_t pointer = pointers.get(t0++);
             for (uint64_t l = 0; l < length; l++)
             {
-                symbols->push_back(symbols->at(n - pointer));
+                symbols->push_back(symbols->get(n - pointer));
                 n++;
             }
         }

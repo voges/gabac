@@ -121,8 +121,9 @@ void transformEqualityCoding(
         return;
     }
     uint64_t previousSymbol = 0;
-    for (uint64_t symbol : symbols)
+    for (size_t i = 0; i < symbols.size(); ++i)
     {
+        uint64_t symbol = symbols.get(i);
         if (symbol == previousSymbol)
         {
             equalityFlags->push_back(1);
@@ -160,21 +161,21 @@ void inverseTransformEqualityCoding(
     size_t valuesIdx = 0;
     for (size_t i = 0; i < equalityFlags.size(); i++)
     {
-        if (equalityFlags[i] == 1)
+        if (equalityFlags.get(i) == 1)
         {
             symbols->push_back(previousSymbol);
         }
         else
         {
-            if (values[valuesIdx] >= previousSymbol)
+            if (values.get(valuesIdx) >= previousSymbol)
             {
-                symbols->push_back(values[valuesIdx] + 1);
+                symbols->push_back(values.get(valuesIdx) + 1);
             }
             else
             {
-                symbols->push_back(values[valuesIdx]);
+                symbols->push_back(values.get(valuesIdx));
             }
-            previousSymbol = (*symbols)[i];
+            previousSymbol = (*symbols).get(i);
             valuesIdx++;
         }
     }

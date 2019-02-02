@@ -107,9 +107,9 @@ void transformRleCoding(
     // Do the RLE coding
     for (size_t i = 0; i < symbols.size();)
     {
-        rawValues->push_back(symbols[i++]);
+        rawValues->push_back(symbols.get(i++));
         uint64_t lengthValue = 1;
-        while ((i < symbols.size()) && (symbols[i] == symbols[i - 1]))
+        while ((i < symbols.size()) && (symbols.get(i) == symbols.get(i - 1)))
         {
             lengthValue++;
             i++;
@@ -140,13 +140,14 @@ void inverseTransformRleCoding(
 
     // Re-compute the symbol sequence
     size_t j = 0;
-    for (const auto& rawValue : rawValues)
+    for (size_t i = 0; i < rawValues.size(); ++i)
     {
-        uint64_t lengthValue = lengths.at(j++);
+        uint64_t rawValue = rawValues.get(i);
+        uint64_t lengthValue = lengths.get(j++);
         uint64_t totalLengthValue = lengthValue;
         while ((lengthValue != 0) && (totalLengthValue % guard == 0))
         {
-            lengthValue = lengths.at(j++);
+            lengthValue = lengths.get(j++);
             totalLengthValue += lengthValue;
         }
         totalLengthValue++;

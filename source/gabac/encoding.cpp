@@ -107,8 +107,9 @@ int encode(
 
     size_t ctr = 0;
 
-    for (uint64_t symbol : symbols)
+    for (size_t i = 0; i < symbols.size(); ++i)
     {
+        uint64_t symbol = symbols.get(i);
         if (contextSelectionId == ContextSelectionId::bypass)
         {
             writer.writeBypassValue(

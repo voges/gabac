@@ -115,7 +115,7 @@ int decode(
                     binarizationId,
                     binarizationParameters
             );
-            (*symbols)[i] = symbol;
+            symbols->set(i, symbol);
         }
         else if (contextSelectionId
                  == ContextSelectionId::adaptive_coding_order_0)
@@ -126,7 +126,7 @@ int decode(
                     0,
                     0
             );
-            (*symbols)[i] = symbol;
+            symbols->set(i, symbol);
         }
         else if (contextSelectionId
                  == ContextSelectionId::adaptive_coding_order_1)
@@ -137,7 +137,7 @@ int decode(
                     previousSymbol,
                     0
             );
-            (*symbols)[i] = symbol;
+            symbols->set(i, symbol);
             if (symbol < 0)
             {
                 symbol = -symbol;
@@ -161,7 +161,7 @@ int decode(
                     previousSymbol,
                     previousPreviousSymbol
             );
-            (*symbols)[i] = symbol;
+            symbols->set(i, symbol);
             previousPreviousSymbol = previousSymbol;
             if (symbol < 0)
             {

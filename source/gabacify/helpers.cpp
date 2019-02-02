@@ -58,8 +58,9 @@ void deriveMinMax(  // warning: this should still support signed!!!!
     *min = (*it)[2];
     *max = (*it)[1];
 
-    for (T symbol : symbols)
+    for (size_t i = 0; i < symbols.size(); ++i)
     {
+        uint64_t symbol = symbols.get(i);
         if (symbol < *min)
         {
             *min = symbol;
@@ -95,7 +96,8 @@ void deriveMinMaxUnsigned(
 ){
     *min = std::numeric_limits<uint64_t>::max();
     *max = std::numeric_limits<uint64_t >::min();
-    for(const auto& v : symbols) {
+    for(size_t i = 0; i < symbols.size(); ++i) {
+        uint64_t v = symbols.get(i);
         if(v < *min) {
             *min = v;
         }
@@ -129,16 +131,18 @@ void generateByteBuffer(
     {
         case 1:
         {
-            for (const auto& symbol : symbols)
+            for (size_t i = 0; i < symbols.size(); ++i)
             {
+                uint64_t symbol = symbols.get(i);
                 buffer->push_back(symbol & 0xff);
             }
             break;
         }
         case 2:
         {
-            for (const auto& symbol : symbols)
+            for (size_t i = 0; i < symbols.size(); ++i)
             {
+                uint64_t symbol = symbols.get(i);
                 buffer->push_back(symbol & 0xff);
                 buffer->push_back((symbol >> 8u) & 0xff);
             }
@@ -146,8 +150,9 @@ void generateByteBuffer(
         }
         case 4:
         {
-            for (const auto& symbol : symbols)
+            for (size_t i = 0; i < symbols.size(); ++i)
             {
+                uint64_t symbol = symbols.get(i);
                 buffer->push_back(symbol & 0xff);
                 buffer->push_back((symbol >> 8u) & 0xff);
                 buffer->push_back((symbol >> 16u) & 0xff);
@@ -157,8 +162,9 @@ void generateByteBuffer(
         }
         case 8:
         {
-            for (const auto& symbol : symbols)
+            for (size_t i = 0; i < symbols.size(); ++i)
             {
+                uint64_t symbol = symbols.get(i);
                 buffer->push_back(symbol & 0xff);
                 buffer->push_back((symbol >> 8u) & 0xff);
                 buffer->push_back((symbol >> 16u) & 0xff);
@@ -215,33 +221,33 @@ void generateSymbolStream(
         {
             case 1:
             {
-                symbol = buffer[i];
+                symbol = buffer.get(i);
                 break;
             }
             case 2:
             {
-                symbol = static_cast<uint16_t>(buffer[i + 1]) << 8u;
-                symbol |= static_cast<uint16_t>(buffer[i]);
+                symbol = static_cast<uint16_t>(buffer.get(i + 1)) << 8u;
+                symbol |= static_cast<uint16_t>(buffer.get(i));
                 break;
             }
             case 4:
             {
-                symbol = static_cast<uint32_t>(buffer[i + 3]) << 24u;
-                symbol |= static_cast<uint32_t>(buffer[i + 2]) << 16u;
-                symbol |= static_cast<uint32_t>(buffer[i + 1]) << 8u;
-                symbol |= static_cast<uint32_t>(buffer[i]);
+                symbol = static_cast<uint32_t>(buffer.get(i + 3)) << 24u;
+                symbol |= static_cast<uint32_t>(buffer.get(i + 2)) << 16u;
+                symbol |= static_cast<uint32_t>(buffer.get(i + 1)) << 8u;
+                symbol |= static_cast<uint32_t>(buffer.get(i));
                 break;
             }
             case 8:
             {
-                symbol = static_cast<uint64_t>(buffer[i + 7]) << 56u;
-                symbol |= static_cast<uint64_t>(buffer[i + 6]) << 48u;
-                symbol |= static_cast<uint64_t>(buffer[i + 5]) << 40u;
-                symbol |= static_cast<uint64_t>(buffer[i + 4]) << 32u;
-                symbol |= static_cast<uint64_t>(buffer[i + 3]) << 24u;
-                symbol |= static_cast<uint64_t>(buffer[i + 2]) << 16u;
-                symbol |= static_cast<uint64_t>(buffer[i + 1]) << 8u;
-                symbol |= static_cast<uint64_t>(buffer[i]);
+                symbol = static_cast<uint64_t>(buffer.get(i + 7)) << 56u;
+                symbol |= static_cast<uint64_t>(buffer.get(i + 6)) << 48u;
+                symbol |= static_cast<uint64_t>(buffer.get(i + 5)) << 40u;
+                symbol |= static_cast<uint64_t>(buffer.get(i + 4)) << 32u;
+                symbol |= static_cast<uint64_t>(buffer.get(i + 3)) << 24u;
+                symbol |= static_cast<uint64_t>(buffer.get(i + 2)) << 16u;
+                symbol |= static_cast<uint64_t>(buffer.get(i + 1)) << 8u;
+                symbol |= static_cast<uint64_t>(buffer.get(i));
                 break;
             }
             default:
@@ -252,7 +258,7 @@ void generateSymbolStream(
                 abort();
             }
         }
-        (*symbols)[symbolsIdx++] = symbol;
+        (*symbols).set(symbolsIdx++, symbol);
     }
 }
 
@@ -267,7 +273,7 @@ double shannonEntropy(
     //
     for (size_t dataIndex = 0; dataIndex < size; ++dataIndex)
     {
-        counts[data[dataIndex]]++;
+        counts[data.get(dataIndex)]++;
     }
     //
     it = counts.begin();

@@ -41,12 +41,12 @@ static size_t extractFromBytestream(
     bytestreamPosition += sizeof(uint32_t);
     gabac::DataStream chunkSizeVector(0, 4);
     generateSymbolStream({sizeBuffer}, 4, &chunkSizeVector);
-    uint64_t chunkSize = chunkSizeVector.front();
+    uint64_t chunkSize = chunkSizeVector.get(0);
 
     // Get the next 'chunkSize' bytes from the bytestream
     for (size_t i = 0; i < chunkSize; i++)
     {
-        bytes->push_back(bytestream.at(bytestreamPosition++));
+        bytes->push_back(bytestream.get(bytestreamPosition++));
     }
 
     return bytestreamPosition;
@@ -93,8 +93,9 @@ static void decodeInverseLUT(const gabac::DataStream& bytestream,
     );
 
     inverseLut->reserve(inverseLutTmp.size());
-    for (const auto& inverseLutTmpEntry : inverseLutTmp)
+    for (size_t i = 0; i < inverseLutTmp.size(); ++i)
     {
+        uint64_t inverseLutTmpEntry = inverseLutTmp.get(i);
         assert(inverseLutTmpEntry >= 0);
         inverseLut->push_back(static_cast<uint64_t>(inverseLutTmpEntry));
     }
@@ -114,8 +115,9 @@ static void decodeInverseLUT(const gabac::DataStream& bytestream,
                 &inverseLutTmp
         );
 
-        for (const auto& inverseLutTmpEntry : inverseLutTmp)
+        for (size_t i = 0; i < inverseLutTmp.size(); ++i)
         {
+            uint64_t inverseLutTmpEntry = inverseLutTmp.get(i);
             assert(inverseLutTmpEntry >= 0);
             inverseLut1->push_back(static_cast<uint64_t>(inverseLutTmpEntry));
         }
@@ -139,8 +141,9 @@ static void doDiffCoding(const gabac::DataStream& diffAndLutTransformedSequence,
 
     GABACIFY_LOG_TRACE << "Diff coding *dis*abled";
     lutTransformedSequence->reserve(diffAndLutTransformedSequence.size());
-    for (const auto& diffAndLutTransformedSymbol : diffAndLutTransformedSequence)
+    for (size_t i = 0; i < diffAndLutTransformedSequence.size(); ++i)
     {
+        uint64_t diffAndLutTransformedSymbol = diffAndLutTransformedSequence.get(i);
         assert(diffAndLutTransformedSymbol >= 0);
         lutTransformedSequence->push_back(static_cast<uint64_t>(diffAndLutTransformedSymbol));
     }

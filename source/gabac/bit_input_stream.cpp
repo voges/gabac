@@ -12,7 +12,7 @@ static unsigned char readIn(
         const DataStream& bitstream,
         size_t *const bitstreamIndex
 ){
-    unsigned char byte = bitstream.at(*bitstreamIndex);
+    unsigned char byte = bitstream.get(*bitstreamIndex);
     (*bitstreamIndex)++;
     return byte;
 }
