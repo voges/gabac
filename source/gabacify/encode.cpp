@@ -46,7 +46,7 @@ void appendToBytestream(
 
 //------------------------------------------------------------------------------
 
-void doSequenceTransform(const gabac::DataStream& sequence,
+void doSequenceTransform(gabac::DataStream& sequence,
                          const gabac::SequenceTransformationId& transID,
                          uint64_t param,
                          std::vector<gabac::DataStream> *const transformedSequences
@@ -69,7 +69,7 @@ void doSequenceTransform(const gabac::DataStream& sequence,
 //------------------------------------------------------------------------------
 
 void doLutTransform(bool enabled,
-                    const gabac::DataStream& transformedSequence,
+                    gabac::DataStream& transformedSequence,
                     unsigned int order,
                     gabac::DataStream *const bytestream,
                     std::vector<gabac::DataStream> *const lutSequences,
@@ -78,7 +78,7 @@ void doLutTransform(bool enabled,
     if (!enabled)
     {
         GABACIFY_LOG_TRACE << "LUT transform *dis*abled";
-        (*lutSequences)[0] = transformedSequence;
+        (*lutSequences)[0].swap(transformedSequence);
         //    appendToBytestream({}, bytestream);
         GABACIFY_LOG_DEBUG << "Got uncompressed stream after LUT: " << (*lutSequences)[0].size() << " bytes";
         GABACIFY_LOG_DEBUG << "Got table after LUT: " << (*lutSequences)[1].size() << " bytes";

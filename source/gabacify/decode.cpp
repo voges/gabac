@@ -151,7 +151,7 @@ static void doDiffCoding(const gabac::DataStream& diffAndLutTransformedSequence,
 
 //------------------------------------------------------------------------------
 
-static void doLUTCoding(const std::vector<gabac::DataStream>& lutSequences,
+static void doLUTCoding(std::vector<gabac::DataStream>& lutSequences,
                         bool enabled,
                         unsigned order,
                         gabac::DataStream *const transformedSequence

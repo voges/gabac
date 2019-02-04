@@ -181,7 +181,7 @@ void transformMatchCoding(
     if (windowSize == 0)
     {
         lengths->resize(symbols.size());
-        std::fill(lengths->begin(), lengths->end(), 0);
+    //REPLACE:    std::fill(lengths->begin(), lengths->end(), 0);
         *rawValues = symbols;
         return;
     }

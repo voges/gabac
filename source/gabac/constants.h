@@ -52,11 +52,11 @@ enum class ContextSelectionId
 
 #ifdef __cplusplus
 
-using SequenceTransform = std::function<void(const gabac::DataStream& sequence, const uint64_t param,
+using SequenceTransform = std::function<void(gabac::DataStream& sequence, const uint64_t param,
                                              std::vector<gabac::DataStream> *const
 )>;
 
-using InverseSequenceTransform = std::function<void(const std::vector<gabac::DataStream>&, const uint64_t,
+using InverseSequenceTransform = std::function<void(std::vector<gabac::DataStream>&, const uint64_t,
                                                     gabac::DataStream *const
 )>;
 

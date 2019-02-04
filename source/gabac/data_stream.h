@@ -46,14 +46,14 @@ class DataStream
         T stream;
         size_t position;
      public:
-        ProxyCore(T str, size_t pos) : stream(str), position(pos) {
+        inline ProxyCore(T str, size_t pos) : stream(str), position(pos) {
         }
 
-        operator uint64_t () const{
+        inline operator uint64_t () const{
             return stream->get(position);
         }
 
-        ProxyCore& operator= (uint64_t val) {
+        inline ProxyCore& operator= (uint64_t val) {
             stream->set(position, val);
             return *this;
         }
@@ -72,53 +72,53 @@ class DataStream
         IteratorCore(T str, size_t pos) : stream(str), position(pos) {
         }
 
-        IteratorCore operator+ (size_t offset) const {
+        inline IteratorCore operator+ (size_t offset) const {
             return IteratorCore(stream, position + offset);
         }
 
-        IteratorCore operator- (size_t offset) const {
+        inline IteratorCore operator- (size_t offset) const {
             return IteratorCore(stream, position - offset);
         }
 
-        IteratorCore& operator++ () {
+        inline IteratorCore& operator++ () {
             *this = *this + 1;
             return *this;
         }
 
-        IteratorCore& operator-- () {
+        inline IteratorCore& operator-- () {
             *this = *this + 1;
             return *this;
         }
 
-        const IteratorCore operator++ (int) {
+        inline const IteratorCore operator++ (int) {
             IteratorCore ret = *this;
             ++(*this);
             return ret;
         }
 
-        const IteratorCore operator-- (int) {
+        inline const IteratorCore operator-- (int) {
             IteratorCore ret = *this;
             ++(*this);
             return ret;
         }
 
-        size_t getOffset() const{
+        inline size_t getOffset() const{
             return position;
         }
 
-        T getStream() const{
+        inline T getStream() const{
             return stream;
         }
 
-        ProxyCore<T> operator* () const{
+        inline ProxyCore<T> operator* () const{
             return {stream, position};
         }
 
-        bool operator== (const IteratorCore& c) const {
+        inline bool operator== (const IteratorCore& c) const {
             return this->stream == c.stream && this->position == c.position;
         }
 
-        bool operator!= (const IteratorCore& c) const {
+        inline bool operator!= (const IteratorCore& c) const {
             return !(*this == c);
         }
     };
@@ -185,40 +185,40 @@ class DataStream
         return data.empty();
     }
 
-    ConstIterator begin () const {
+    inline ConstIterator begin () const {
         return {this, 0};
     }
 
-    Iterator begin () {
+    inline Iterator begin () {
         return {this, 0};
     }
 
-    ConstIterator end () const {
+    inline ConstIterator end () const {
         return {this, data.size() / wordSize};
     }
 
-    Iterator end () {
+    inline Iterator end () {
         return {this, data.size() / wordSize};
     }
 
-    void push_back (uint64_t val) {
+    inline void push_back (uint64_t val) {
         data.resize(data.size() + wordSize);
         set(data.size() / wordSize - 1, val);
     }
 
-    void emplace_back (uint64_t val) {
+    inline void emplace_back (uint64_t val) {
         push_back(val);
     }
 
-    const void* getData() const{
+    inline const void* getData() const{
         return data.data();
     }
 
-    void* getData() {
+    inline void* getData() {
         return data.data();
     }
 
-    size_t getWordSize() const {
+    inline size_t getWordSize() const {
         return wordSize;
     }
 

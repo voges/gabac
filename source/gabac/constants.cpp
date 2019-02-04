@@ -107,17 +107,17 @@ const std::vector<TransformationProperties> transformationInformation = {
                 "no_transform", // Name
                 {"out"}, // StreamNames
                 {0}, // WordSizes (0: non fixed current stream wordsize)
-                [](const DataStream& sequence, uint64_t,
+                [](DataStream& sequence, uint64_t,
                    std::vector<DataStream> *const transformedSequences
                 )
                 {
-                    (*transformedSequences)[0] = sequence;
+                    (*transformedSequences)[0].swap(sequence);
                 },
-                [](const std::vector<DataStream>& transformedSequences, uint64_t,
+                [](std::vector<DataStream>& transformedSequences, uint64_t,
                    DataStream *const sequence
                 )
                 {
-                    *sequence = transformedSequences[0];
+                    sequence->swap(transformedSequences[0]);
                 }
         },
         {

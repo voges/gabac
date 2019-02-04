@@ -27,14 +27,14 @@ void doDiffTransform(bool enabled,
 );
 
 void doLutTransform(bool enabled,
-                    const gabac::DataStream& transformedSequence,
+                    gabac::DataStream& transformedSequence,
                     unsigned int order,
                     gabac::DataStream *const bytestream,
                     std::vector<gabac::DataStream> *const lutSequences,
                     unsigned *bits0
 );
 
-void doSequenceTransform(const gabac::DataStream& sequence,
+void doSequenceTransform(gabac::DataStream& sequence,
                          const gabac::SequenceTransformationId& transID,
                          uint64_t param,
                          std::vector<gabac::DataStream> *transformedSequences

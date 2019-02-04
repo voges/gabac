@@ -260,9 +260,11 @@ void getOptimumOfLutOrder(const gabac::DataStream& transformedSequence,
         currentConfig->lutBits = 0;
         currentConfig->lutTransformationEnabled = transID;
 
+        gabac::DataStream g = transformedSequence;
+
         doLutTransform(
                 transID,
-                transformedSequence,
+                g,
                 currentConfig->lutOrder,
                 &lutEnc,
                 &lutStreams,
@@ -319,7 +321,8 @@ void getOptimumOfSequenceTransform(const gabac::DataStream& symbols,
 
         // Execute sequence transform
         std::vector<gabac::DataStream> transformedSequences;
-        doSequenceTransform(symbols, currentConfig->sequenceTransformationId, p, &transformedSequences);
+        gabac::DataStream s = symbols;
+        doSequenceTransform(s, currentConfig->sequenceTransformationId, p, &transformedSequences);
         GABACIFY_LOG_DEBUG << "Got " << transformedSequences.size() << " transformed sequences";
         for (unsigned i = 0; i < transformedSequences.size(); ++i)
         {
