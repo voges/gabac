@@ -52,7 +52,7 @@ enum class ContextSelectionId
 
 #ifdef __cplusplus
 
-using SequenceTransform = std::function<void(gabac::DataStream& sequence, const uint64_t param,
+using SequenceTransform = std::function<void(const uint64_t param,
                                              std::vector<gabac::DataStream> *const
 )>;
 
@@ -91,7 +91,7 @@ struct BinarizationProperties
 extern const std::vector<TransformationProperties> transformationInformation;
 extern const std::vector<BinarizationProperties> binarizationInformation;
 
-std::vector<unsigned> fixWordSizes(const std::vector<unsigned>& list, unsigned wordsize);
+//std::vector<unsigned> fixWordSizes(const std::vector<unsigned>& list, unsigned wordsize);
 
 }  // namespace gabac
 

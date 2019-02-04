@@ -40,7 +40,6 @@ namespace gabac {
 
 
 void transformEqualityCoding(
-        const gabac::DataStream& symbols,
         gabac::DataStream *equalityFlags,
         gabac::DataStream *values
 );

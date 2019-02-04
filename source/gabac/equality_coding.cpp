@@ -104,11 +104,10 @@ namespace gabac {
 
 
 void transformEqualityCoding(
-        const DataStream& symbols,
         DataStream *const equalityFlags,
         DataStream *const values
 ){
-    assert(equalityFlags != nullptr);
+/*    assert(equalityFlags != nullptr);
     assert(values != nullptr);
 
     // Prepare the output vectors
@@ -141,7 +140,7 @@ void transformEqualityCoding(
             }
             previousSymbol = symbol;
         }
-    }
+    }*/
 }
 
 // ----------------------------------------------------------------------------

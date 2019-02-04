@@ -22,15 +22,12 @@ void appendToBytestream(
 );
 
 void doDiffTransform(bool enabled,
-                     gabac::DataStream& lutTransformedSequence,
                      gabac::DataStream *diffAndLutTransformedSequence
 );
 
 void doLutTransform(bool enabled,
-                    gabac::DataStream& transformedSequence,
                     unsigned int order,
-                    gabac::DataStream *const bytestream,
-                    std::vector<gabac::DataStream> *const lutSequences,
+                    std::vector<gabac::DataStream> *lutSequences,
                     unsigned *bits0
 );
 

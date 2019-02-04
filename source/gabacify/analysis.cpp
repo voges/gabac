@@ -228,7 +228,7 @@ void getOptimumOfLutTransformedStream(gabac::DataStream& lutTransformedSequence,
         GABACIFY_LOG_DEBUG << "Trying Diff transformation: " << transID;
         gabac::DataStream diffStream(0, wordsize);
 
-        doDiffTransform(transID, lutTransformedSequence, &diffStream);
+//REPLACE        doDiffTransform(transID, lutTransformedSequence, &diffStream);
         GABACIFY_LOG_DEBUG << "Diff stream (uncompressed): " << diffStream.size() << " bytes";
         currentConfig->diffCodingEnabled = transID;
         getOptimumOfDiffTransformedStream(diffStream, wordsize, bestByteStream, lut, bestConfig, currentConfig);
@@ -262,14 +262,14 @@ void getOptimumOfLutOrder(const gabac::DataStream& transformedSequence,
 
         gabac::DataStream g = transformedSequence;
 
-        doLutTransform(
+ /*REPLACE       doLutTransform(
                 transID,
                 g,
                 currentConfig->lutOrder,
                 &lutEnc,
                 &lutStreams,
                 &currentConfig->lutBits
-        );
+        );*/
         if (lutStreams[0].size() != transformedSequence.size())
         {
             GABACIFY_LOG_DEBUG << "Lut transformed failed. Probably the symbol space is too large. Skipping. ";
@@ -322,7 +322,7 @@ void getOptimumOfSequenceTransform(const gabac::DataStream& symbols,
         // Execute sequence transform
         std::vector<gabac::DataStream> transformedSequences;
         gabac::DataStream s = symbols;
-        doSequenceTransform(s, currentConfig->sequenceTransformationId, p, &transformedSequences);
+//REPLACE        doSequenceTransform(s, currentConfig->sequenceTransformationId, p, &transformedSequences);
         GABACIFY_LOG_DEBUG << "Got " << transformedSequences.size() << " transformed sequences";
         for (unsigned i = 0; i < transformedSequences.size(); ++i)
         {
@@ -338,10 +338,10 @@ void getOptimumOfSequenceTransform(const gabac::DataStream& symbols,
         bool error = false;
         for (unsigned i = 0; i < transformedSequences.size(); ++i)
         {
-            unsigned currWordSize = gabac::fixWordSizes(
+            unsigned currWordSize = 0;/*gabac::fixWordSizes(
                     gabac::transformationInformation[unsigned(currentConfig->sequenceTransformationId)].wordsizes,
                     currentConfig->wordSize
-            )[i];
+            )[i];*/
             GABACIFY_LOG_DEBUG << "Analyzing sequence: "
                                << gabac::transformationInformation[unsigned(currentConfig->sequenceTransformationId)].streamNames[i]
                                << "";

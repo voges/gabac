@@ -50,7 +50,6 @@ namespace gabac {
 
 
 void transformMatchCoding(
-        const DataStream& symbols,
         uint32_t windowSize,
         DataStream *pointers,
         DataStream *lengths,

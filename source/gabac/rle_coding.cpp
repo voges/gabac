@@ -91,12 +91,11 @@ namespace gabac {
 
 
 void transformRleCoding(
-        const gabac::DataStream& symbols,
         const uint64_t guard,
         gabac::DataStream * const rawValues,
         gabac::DataStream * const lengths
 ){
-    assert(guard > 0);
+/*    assert(guard > 0);
     assert(rawValues != nullptr);
     assert(lengths != nullptr);
 
@@ -120,7 +119,7 @@ void transformRleCoding(
             lengthValue -= guard;
         }
         lengths->push_back(lengthValue - 1);
-    }
+    }*/
 }
 
 

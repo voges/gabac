@@ -77,7 +77,6 @@ namespace gabac {
  */
 void transformLutTransform0(
         unsigned order,
-        const DataStream& symbols,
         DataStream *transformedSymbols,
         DataStream *inverseLUT,
         DataStream *inverseLUT1

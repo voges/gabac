@@ -83,10 +83,9 @@ namespace gabac {
 
 
 void transformDiffCoding(
-        const DataStream& symbols,
         DataStream *const transformedSymbols
 ){
-    assert(transformedSymbols != nullptr);
+ /*   assert(transformedSymbols != nullptr);
 
     // Prepare the output vector
     transformedSymbols->clear();
@@ -111,7 +110,7 @@ void transformDiffCoding(
 #endif  // NDEBUG
         transformedSymbols->set(i, symbols.get(i) - previousSymbol);
         previousSymbol = symbols.get(i);
-    }
+    }*/
 }
 
 

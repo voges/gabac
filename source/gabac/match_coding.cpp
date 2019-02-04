@@ -163,13 +163,12 @@ namespace gabac {
 
 
 void transformMatchCoding(
-        const gabac::DataStream& symbols,
         const uint32_t windowSize,
         gabac::DataStream *const pointers,
         gabac::DataStream *const lengths,
         gabac::DataStream *const rawValues
 ){
-    assert(pointers != nullptr);
+/*    assert(pointers != nullptr);
     assert(lengths != nullptr);
     assert(rawValues != nullptr);
 
@@ -222,7 +221,7 @@ void transformMatchCoding(
             lengths->push_back(length);
             i += (length - 1);
         }
-    }
+    }*/
 }
 
 // ----------------------------------------------------------------------------

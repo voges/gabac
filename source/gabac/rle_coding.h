@@ -46,7 +46,6 @@ namespace gabac {
 
 
 void transformRleCoding(
-        const DataStream& symbols,
         uint64_t guard,
         DataStream *rawValues,
         DataStream *lengths

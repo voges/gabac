@@ -36,7 +36,6 @@ namespace gabac {
 
 
 void transformDiffCoding(
-        const DataStream& symbols,
         DataStream *transformedSymbols
 );
 
