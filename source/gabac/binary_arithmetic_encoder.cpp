@@ -19,7 +19,7 @@ BinaryArithmeticEncoder::BinaryArithmeticEncoder(
 BinaryArithmeticEncoder::~BinaryArithmeticEncoder() = default;
 
 
-void BinaryArithmeticEncoder::encodeBin(
+inline void BinaryArithmeticEncoder::encodeBin(
         unsigned int bin,
         ContextModel *const contextModel
 ){
