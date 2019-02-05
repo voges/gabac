@@ -22,7 +22,7 @@ BinaryArithmeticDecoder::BinaryArithmeticDecoder(
 BinaryArithmeticDecoder::~BinaryArithmeticDecoder() = default;
 
 
-unsigned int BinaryArithmeticDecoder::decodeBin(
+inline unsigned int BinaryArithmeticDecoder::decodeBin(
         ContextModel * const contextModel
 ){
     assert(contextModel != nullptr);
