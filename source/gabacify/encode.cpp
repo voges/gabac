@@ -69,9 +69,8 @@ static void encodeStream(const TransformedSequenceConfiguration& conf,
                          gabac::DataStream *const diffAndLutTransformedSequence
 ){
     // Encoding
-    gabac::DataStream bitstream;
+    gabac::DataStream bitstream = *diffAndLutTransformedSequence;
     gabac::encode(
-            *diffAndLutTransformedSequence,
             conf.binarizationId,
             conf.binarizationParameters,
             conf.contextSelectionId,

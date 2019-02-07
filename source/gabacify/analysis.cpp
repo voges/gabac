@@ -112,10 +112,10 @@ void getOptimumOfBinarizationParameter(const gabac::DataStream& diffTransformedS
     for (const auto& transID : getCandidateConfig().candidateContextSelectionIds)
     {
         GABACIFY_LOG_TRACE << "Trying Context: " << unsigned(transID);
-        gabac::DataStream currentStream(0, 1);
+        gabac::DataStream currentStream = diffTransformedSequence;
 
         currentConfig->contextSelectionId = transID;
-        gabac::encode(diffTransformedSequence, binID, {binParameter}, transID, &currentStream);
+        gabac::encode(binID, {binParameter}, transID, &currentStream);
 
         GABACIFY_LOG_TRACE << "Compressed size with parameter: " << currentStream.size();
 
