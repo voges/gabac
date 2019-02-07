@@ -19,65 +19,60 @@ class rleCodingTest : public ::testing::Test
 };
 
 
-
 TEST_F(rleCodingTest, transformRleCoding){
     {
         // Void input
         uint64_t guard = 42;
-        gabac::DataStream symbols(0, 8);
         gabac::DataStream rawSymbols(0, 8);
-        rawSymbols = {1};
+        rawSymbols = {};
         gabac::DataStream lengths(0, 8);
         lengths = {1};
-        EXPECT_NO_THROW(gabac::transformRleCoding(symbols, guard, &rawSymbols, &lengths));
+        EXPECT_NO_THROW(gabac::transformRleCoding(guard, &rawSymbols, &lengths));
         EXPECT_EQ(rawSymbols.size(), 0);
         EXPECT_EQ(lengths.size(), 0);
     }
     {
         // Single positive-valued symbol
         uint64_t guard = 42;
-        gabac::DataStream symbols(0, 8);
-        symbols = {42};
         gabac::DataStream rawSymbols(0, 8);
+        rawSymbols = {42};
         gabac::DataStream lengths(0, 8);
-        EXPECT_NO_THROW(gabac::transformRleCoding(symbols, guard, &rawSymbols, &lengths));
+        EXPECT_NO_THROW(gabac::transformRleCoding(guard, &rawSymbols, &lengths));
         EXPECT_EQ(rawSymbols.size(), 1);
-        EXPECT_EQ(rawSymbols[0], symbols[0]);
+        EXPECT_EQ(rawSymbols.get(0), 42);
         EXPECT_EQ(lengths.size(), 1);
-        EXPECT_EQ(lengths[0], 0);
+        EXPECT_EQ(lengths.get(0), 0);
     }
     {
         // Single negative-valued symbol
         uint64_t guard = 42;
-        gabac::DataStream symbols(0, 8);
-        symbols = {uint64_t(-42)};
         gabac::DataStream rawSymbols(0, 8);
+        rawSymbols = {uint64_t(-42)};
         gabac::DataStream lengths(0, 8);
-        EXPECT_NO_THROW(gabac::transformRleCoding(symbols, guard, &rawSymbols, &lengths));
+        EXPECT_NO_THROW(gabac::transformRleCoding(guard, &rawSymbols, &lengths));
         EXPECT_EQ(rawSymbols.size(), 1);
-        EXPECT_EQ(rawSymbols[0], symbols[0]);
+        EXPECT_EQ(rawSymbols.get(0), uint64_t(-42));
         EXPECT_EQ(lengths.size(), 1);
-        EXPECT_EQ(lengths[0], 0);
+        EXPECT_EQ(lengths.get(0), 0);
     }
     {
         // Guard triggered
         uint64_t guard = 2;
-        gabac::DataStream symbols(0, 8);
-        symbols = {1, 1, 1, 1, 1};
         gabac::DataStream rawSymbols(0, 8);
+        rawSymbols = {1, 1, 1, 1, 1};
         gabac::DataStream lengths(0, 8);
         gabac::DataStream expectedLengths(0, 8);
         expectedLengths = {2, 2, 0};
-        EXPECT_NO_THROW(gabac::transformRleCoding(symbols, guard, &rawSymbols, &lengths));
+        EXPECT_NO_THROW(gabac::transformRleCoding(guard, &rawSymbols, &lengths));
         EXPECT_EQ(rawSymbols.size(), 1);
-        EXPECT_EQ(rawSymbols[0], symbols[0]);
+        EXPECT_EQ(rawSymbols.get(0), 1);
         EXPECT_EQ(lengths.size(), 3);
         EXPECT_EQ(lengths, expectedLengths);
     }
     {
         // Random sequence with positive and negative values
-        gabac::DataStream symbols(0, 8);
-        symbols = {
+        gabac::DataStream rawSymbols(0, 8);
+        rawSymbols = {
                 uint64_t(-3438430427565543845LL),
                 uint64_t(-3438430427565543845LL),
                 8686590606261860295LL,
@@ -86,7 +81,6 @@ TEST_F(rleCodingTest, transformRleCoding){
                 810438489069303389LL,
                 0
         };
-        gabac::DataStream rawSymbols(0, 8);
         gabac::DataStream lengths(0, 8);
         gabac::DataStream expectedRawSymbols(0, 8);
         expectedRawSymbols = {
@@ -99,8 +93,8 @@ TEST_F(rleCodingTest, transformRleCoding){
         expectedLengths = {
                 1, 0, 2, 0
         };
-        uint64_t guard = 42;
-        EXPECT_NO_THROW(gabac::transformRleCoding(symbols, guard, &rawSymbols, &lengths));
+        uint64_t guard = std::numeric_limits<uint64_t>::max();
+        EXPECT_NO_THROW(gabac::transformRleCoding(guard, &rawSymbols, &lengths));
         EXPECT_EQ(rawSymbols.size(), expectedRawSymbols.size());
         EXPECT_EQ(rawSymbols, expectedRawSymbols);
 
@@ -117,7 +111,7 @@ TEST_F(rleCodingTest, inverseTransformRleCoding){
         gabac::DataStream rawSymbols(0, 8);
         gabac::DataStream lengths(0, 8);
         lengths = {3};
-        EXPECT_DEATH(gabac::inverseTransformRleCoding(rawSymbols, lengths, guard, &symbols), "");
+        EXPECT_DEATH(gabac::inverseTransformRleCoding(guard, &symbols, &lengths), "");
     }
     {
         // Void input
@@ -126,33 +120,31 @@ TEST_F(rleCodingTest, inverseTransformRleCoding){
         gabac::DataStream rawSymbols(0, 8);
         rawSymbols = {5};
         gabac::DataStream lengths(0, 8);
-        EXPECT_DEATH(gabac::inverseTransformRleCoding(rawSymbols, lengths, guard, &symbols), "");
+        EXPECT_DEATH(gabac::inverseTransformRleCoding(guard, &symbols, &lengths), "");
     }
     {
         // Single positive-valued symbol
         uint64_t guard = 42;
-        gabac::DataStream symbols(0, 8);
         gabac::DataStream rawSymbols(0, 8);
         rawSymbols = {42};
         gabac::DataStream lengths(0, 8);
         lengths = {0};
-        EXPECT_NO_THROW(gabac::inverseTransformRleCoding(rawSymbols, lengths, guard, &symbols));
-        EXPECT_EQ(symbols.size(), 1);
-        EXPECT_EQ(symbols[0], 42);
+        EXPECT_NO_THROW(gabac::inverseTransformRleCoding(guard, &rawSymbols, &lengths));
+        EXPECT_EQ(rawSymbols.size(), 1);
+        EXPECT_EQ(rawSymbols.get(0), 42);
     }
     {
         // Two negative-valued symbols
         uint64_t guard = 42;
-        gabac::DataStream symbols(0, 8);
         gabac::DataStream rawSymbols(0, 8);
         rawSymbols = {uint64_t(-42)};
         gabac::DataStream lengths(0, 8);
         lengths = {2};
         gabac::DataStream expected(0, 8);
         expected = {uint64_t(-42), uint64_t(-42), uint64_t(-42)};
-        EXPECT_NO_THROW(gabac::inverseTransformRleCoding(rawSymbols, lengths, guard, &symbols));
-        EXPECT_EQ(symbols.size(), 3);
-        EXPECT_EQ(symbols, expected);
+        EXPECT_NO_THROW(gabac::inverseTransformRleCoding(guard, &rawSymbols, &lengths));
+        EXPECT_EQ(rawSymbols.size(), 3);
+        EXPECT_EQ(rawSymbols, expected);
     }
     {
         gabac::DataStream symbols(0, 8);
@@ -180,28 +172,25 @@ TEST_F(rleCodingTest, inverseTransformRleCoding){
         lengths = {
                 1, 0, 2, 0
         };
-        EXPECT_NO_THROW(gabac::inverseTransformRleCoding(rawSymbols, lengths, guard, &symbols));
-        EXPECT_EQ(symbols.size(), expected.size());
-        EXPECT_EQ(symbols, expected);
+        EXPECT_NO_THROW(gabac::inverseTransformRleCoding(guard, &rawSymbols, &lengths));
+        EXPECT_EQ(rawSymbols.size(), expected.size());
+        EXPECT_EQ(rawSymbols, expected);
     }
 }
 
 TEST_F(rleCodingTest, roundTripCoding){
-    gabac::DataStream symbols(0, 8);
     gabac::DataStream rawSymbols(0, 8);
     gabac::DataStream lengths(0, 8);
     gabac::DataStream decodedSymbols(0, 8);
     uint64_t guard = 42;
 
     // A lot of input data - WordSize
-    symbols.resize(1 * 1024 * 1024);  // 256M symbols -> 1GB
-    fillVectorRandomGeometric(&symbols);
-    rawSymbols = {};
+    rawSymbols.resize(1 * 1024 * 1024);  // 256M symbols -> 1GB
+    fillVectorRandomGeometric(&rawSymbols);
     lengths = {};
-    decodedSymbols = {};
-    EXPECT_NO_THROW(gabac::transformRleCoding(symbols, guard, &rawSymbols, &lengths));
-    EXPECT_NO_THROW(gabac::inverseTransformRleCoding(rawSymbols, lengths, guard, &decodedSymbols));
-    EXPECT_EQ(decodedSymbols.size(), symbols.size());
-    EXPECT_EQ(decodedSymbols, symbols);
-    symbols.clear();
+    decodedSymbols = rawSymbols;
+    EXPECT_NO_THROW(gabac::transformRleCoding(guard, &rawSymbols, &lengths));
+    EXPECT_NO_THROW(gabac::inverseTransformRleCoding(guard, &rawSymbols, &lengths));
+    EXPECT_EQ(decodedSymbols.size(), rawSymbols.size());
+    EXPECT_EQ(decodedSymbols, rawSymbols);
 }

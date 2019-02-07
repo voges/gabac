@@ -12,6 +12,8 @@ static unsigned char readIn(
         const DataStream& bitstream,
         size_t *const bitstreamIndex
 ){
+    if(bitstream.size() <= *bitstreamIndex)
+        throw std::runtime_error("Index out of bounds");
     unsigned char byte = bitstream.get(*bitstreamIndex);
     (*bitstreamIndex)++;
     return byte;

@@ -113,18 +113,18 @@ const std::vector<TransformationProperties> transformationInformation = {
                 {
                     transformedSequences->resize(1);
                 },
-                [](std::vector<DataStream>& transformedSequences, uint64_t,
-                   DataStream *const sequence
+                [](uint64_t,
+                   std::vector<DataStream> *const transformedSequences
                 )
                 {
-                    sequence->swap(transformedSequences[0]);
+                    transformedSequences->resize(1);
                 }
         },
         {
                 "equality_coding", // Name
                 {"raw_symbols", "eq_flags"}, // StreamNames
                 {0, 1}, // WordSizes (0: non fixed current stream wordsize)
-                [](uint64_t,
+                [](uint64_t param,
                    std::vector<DataStream> *const transformedSequences
                 )
                 {
@@ -135,15 +135,15 @@ const std::vector<TransformationProperties> transformationInformation = {
                             &(*transformedSequences)[1]
                     );
                 },
-                [](const std::vector<DataStream>& transformedSequences, uint64_t,
-                   DataStream *const sequence
+                [](uint64_t param,
+                   std::vector<DataStream> *const transformedSequences
                 )
                 {
                     gabac::inverseTransformEqualityCoding(
-                            transformedSequences[0],
-                            transformedSequences[1],
-                            sequence
+                            &(*transformedSequences)[0],
+                            &(*transformedSequences)[1]
                     );
+                    transformedSequences->resize(1);
                 }
         },
         {
@@ -165,16 +165,16 @@ const std::vector<TransformationProperties> transformationInformation = {
                             &(*transformedSequences)[2]
                     );
                 },
-                [](const std::vector<DataStream>& transformedSequences, uint64_t,
-                   DataStream *const sequence
+                [](uint64_t param,
+                   std::vector<DataStream> *const transformedSequences
                 )
                 {
                     gabac::inverseTransformMatchCoding(
-                            transformedSequences[0],
-                            transformedSequences[1],
-                            transformedSequences[2],
-                            sequence
+                            &(*transformedSequences)[0],
+                            &(*transformedSequences)[1],
+                            &(*transformedSequences)[2]
                     );
+                    transformedSequences->resize(1);
                 }
         },
         {
@@ -193,16 +193,16 @@ const std::vector<TransformationProperties> transformationInformation = {
                             &(*transformedSequences)[1]
                     );
                 },
-                [](const std::vector<DataStream>& transformedSequences, uint64_t param,
-                   DataStream *const sequence
+                [](uint64_t param,
+                   std::vector<DataStream> *const transformedSequences
                 )
                 {
                     gabac::inverseTransformRleCoding(
-                            transformedSequences[0],
-                            transformedSequences[1],
                             param,
-                            sequence
+                            &(*transformedSequences)[0],
+                            &(*transformedSequences)[1]
                     );
+                    transformedSequences->resize(1);
                 }
         },
         {
@@ -222,18 +222,19 @@ const std::vector<TransformationProperties> transformationInformation = {
                             &(*transformedSequences)[1],
                             &(*transformedSequences)[2]
                     );
+                    transformedSequences->resize(1);
                 },
-                [](const std::vector<DataStream>& transformedSequences, uint64_t order,
-                   DataStream *const sequence
+                [](uint64_t order,
+                   std::vector<DataStream> *const transformedSequences
                 )
                 {
                     gabac::inverseTransformLutTransform0(
                             order,
-                            transformedSequences[0],
-                            transformedSequences[1],
-                            transformedSequences[2],
-                            sequence
+                            &(*transformedSequences)[0],
+                            &(*transformedSequences)[1],
+                            &(*transformedSequences)[2]
                     );
+                    transformedSequences->resize(1);
                 }
         },
         {
@@ -245,21 +246,18 @@ const std::vector<TransformationProperties> transformationInformation = {
                 )
                 {
                     transformedSequences->resize(1);
+                    gabac::transformDiffCoding(&(*transformedSequences)[0]);
                 },
-                [](const std::vector<DataStream>&, uint64_t,
-                   DataStream *const
+                [](uint64_t param,
+                   std::vector<DataStream> *const transformedSequences
                 )
                 {
+                    transformedSequences->resize(1);
+                    gabac::inverseTransformDiffCoding(&(*transformedSequences)[0]);
                 }
         }
 };
 
 //------------------------------------------------------------------------------
-
-/*std::vector<unsigned> fixWordSizes(const std::vector<unsigned>& list, unsigned wordsize){
-    std::vector<unsigned> ret = list;
-    std::replace(ret.begin(), ret.end(), 0u, wordsize);
-    return ret;
-}*/
 
 }

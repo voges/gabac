@@ -83,10 +83,12 @@ namespace gabac {
 
 const size_t MAX_LUT_SIZE = 1u << 20u; // 8MB table
 
+
+// Inplace not reasonable, because symbols stream is reused 100% of time and lut is much smaller
 static void inferLut0(
         const DataStream& symbols,
         std::vector<std::pair<uint64_t, uint64_t>> *const lut,
-        std::vector<uint64_t> *const fastlut,
+        DataStream *const fastlut,
         DataStream *const inverseLut
 ){
 
@@ -96,18 +98,20 @@ static void inferLut0(
     const uint64_t CTR_THRESHOLD = 1000000;
 
     // Wordsize 1 and 2 are small enough to use the array every time
-    if(symbols.getWordSize() == 1) {
+    if (symbols.getWordSize() == 1) {
         maxValue = std::numeric_limits<uint8_t>::max();
     } else if (symbols.getWordSize() == 2) {
         maxValue = std::numeric_limits<uint16_t>::max();
     } else {
         // For greater wordsizes: find max and check if small enough for array counter
-        for(size_t i = 0; i < symbols.size(); ++i) {
+        for (size_t i = 0; i < symbols.size(); ++i) {
             uint64_t val = symbols.get(i);
-            if(val > maxValue)
+            if (val > maxValue) {
                 maxValue = val;
-            if(val >= CTR_THRESHOLD)
+            }
+            if (val >= CTR_THRESHOLD) {
                 break;
+            }
         }
         // Step 1: basic mapping for order 0. All symbols are now in a dense interval starting [0...N]
 
@@ -124,7 +128,7 @@ static void inferLut0(
     std::vector<std::pair<uint64_t, uint64_t>> freqVec;
 
     if (maxValue < CTR_THRESHOLD) {
-        std::vector<uint64_t> freq(maxValue+1);
+        std::vector<uint64_t> freq(maxValue + 1);
         for (size_t i = 0; i < symbols.size(); ++i) {
             uint64_t symbol = symbols.get(i);
             freq[symbol]++;
@@ -189,9 +193,9 @@ static void inferLut0(
     );
 
     if (maxValue < CTR_THRESHOLD) {
-        fastlut->resize(maxValue + 1, 0);
-        for(auto p : *lut) {
-            (*fastlut)[p.first] = p.second;
+        fastlut->resize(maxValue + 1);
+        for (auto p : *lut) {
+            (*fastlut).set(p.first, p.second);
         }
     }
 
@@ -220,10 +224,10 @@ static uint64_t lut0SingleTransform(
 // ----------------------------------------------------------------------------
 
 static uint64_t lut0SingleTransformFast(
-        const std::vector<uint64_t>& lut0,
+        const DataStream& lut0,
         uint64_t symbol
 ){
-    return lut0[symbol];
+    return lut0.get(symbol);
 }
 
 // ----------------------------------------------------------------------------
@@ -231,7 +235,7 @@ static uint64_t lut0SingleTransformFast(
 static void transformLutTransform_core(
         const size_t ORDER,
         const std::vector<std::pair<uint64_t, uint64_t>>& lut0,
-        const std::vector<uint64_t> & fastlut,
+        const DataStream& fastlut,
         const DataStream& lut,
         DataStream *const transformedSymbols
 ){
@@ -251,10 +255,9 @@ static void transformLutTransform_core(
         for (size_t i = ORDER; i > 0; --i) {
             lastSymbols[i] = lastSymbols[i - 1];
         }
-        if(fastlut.size()) {
+        if (fastlut.size()) {
             lastSymbols[0] = lut0SingleTransformFast(fastlut, symbol);
-        }
-        else {
+        } else {
             lastSymbols[0] = lut0SingleTransform(lut0, symbol);
         }
 
@@ -279,25 +282,18 @@ static void transformLutTransform_core(
 
 static void inverseTransformLutTransform_core(
         const size_t ORDER,
-        const DataStream& transformedSymbols,
-        const DataStream& inverseLut0,
-        const DataStream& inverseLut,
-        DataStream *const symbols
+        DataStream *const symbols,
+        DataStream *const inverseLut0,
+        DataStream *const inverseLut
 ){
     assert(symbols != nullptr);
 
-    // Prepare the output vector
-    symbols->clear();
-
-    if (transformedSymbols.empty()) {
-        return;
-    }
 
     std::vector<uint64_t> lastSymbols(ORDER + 1, 0);
 
     // Do the LUT transform
-    for (size_t i = 0; i < transformedSymbols.size(); ++i) {
-        uint64_t symbol = transformedSymbols.get(i);
+    for (size_t i = 0; i < symbols->size(); ++i) {
+        uint64_t symbol = symbols->get(i);
         // Update history
         for (size_t i = ORDER; i > 0; --i) {
             lastSymbols[i] = lastSymbols[i - 1];
@@ -305,23 +301,23 @@ static void inverseTransformLutTransform_core(
         lastSymbols[0] = static_cast<uint64_t>(symbol);
 
         if (ORDER == 0) {
-            symbols->emplace_back(inverseLut0.get(lastSymbols[0]));
+            symbols->set(i, inverseLut0->get(lastSymbols[0]));
             continue;
         }
 
         // Compute position
         size_t index = 0;
         for (size_t i = ORDER; i > 0; --i) {
-            index *= inverseLut0.size();
+            index *= inverseLut0->size();
             index += lastSymbols[i];
         }
-        index *= inverseLut0.size();
+        index *= inverseLut0->size();
         index += lastSymbols[0];
 
         // Transform
-        uint64_t unTransformed = inverseLut.get(index);
+        uint64_t unTransformed = inverseLut->get(index);
         lastSymbols[0] = unTransformed;
-        symbols->emplace_back(inverseLut0.get(unTransformed));
+        symbols->set(i, inverseLut0->get(unTransformed));
     }
 }
 
@@ -329,7 +325,7 @@ void inferLut(
         const size_t ORDER,
         const DataStream& symbols,
         std::vector<std::pair<uint64_t, uint64_t>> *const lut0,
-        std::vector<uint64_t>* const fastlut,
+        DataStream *const fastlut,
         DataStream *const inverseLut0,
         DataStream *const lut1,
         DataStream *const inverseLut1
@@ -455,12 +451,12 @@ void inferLut(
 
 void transformLutTransform0(
         unsigned order,
-        DataStream *transformedSymbols,
-        DataStream *inverseLUT,
-        DataStream *inverseLUT1
+        DataStream *const transformedSymbols,
+        DataStream *const inverseLUT,
+        DataStream *const inverseLUT1
 ){
     std::vector<std::pair<uint64_t, uint64_t>> lut;
-    std::vector<uint64_t> fastlut;
+    DataStream fastlut(0, transformedSymbols->getWordSize()); // For small, dense symbol spaces
     DataStream lut1(0, transformedSymbols->getWordSize());
     inferLut(order, *transformedSymbols, &lut, &fastlut, inverseLUT, &lut1, inverseLUT1);
     if (lut.empty()) {
@@ -475,12 +471,11 @@ void transformLutTransform0(
 
 void inverseTransformLutTransform0(
         unsigned order,
-        const DataStream& transformedSymbols,
-        const DataStream& inverseLUT,
-        const DataStream& inverseLUT1,
-        DataStream *symbols
+        DataStream *const symbols,
+        DataStream *const inverseLUT,
+        DataStream *const inverseLUT1
 ){
-    inverseTransformLutTransform_core(order, transformedSymbols, inverseLUT, inverseLUT1, symbols);
+    inverseTransformLutTransform_core(order, symbols, inverseLUT, inverseLUT1);
 }
 
 // ----------------------------------------------------------------------------

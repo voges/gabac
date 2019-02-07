@@ -23,7 +23,7 @@
     try
     {
         // C++-style vectors to receive input data / accumulate output data
-        std::vector<uint64_t> symbolsVector(symbols, (symbols + symbolsSize));
+        DataStream symbolsVector(symbols, (symbols + symbolsSize));
         std::vector<int64_t> transformedSymbolsVector;
 
         // Execute
@@ -85,65 +85,31 @@ namespace gabac {
 void transformDiffCoding(
         DataStream *const transformedSymbols
 ){
- /*   assert(transformedSymbols != nullptr);
-
-    // Prepare the output vector
-    transformedSymbols->clear();
-    transformedSymbols->resize(symbols.size());
+    assert(transformedSymbols != nullptr);
 
     // Do the diff coding
     uint64_t previousSymbol = 0;
-    for (size_t i = 0; i < symbols.size(); i++)
+    for (size_t i = 0; i < transformedSymbols->size(); i++)
     {
-#ifndef NDEBUG
-        uint64_t diff = 0;
-        if (previousSymbol < symbols.get(i))
-        {
-            diff = symbols.get(i) - previousSymbol;
-            assert(diff <= static_cast<uint64_t>(std::numeric_limits<int64_t>::max()));
-        }
-        else  // previousSymbol >= symbols[i]
-        {
-            diff = previousSymbol - symbols.get(i);
-            assert(diff <= static_cast<uint64_t>(std::numeric_limits<int64_t>::max()) + 1);
-        }
-#endif  // NDEBUG
-        transformedSymbols->set(i, symbols.get(i) - previousSymbol);
-        previousSymbol = symbols.get(i);
-    }*/
+        uint64_t symbol = transformedSymbols->get(i);
+        transformedSymbols->set(i, symbol - previousSymbol);
+        previousSymbol = symbol;
+    }
 }
 
 
 void inverseTransformDiffCoding(
-        const DataStream& transformedSymbols,
         DataStream *const symbols
 ){
     assert(symbols != nullptr);
 
-    // Prepare the output vector
-    symbols->resize(transformedSymbols.size());
-
     // Re-compute the symbols from the differences
     uint64_t previousSymbol = 0;
-    for (size_t i = 0; i < transformedSymbols.size(); i++)
+    for (size_t i = 0; i < symbols->size(); i++)
     {
-#ifndef NDEBUG
-        if (transformedSymbols.get(i) < 0)
-        {
-            if (transformedSymbols.get(i) == std::numeric_limits<int64_t>::min())
-            {
-                assert(previousSymbol >= static_cast<uint64_t>(std::numeric_limits<int64_t>::max()));
-            }
-            assert(previousSymbol >= static_cast<uint64_t>(-1 * transformedSymbols.get(i)));
-        }
-        else  // transformedSymbols[i] >= 0
-        {
-            assert(std::numeric_limits<uint64_t>::max() - previousSymbol >=
-                   static_cast<uint64_t>(transformedSymbols.get(i)));
-        }
-#endif  // NDEBUG
-        (*symbols).set(i, previousSymbol + transformedSymbols.get(i));
-        previousSymbol = (*symbols).get(i);
+        uint64_t symbol = symbols->get(i);
+        (*symbols).set(i, previousSymbol + symbol);
+        previousSymbol = symbol;
     }
 }
 

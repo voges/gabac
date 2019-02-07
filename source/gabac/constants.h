@@ -56,10 +56,6 @@ using SequenceTransform = std::function<void(const uint64_t param,
                                              std::vector<gabac::DataStream> *const
 )>;
 
-using InverseSequenceTransform = std::function<void(std::vector<gabac::DataStream>&, const uint64_t,
-                                                    gabac::DataStream *const
-)>;
-
 using SignedBinarizationCheck = std::function<bool(int64_t min, int64_t max, uint64_t parameter
 )>;
 
@@ -73,7 +69,7 @@ struct TransformationProperties
     std::vector<std::string> streamNames;
     std::vector<unsigned int> wordsizes; // Wordsizes of output streams
     SequenceTransform transform; // Function for transformation
-    InverseSequenceTransform inverseTransform; // Function for inversetransformation
+    SequenceTransform inverseTransform; // Function for inversetransformation
 };
 
 struct BinarizationProperties

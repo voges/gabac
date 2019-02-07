@@ -38,7 +38,7 @@ TEST_F(coreTest, encode){
     bitstream = {1, 3, 4};
 
     // Check parameter lengths
-    for (const auto& s : symbols)
+    for (auto& s : symbols)
     {
         for (unsigned int b = 0; b < unsigned(gabac::BinarizationId::STEG) + 1u; ++b)
         {
@@ -47,11 +47,10 @@ TEST_F(coreTest, encode){
             {
                 binpam.resize(params[b] - 1u, 1);
                 EXPECT_DEATH(gabac::encode(
-                        s,
                         gabac::BinarizationId(b),
                         binpam,
                         gabac::ContextSelectionId::adaptive_coding_order_0,
-                        &bitstream
+                        &s
                 ), "");
             }
         }
@@ -96,26 +95,26 @@ TEST_F(coreTest, roundTrip){
     {
         for (int b = 0; b < 6; ++b)
         {
-            gabac::DataStream sym(1024, 8);
-            fillVectorRandomUniform(intervals[b][0], intervals[b][1], &sym);
+            gabac::DataStream ran(1024, 8);
+            fillVectorRandomUniform(intervals[b][0], intervals[b][1], &ran);
+            gabac::DataStream sym (ran);
             std::cout
                     << "---> Testing binarization " + binNames[b] + " and context selection " + ctxNames[c] + "..."
                     << std::endl;
             EXPECT_NO_THROW(gabac::encode(
-                    sym,
                     gabac::BinarizationId(b),
                     binarizationParameters[b],
                     gabac::ContextSelectionId(c),
-                    &bitstream
+                    &sym
             ));
             EXPECT_NO_THROW(gabac::decode(
-                    bitstream,
+                    ran.getWordSize(),
                     gabac::BinarizationId(b),
                     binarizationParameters[b],
                     gabac::ContextSelectionId(c),
-                    &decodedSymbols
+                    &sym
             ));
-            EXPECT_EQ(sym, decodedSymbols);
+            EXPECT_EQ(sym, ran);
         }
     }
 }

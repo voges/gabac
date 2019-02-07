@@ -41,8 +41,7 @@ void transformDiffCoding(
 
 
 void inverseTransformDiffCoding(
-        const DataStream& transformedSymbols,
-        DataStream *symbols
+        DataStream *transformedSymbols
 );
 
 

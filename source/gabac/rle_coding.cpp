@@ -95,23 +95,30 @@ void transformRleCoding(
         gabac::DataStream * const rawValues,
         gabac::DataStream * const lengths
 ){
-/*    assert(guard > 0);
+    assert(guard > 0);
     assert(rawValues != nullptr);
     assert(lengths != nullptr);
 
-    // Prepare the output vectors
-    rawValues->clear();
+    // input for rawValues is guaranteed to grow slower than reading process
+    // -> in place possible
+
     lengths->clear();
 
+    size_t rawValuesPos = 0;
+
     // Do the RLE coding
-    for (size_t i = 0; i < symbols.size();)
+    for (size_t i = 0; i < rawValues->size();)
     {
-        rawValues->push_back(symbols.get(i++));
+        uint64_t prev = rawValues->get(i++);
+        uint64_t cur = rawValues->get(i);
+        rawValues->set(rawValuesPos++, prev);
         uint64_t lengthValue = 1;
-        while ((i < symbols.size()) && (symbols.get(i) == symbols.get(i - 1)))
+        while ((i < rawValues->size()) && ( cur == prev))
         {
             lengthValue++;
             i++;
+            prev = cur;
+            cur = rawValues->get(i);
         }
         while (lengthValue > guard)
         {
@@ -119,43 +126,48 @@ void transformRleCoding(
             lengthValue -= guard;
         }
         lengths->push_back(lengthValue - 1);
-    }*/
+    }
+    rawValues->resize(rawValuesPos);
 }
 
 
 void inverseTransformRleCoding(
-        const gabac::DataStream& rawValues,
-        const gabac::DataStream& lengths,
         const uint64_t guard,
-        gabac::DataStream * const symbols
+        gabac::DataStream* const rawValues,
+        gabac::DataStream* const lengths
 ){
-    assert(!rawValues.empty());
-    assert(!lengths.empty());
+    assert(rawValues != nullptr);
+    assert(!rawValues->empty());
     assert(guard > 0);
-    assert(symbols != nullptr);
 
-    // Prepare the output vectors
-    symbols->clear();
+    // input for rawValues is not guaranteed to grow slower than reading process
+    // -> in place not possible
+
+    gabac::DataStream symbols(0, rawValues->getWordSize());
 
     // Re-compute the symbol sequence
     size_t j = 0;
-    for (size_t i = 0; i < rawValues.size(); ++i)
+    for (size_t i = 0; i < rawValues->size(); ++i)
     {
-        uint64_t rawValue = rawValues.get(i);
-        uint64_t lengthValue = lengths.get(j++);
+        uint64_t rawValue = rawValues->get(i);
+        uint64_t lengthValue = lengths->get(j++);
         uint64_t totalLengthValue = lengthValue;
         while ((lengthValue != 0) && (totalLengthValue % guard == 0))
         {
-            lengthValue = lengths.get(j++);
+            lengthValue = lengths->get(j++);
             totalLengthValue += lengthValue;
         }
         totalLengthValue++;
         while (totalLengthValue > 0)
         {
             totalLengthValue--;
-            symbols->push_back(rawValue);
+            symbols.push_back(rawValue);
         }
     }
+
+    symbols.swap(rawValues);
+    lengths->clear();
+    lengths->shrink_to_fit();
 }
 
 

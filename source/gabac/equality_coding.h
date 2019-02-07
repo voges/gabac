@@ -46,9 +46,8 @@ void transformEqualityCoding(
 
 
 void inverseTransformEqualityCoding(
-        const gabac::DataStream& equalityFlags,
-        const gabac::DataStream& values,
-        gabac::DataStream *symbols
+        DataStream *const values,
+        DataStream *const equalityFlags
 );
 
 

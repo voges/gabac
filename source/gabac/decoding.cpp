@@ -86,22 +86,23 @@ namespace gabac {
 
 
 int decode(
-        const DataStream& bitstream,
+        const uint8_t wordsize,
         const BinarizationId& binarizationId,
         const std::vector<unsigned int>& binarizationParameters,
         const ContextSelectionId& contextSelectionId,
-        DataStream *const symbols
+        DataStream *const bitstream
 ){
-    if (symbols == nullptr)
+    DataStream symbols(0, wordsize);
+    if (bitstream == nullptr)
     {
         return GABAC_FAILURE;
     }
 
-    Reader reader(bitstream);
+    Reader reader(*bitstream);
     size_t symbolsSize = reader.start();
 
     // symbols->clear();
-    symbols->resize(symbolsSize);
+    symbols.resize(symbolsSize);
 
     int64_t symbol = 0;
     unsigned int previousSymbol = 0;
@@ -115,7 +116,7 @@ int decode(
                     binarizationId,
                     binarizationParameters
             );
-            symbols->set(i, symbol);
+            symbols.set(i, symbol);
         }
         else if (contextSelectionId
                  == ContextSelectionId::adaptive_coding_order_0)
@@ -126,7 +127,7 @@ int decode(
                     0,
                     0
             );
-            symbols->set(i, symbol);
+            symbols.set(i, symbol);
         }
         else if (contextSelectionId
                  == ContextSelectionId::adaptive_coding_order_1)
@@ -137,7 +138,7 @@ int decode(
                     previousSymbol,
                     0
             );
-            symbols->set(i, symbol);
+            symbols.set(i, symbol);
             if (symbol < 0)
             {
                 symbol = -symbol;
@@ -161,7 +162,7 @@ int decode(
                     previousSymbol,
                     previousPreviousSymbol
             );
-            symbols->set(i, symbol);
+            symbols.set(i, symbol);
             previousPreviousSymbol = previousSymbol;
             if (symbol < 0)
             {
@@ -184,6 +185,8 @@ int decode(
     }
 
     reader.reset();
+
+    symbols.swap(bitstream);
 
     return GABAC_SUCCESS;
 }

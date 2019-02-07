@@ -37,11 +37,10 @@ namespace gabac {
 
 
 int encode(
-        const DataStream& symbols,
         const BinarizationId& binarizationId,
         const std::vector<unsigned int>& binarizationParameters,
         const ContextSelectionId& contextSelectionId,
-        DataStream *bitstream
+        DataStream *const symbols
 );
 
 

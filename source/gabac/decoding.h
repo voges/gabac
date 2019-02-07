@@ -51,11 +51,11 @@ namespace gabac {
 
 
 int decode(
-        const gabac::DataStream& bitstream,
+        const uint8_t wordsize,
         const BinarizationId& binarizationId,
         const std::vector<unsigned int>& binarizationParameters,
         const ContextSelectionId& contextSelectionId,
-        gabac::DataStream *symbols
+        DataStream *const bitstream
 );
 
 

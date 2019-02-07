@@ -222,11 +222,17 @@ class DataStream
         return wordSize;
     }
 
-    void swap (DataStream& d) {
+    inline void setWordSize(uint8_t size) {
+        wordSize = size;
+        if(data.size() % size)
+            throw std::runtime_error("Could not resize");
+    }
+
+    void swap (DataStream* const d) {
         size_t tmp = wordSize;
-        wordSize = d.wordSize;
-        d.wordSize = tmp;
-        data.swap(d.data);
+        wordSize = d->wordSize;
+        d->wordSize = tmp;
+        data.swap(d->data);
     }
 
 

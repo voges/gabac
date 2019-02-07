@@ -58,10 +58,9 @@ void transformMatchCoding(
 
 
 void inverseTransformMatchCoding(
-        const DataStream& pointers,
-        const DataStream& lengths,
-        const DataStream& rawValues,
-        DataStream *symbols
+        gabac::DataStream* rawValues,
+        gabac::DataStream* pointers,
+        gabac::DataStream* lengths
 );
 
 

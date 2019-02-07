@@ -53,10 +53,9 @@ void transformRleCoding(
 
 
 void inverseTransformRleCoding(
-        const DataStream& rawValues,
-        const DataStream& lengths,
-        uint64_t guard,
-        DataStream *symbols
+        const uint64_t guard,
+        gabac::DataStream* const rawValues,
+        gabac::DataStream* const lengths
 );
 
 

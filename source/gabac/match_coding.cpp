@@ -161,32 +161,31 @@ int gabac_inverseTransformMatchCoding(
 
 namespace gabac {
 
-
+//TODO: Review if in place possible
 void transformMatchCoding(
         const uint32_t windowSize,
+        gabac::DataStream *const symbols,
         gabac::DataStream *const pointers,
-        gabac::DataStream *const lengths,
-        gabac::DataStream *const rawValues
+        gabac::DataStream *const lengths
 ){
-/*    assert(pointers != nullptr);
+    assert(pointers != nullptr);
     assert(lengths != nullptr);
-    assert(rawValues != nullptr);
+    assert(symbols != nullptr);
+    gabac::DataStream rawValues(0, symbols->getWordSize());
 
     // Prepare the output vectors
     pointers->clear();
     lengths->clear();
-    rawValues->clear();
 
     if (windowSize == 0)
     {
-        lengths->resize(symbols.size());
-    //REPLACE:    std::fill(lengths->begin(), lengths->end(), 0);
-        *rawValues = symbols;
+        lengths->resize(symbols->size());
+        std::fill(lengths->begin(), lengths->end(), 0);
         return;
     }
 
     // Do the match coding
-    const uint64_t symbolsSize = symbols.size();
+    const uint64_t symbolsSize = symbols->size();
     for (uint64_t i = 0; i < symbolsSize; i++)
     {
         uint64_t pointer = 0;
@@ -199,7 +198,7 @@ void transformMatchCoding(
             uint64_t offset = i;
             while (
                     (offset < symbolsSize)
-                    && (symbols.get(offset) == (symbols.get(w + offset - i))))
+                    && (symbols->get(offset) == (symbols->get(w + offset - i))))
             {
                 offset++;
             }
@@ -213,7 +212,7 @@ void transformMatchCoding(
         if (length < 2)
         {
             lengths->push_back(0);
-            rawValues->push_back(symbols.get(i));
+            rawValues.push_back(symbols->get(i));
         }
         else
         {
@@ -221,46 +220,52 @@ void transformMatchCoding(
             lengths->push_back(length);
             i += (length - 1);
         }
-    }*/
+    }
+
+    rawValues.swap(symbols);
 }
 
 // ----------------------------------------------------------------------------
 
 void inverseTransformMatchCoding(
-        const gabac::DataStream& pointers,
-        const gabac::DataStream& lengths,
-        const gabac::DataStream& rawValues,
-        gabac::DataStream *const symbols
+        gabac::DataStream* const rawValues,
+        gabac::DataStream* const pointers,
+        gabac::DataStream* const lengths
 ){
-    assert(symbols != nullptr);
-    assert(lengths.size() == pointers.size() + rawValues.size());
+    gabac::DataStream symbols(0, rawValues->size());
+    assert(lengths->size() == pointers->size() + rawValues->size());
 
-    // Prepare the output vector
-    symbols->clear();
 
     // Re-compute the symbols from the pointer, lengths and raw values
     size_t n = 0;
     size_t t0 = 0;
     size_t t1 = 0;
     size_t t2 = 0;
-    for (t1 = 0; t1 < lengths.size(); t1++)
+    for (t1 = 0; t1 < lengths->size(); t1++)
     {
-        uint64_t length = lengths.get(t1);
+        uint64_t length = lengths->get(t1);
         if (length == 0)
         {
-            symbols->push_back(rawValues.get(t2++));
+            symbols.push_back(rawValues->get(t2++));
             n++;
         }
         else
         {
-            uint64_t pointer = pointers.get(t0++);
+            uint64_t pointer = pointers->get(t0++);
             for (uint64_t l = 0; l < length; l++)
             {
-                symbols->push_back(symbols->get(n - pointer));
+                symbols.push_back(symbols.get(n - pointer));
                 n++;
             }
         }
     }
+
+    symbols.swap(rawValues);
+    pointers->clear();
+    pointers->shrink_to_fit();
+    lengths->clear();
+    lengths->shrink_to_fit();
+
 }
 
 // ----------------------------------------------------------------------------

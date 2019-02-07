@@ -78,7 +78,7 @@ static void encodeStream(const TransformedSequenceConfiguration& conf,
             &bitstream
     );
 
-    bitstream.swap(*diffAndLutTransformedSequence);
+    bitstream.swap(diffAndLutTransformedSequence);
 }
 
 //------------------------------------------------------------------------------
@@ -160,7 +160,7 @@ static void encodeSingleSequence(const TransformedSequenceConfiguration& configu
 
     // Symbol/transformed symbols, lut0 bytestream, lut1 bytestream
     lutTransformedSequences.resize(3);
-    lutTransformedSequences[0].swap(*seq);
+    lutTransformedSequences[0].swap(seq);
 
     // Put sequence in, get lut sequence and lut bytestreams
     unsigned bits = configuration.lutBits;
@@ -201,7 +201,7 @@ static void encodeWithConfiguration(
 
     std::vector<gabac::DataStream> transformedSequences;
     transformedSequences.emplace_back(0, 1);
-    transformedSequences[0].swap(*sequence);
+    transformedSequences[0].swap(sequence);
 
     // Put symbol stream in, get transformed streams out
     doSequenceTransform(

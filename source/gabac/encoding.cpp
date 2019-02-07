@@ -85,31 +85,29 @@ namespace gabac {
 
 
 int encode(
-        const DataStream& symbols,
         const BinarizationId& binarizationId,
         const std::vector<unsigned int>& binarizationParameters,
         const ContextSelectionId& contextSelectionId,
-        DataStream *const bitstream
+        DataStream *const symbols
 ){
-    assert(bitstream != nullptr);
+    DataStream bitstream(0, 1);
+    assert(symbols != nullptr);
 #ifndef NDEBUG
     const unsigned int paramSize[unsigned(BinarizationId::STEG) + 1u] = {1, 1, 0, 0, 1, 1};
 #endif
     assert(binarizationParameters.size() >= paramSize[static_cast<int>(binarizationId)]);
 
-    bitstream->clear();
-
-    Writer writer(bitstream);
-    writer.start(symbols.size());
+    Writer writer(&bitstream);
+    writer.start(symbols->size());
 
     unsigned int previousSymbol = 0;
     unsigned int previousPreviousSymbol = 0;
 
     size_t ctr = 0;
 
-    for (size_t i = 0; i < symbols.size(); ++i)
+    for (size_t i = 0; i < symbols->size(); ++i)
     {
-        uint64_t symbol = symbols.get(i);
+        uint64_t symbol = symbols->get(i);
         if (contextSelectionId == ContextSelectionId::bypass)
         {
             writer.writeBypassValue(
@@ -183,6 +181,8 @@ int encode(
     }
 
     writer.reset();
+
+    symbols->swap(&bitstream);
 
     return GABAC_SUCCESS;
 }

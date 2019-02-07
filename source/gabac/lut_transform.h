@@ -90,10 +90,9 @@ void transformLutTransform0(
  */
 void inverseTransformLutTransform0(
         unsigned order,
-        const DataStream& transformedSymbols,
-        const DataStream& inverseLUT,
-        const DataStream& inverseLUT1,
-        DataStream *symbols
+        DataStream *symbols,
+        DataStream *inverseLUT,
+        DataStream *inverseLUT1
 );
 
 }  // namespace gabac
