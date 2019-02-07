@@ -29,15 +29,33 @@ class DataStream
     }
 
     inline uint64_t get(size_t index) const {
-        // return (this->*getptr)(index);
-        uint64_t ret = 0;
-        memcpy(&ret, data.data()+index*wordSize, wordSize);
-        return ret;
+        switch(wordSize) {
+            case 1:
+                return *(uint8_t*) (data.data()+index*1);
+            case 2:
+                return *(uint16_t*) (data.data()+index*2);
+            case 4:
+                return *(uint32_t*) (data.data()+index*4);
+            case 8:
+                return *(uint64_t*) (data.data()+index*8);
+        }
     }
 
     inline void set(size_t index, uint64_t val) {
-        //  (this->*setptr)(index, val);
-        memcpy(data.data()+index*wordSize, &val, wordSize);
+        switch(wordSize) {
+            case 1:
+                *(uint8_t*) (data.data()+index*1) = val;
+                return;
+            case 2:
+                *(uint16_t*) (data.data()+index*2)= val;
+                return;
+            case 4:
+                *(uint32_t*) (data.data()+index*4)= val;
+                return;
+            case 8:
+                *(uint64_t*) (data.data()+index*8)= val;
+                return;
+        }
     }
 
     template<typename T>
@@ -202,8 +220,23 @@ class DataStream
     }
 
     inline void push_back (uint64_t val) {
+      /*
+        set(data.size() / wordSize - 1, val);*/
         data.resize(data.size() + wordSize);
-        set(data.size() / wordSize - 1, val);
+        switch(wordSize) {
+            case 1:
+                *(uint8_t*) (data.data()+data.size()-1) = val;
+                return;
+            case 2:
+                *(uint16_t*) (data.data()+data.size()-2) = val;
+                return;
+            case 4:
+                *(uint32_t*) (data.data()+data.size()-4) = val;
+                return;
+            case 8:
+                *(uint64_t*) (data.data()+data.size()-8) = val;
+                return;
+        }
     }
 
     inline void emplace_back (uint64_t val) {
