@@ -60,7 +60,7 @@ void deriveMinMax(  // warning: this should still support signed!!!!
 
     for (size_t i = 0; i < symbols.size(); ++i)
     {
-        uint64_t symbol = symbols.get(i);
+        T symbol = T(symbols.get(i));
         if (symbol < *min)
         {
             *min = symbol;
@@ -90,7 +90,7 @@ void deriveMinMaxSigned(
 
 void deriveMinMaxUnsigned(
         const gabac::DataStream& symbols,
-        unsigned int word_size,
+        unsigned int,
         uint64_t *const min,
         uint64_t *const max
 ){

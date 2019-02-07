@@ -207,7 +207,7 @@ void Writer::writeAsTUbypass(
 ){
     assert(binarizationInformation[unsigned(BinarizationId::TU)].sbCheck(input, input, cMax));
 
-    for (int64_t i = 0; i < input; i++)
+    for (uint64_t i = 0; i < input; i++)
     {
         m_binaryArithmeticEncoder.encodeBinEP(1);
     }
@@ -229,7 +229,7 @@ void Writer::writeAsTUcabac(
 
     std::vector<ContextModel>::iterator scan = m_contextModels.begin() + cm;
 
-    for (int64_t i = 0; i < input; i++)
+    for (uint64_t i = 0; i < input; i++)
     {
         m_binaryArithmeticEncoder.encodeBin(1, &*(scan++));
     }

@@ -252,8 +252,8 @@ static void transformLutTransform_core(
     for (size_t i = 0; i < transformedSymbols->size(); ++i) {
         uint64_t symbol = transformedSymbols->get(i);
         // Update history
-        for (size_t i = ORDER; i > 0; --i) {
-            lastSymbols[i] = lastSymbols[i - 1];
+        for (size_t j = ORDER; j > 0; --j) {
+            lastSymbols[j] = lastSymbols[j - 1];
         }
         if (fastlut.size()) {
             lastSymbols[0] = lut0SingleTransformFast(fastlut, symbol);
@@ -266,9 +266,9 @@ static void transformLutTransform_core(
         if (ORDER > 0) {
             // Compute position
             size_t index = 0;
-            for (size_t i = ORDER; i > 0; --i) {
+            for (size_t j = ORDER; j > 0; --j) {
                 index *= lut0.size();
-                index += lastSymbols[i];
+                index += lastSymbols[j];
             }
             index *= lut0.size();
             index += lastSymbols[0];
@@ -295,8 +295,8 @@ static void inverseTransformLutTransform_core(
     for (size_t i = 0; i < symbols->size(); ++i) {
         uint64_t symbol = symbols->get(i);
         // Update history
-        for (size_t i = ORDER; i > 0; --i) {
-            lastSymbols[i] = lastSymbols[i - 1];
+        for (size_t j = ORDER; j > 0; --j) {
+            lastSymbols[j] = lastSymbols[j - 1];
         }
         lastSymbols[0] = static_cast<uint64_t>(symbol);
 
@@ -307,9 +307,9 @@ static void inverseTransformLutTransform_core(
 
         // Compute position
         size_t index = 0;
-        for (size_t i = ORDER; i > 0; --i) {
+        for (size_t j = ORDER; j > 0; --j) {
             index *= inverseLut0->size();
-            index += lastSymbols[i];
+            index += lastSymbols[j];
         }
         index *= inverseLut0->size();
         index += lastSymbols[0];
@@ -360,8 +360,8 @@ void inferLut(
     for (size_t i = 0; i < symbols.size(); ++i) {
         uint64_t symbol = symbols.get(i);
         // Update history
-        for (size_t i = ORDER; i > 0; --i) {
-            lastSymbols[i] = lastSymbols[i - 1];
+        for (size_t j = ORDER; j > 0; --j) {
+            lastSymbols[j] = lastSymbols[j - 1];
         }
 
         // Translate symbol into order1 symbol
@@ -370,9 +370,9 @@ void inferLut(
 
         // Compute position
         size_t index = 0;
-        for (size_t i = ORDER; i > 0; --i) {
+        for (size_t j = ORDER; j > 0; --j) {
             index *= inverseLut0->size();
-            index += lastSymbols[i];
+            index += lastSymbols[j];
         }
         index *= inverseLut0->size();
         index += lastSymbols[0];

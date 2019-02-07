@@ -96,7 +96,6 @@ static void decodeInverseLUT(const gabac::DataStream& bytestream,
     for (size_t i = 0; i < inverseLutTmp.size(); ++i)
     {
         uint64_t inverseLutTmpEntry = inverseLutTmp.get(i);
-        assert(inverseLutTmpEntry >= 0);
         inverseLut->push_back(static_cast<uint64_t>(inverseLutTmpEntry));
     }
 
@@ -106,20 +105,20 @@ static void decodeInverseLUT(const gabac::DataStream& bytestream,
 
         bits1 = unsigned(std::ceil(std::log2(bits1)));
 
-        size_t lutWordSize = 0;
+        size_t lut1WordSize = 0;
         if(bits1 <= 8) {
-            lutWordSize = 1;
+            lut1WordSize = 1;
         } else if(bits1 <= 16) {
-            lutWordSize = 2;
+            lut1WordSize = 2;
         } else if(bits1 <= 32) {
-            lutWordSize = 4;
+            lut1WordSize = 4;
         } else if(bits1 <= 64) {
-            lutWordSize = 8;
+            lut1WordSize = 8;
         }
 
         inverseLutTmp = inverseLut1bitstream;
         gabac::decode(
-                lutWordSize,
+                lut1WordSize,
                 gabac::BinarizationId::BI,
                 {bits1},
                 gabac::ContextSelectionId::bypass,
@@ -129,7 +128,6 @@ static void decodeInverseLUT(const gabac::DataStream& bytestream,
         for (size_t i = 0; i < inverseLutTmp.size(); ++i)
         {
             uint64_t inverseLutTmpEntry = inverseLutTmp.get(i);
-            assert(inverseLutTmpEntry >= 0);
             inverseLut1->push_back(static_cast<uint64_t>(inverseLutTmpEntry));
         }
     }
@@ -156,7 +154,6 @@ static void doDiffCoding(const gabac::DataStream& diffAndLutTransformedSequence,
     for (size_t i = 0; i < diffAndLutTransformedSequence.size(); ++i)
     {
         uint64_t diffAndLutTransformedSymbol = diffAndLutTransformedSequence.get(i);
-        assert(diffAndLutTransformedSymbol >= 0);
         lutTransformedSequence->push_back(static_cast<uint64_t>(diffAndLutTransformedSymbol));
     }
 }

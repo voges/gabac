@@ -124,7 +124,7 @@ const std::vector<TransformationProperties> transformationInformation = {
                 "equality_coding", // Name
                 {"raw_symbols", "eq_flags"}, // StreamNames
                 {0, 1}, // WordSizes (0: non fixed current stream wordsize)
-                [](uint64_t param,
+                [](uint64_t,
                    std::vector<DataStream> *const transformedSequences
                 )
                 {
@@ -135,7 +135,7 @@ const std::vector<TransformationProperties> transformationInformation = {
                             &(*transformedSequences)[1]
                     );
                 },
-                [](uint64_t param,
+                [](uint64_t,
                    std::vector<DataStream> *const transformedSequences
                 )
                 {
@@ -165,7 +165,7 @@ const std::vector<TransformationProperties> transformationInformation = {
                             &(*transformedSequences)[2]
                     );
                 },
-                [](uint64_t param,
+                [](uint64_t,
                    std::vector<DataStream> *const transformedSequences
                 )
                 {
@@ -248,7 +248,7 @@ const std::vector<TransformationProperties> transformationInformation = {
                     transformedSequences->resize(1);
                     gabac::transformDiffCoding(&(*transformedSequences)[0]);
                 },
-                [](uint64_t param,
+                [](uint64_t,
                    std::vector<DataStream> *const transformedSequences
                 )
                 {
