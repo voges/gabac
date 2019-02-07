@@ -222,7 +222,6 @@ const std::vector<TransformationProperties> transformationInformation = {
                             &(*transformedSequences)[1],
                             &(*transformedSequences)[2]
                     );
-                    transformedSequences->resize(1);
                 },
                 [](uint64_t order,
                    std::vector<DataStream> *const transformedSequences
