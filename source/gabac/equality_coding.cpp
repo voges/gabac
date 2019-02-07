@@ -108,7 +108,7 @@ static void transformEqualityCoding0(
         DataStream *const equalityFlags
 ){
     uint64_t previousSymbol = 0;
-    *equalityFlags = DataStream(0, values->size());
+    *equalityFlags = DataStream(0, values->getWordSize());
 
 
     // Treat value as equalityFlags and vice versa
