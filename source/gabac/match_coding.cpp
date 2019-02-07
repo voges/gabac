@@ -232,7 +232,7 @@ void inverseTransformMatchCoding(
         gabac::DataStream* const pointers,
         gabac::DataStream* const lengths
 ){
-    gabac::DataStream symbols(0, rawValues->size());
+    gabac::DataStream symbols(0, rawValues->getWordSize());
     assert(lengths->size() == pointers->size() + rawValues->size());
 
 

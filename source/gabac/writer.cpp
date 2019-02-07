@@ -85,7 +85,7 @@ void Writer::reset(){
 
 
 void Writer::writeBypassValue(
-        int64_t symbol,
+        uint64_t symbol,
         const BinarizationId& binarizationId,
         const std::vector<unsigned int>& binarizationParameters
 ){
@@ -106,13 +106,13 @@ void Writer::writeBypassValue(
             writeAsEGbypass(symbol);
             break;
         case BinarizationId::SEG:
-            writeAsSEGbypass(symbol);
+            writeAsSEGbypass(int64_t (symbol));
             break;
         case BinarizationId::TEG:
             writeAsTEGbypass(symbol, binarizationParameters[0]);
             break;
         case BinarizationId::STEG:
-            writeAsSTEGbypass(symbol, binarizationParameters[0]);
+            writeAsSTEGbypass(int64_t(symbol), binarizationParameters[0]);
             break;
         default:
             // TODO(Jan): handle default case
@@ -121,7 +121,7 @@ void Writer::writeBypassValue(
 }
 
 void Writer::writeCabacAdaptiveValue(
-        int64_t symbol,
+        uint64_t symbol,
         const BinarizationId& binarizationId,
         const std::vector<unsigned int>& binarizationParameters,
         unsigned int prevValue,
@@ -153,7 +153,7 @@ void Writer::writeCabacAdaptiveValue(
             break;
         case BinarizationId::SEG:
             writeAsSEGcabac(
-                    symbol,
+                    int64_t (symbol),
                     offset);
             break;
         case BinarizationId::TEG:
@@ -164,7 +164,7 @@ void Writer::writeCabacAdaptiveValue(
             break;
         case BinarizationId::STEG:
             writeAsSTEGcabac(
-                    symbol,
+                    int64_t (symbol),
                     binarizationParameters[0],
                     offset);
             break;
@@ -176,7 +176,7 @@ void Writer::writeCabacAdaptiveValue(
 
 
 void Writer::writeAsBIbypass(
-        int64_t input,
+        uint64_t input,
         unsigned int cLength
 ){
     assert(binarizationInformation[unsigned(BinarizationId::BI)].sbCheck(input, input, cLength));
@@ -185,7 +185,7 @@ void Writer::writeAsBIbypass(
 
 
 void Writer::writeAsBIcabac(
-        int64_t input,
+        uint64_t input,
         unsigned int cLength,
         unsigned int offset
 ){
@@ -202,7 +202,7 @@ void Writer::writeAsBIcabac(
 
 
 void Writer::writeAsTUbypass(
-        int64_t input,
+        uint64_t input,
         unsigned int cMax
 ){
     assert(binarizationInformation[unsigned(BinarizationId::TU)].sbCheck(input, input, cMax));
@@ -219,7 +219,7 @@ void Writer::writeAsTUbypass(
 
 
 void Writer::writeAsTUcabac(
-        int64_t input,
+        uint64_t input,
         unsigned int cMax,
         unsigned int offset
 ){
@@ -242,7 +242,7 @@ void Writer::writeAsTUcabac(
 
 
 void Writer::writeAsEGbypass(
-        int64_t input
+        uint64_t input
 ){
     assert(binarizationInformation[unsigned(BinarizationId::EG)].sbCheck(input, input, 0));
 
@@ -254,7 +254,7 @@ void Writer::writeAsEGbypass(
 
 
 void Writer::writeAsEGcabac(
-        int64_t input,
+        uint64_t input,
         unsigned int offset
 ){
     assert(binarizationInformation[unsigned(BinarizationId::EG)].sbCheck(input, input, 0));
@@ -319,7 +319,7 @@ void Writer::writeAsSEGcabac(
 
 
 void Writer::writeAsTEGbypass(
-        int64_t input,
+        uint64_t input,
         unsigned int cTruncExpGolParam
 ){
     assert(binarizationInformation[unsigned(BinarizationId::TEG)].sbCheck(input, input, cTruncExpGolParam));
@@ -337,7 +337,7 @@ void Writer::writeAsTEGbypass(
 
 
 void Writer::writeAsTEGcabac(
-        int64_t input,
+        uint64_t input,
         unsigned int cTruncExpGolParam,
         unsigned int offset
 ){

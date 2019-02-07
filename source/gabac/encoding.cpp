@@ -135,9 +135,9 @@ int encode(
                     previousSymbol,
                     0
             );
-            if (symbol < 0)
+            if (int64_t (symbol) < 0)
             {
-                symbol = -symbol;
+                symbol = uint64_t (-int64_t (symbol));
             }
             if (symbol > 3)
             {
@@ -159,9 +159,9 @@ int encode(
                     previousPreviousSymbol
             );
             previousPreviousSymbol = previousSymbol;
-            if (symbol < 0)
+            if (int64_t (symbol) < 0)
             {
-                symbol = -symbol;
+                symbol = uint64_t (-int64_t (symbol));
             }
             if (symbol > 3)
             {

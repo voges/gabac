@@ -92,7 +92,8 @@ void transformDiffCoding(
     for (size_t i = 0; i < transformedSymbols->size(); i++)
     {
         uint64_t symbol = transformedSymbols->get(i);
-        transformedSymbols->set(i, symbol - previousSymbol);
+        uint64_t diff = symbol - previousSymbol;
+        transformedSymbols->set(i, diff);
         previousSymbol = symbol;
     }
 }
@@ -109,7 +110,7 @@ void inverseTransformDiffCoding(
     {
         uint64_t symbol = symbols->get(i);
         (*symbols).set(i, previousSymbol + symbol);
-        previousSymbol = symbol;
+        previousSymbol = previousSymbol + symbol;
     }
 }
 

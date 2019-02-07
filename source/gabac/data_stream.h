@@ -246,7 +246,6 @@ class DataStream
     DataStream (size_t size = 0, size_t wsize = 1) : wordSize(wsize), data(size * wsize) {
     }
 
-
 };
 
 }
