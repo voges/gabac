@@ -233,23 +233,27 @@ void inverseTransformMatchCoding(
     gabac::DataStream symbols(0, rawValues->getWordSize());
     assert(lengths->size() == pointers->size() + rawValues->size());
 
+    // In-place probably not possible
 
     // Re-compute the symbols from the pointer, lengths and raw values
     size_t n = 0;
-    size_t t0 = 0;
-    size_t t1 = 0;
-    size_t t2 = 0;
-    for (t1 = 0; t1 < lengths->size(); t1++)
+    StreamReader t0 = pointers->getReader();
+    StreamReader t1 = lengths->getReader();
+    StreamReader t2 = rawValues->getReader();
+    while (t1.isValid())
     {
-        uint64_t length = lengths->get(t1);
+        uint64_t length = t1.get();
+        t1.inc();
         if (length == 0)
         {
-            symbols.push_back(rawValues->get(t2++));
+            symbols.push_back(t2.get());
+            t2.inc();
             n++;
         }
         else
         {
-            uint64_t pointer = pointers->get(t0++);
+            uint64_t pointer = t0.get();
+            t0.inc();
             for (uint64_t l = 0; l < length; l++)
             {
                 symbols.push_back(symbols.get(n - pointer));
