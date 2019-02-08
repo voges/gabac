@@ -67,7 +67,7 @@ struct TransformationProperties
 {
     std::string name;
     std::vector<std::string> streamNames;
-    std::vector<unsigned int> wordsizes; // Wordsizes of output streams
+    std::vector<uint8_t> wordsizes; // Wordsizes of output streams
     SequenceTransform transform; // Function for transformation
     SequenceTransform inverseTransform; // Function for inversetransformation
 };

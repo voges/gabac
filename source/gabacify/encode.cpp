@@ -217,7 +217,7 @@ static void encodeWithConfiguration(
         );
 
         // Extend bytestream & free sequence
-        appendToBytestream(transformedSequences[i], sequence);
+        sequence->insert(sequence->end(), transformedSequences[i].begin(), transformedSequences[i].end());
         transformedSequences[i].clear();
         transformedSequences[i].shrink_to_fit();
     }
