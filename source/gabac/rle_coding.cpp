@@ -92,51 +92,65 @@ namespace gabac {
 
 void transformRleCoding(
         const uint64_t guard,
-        gabac::DataStream * const rawValues,
-        gabac::DataStream * const lengths
+        gabac::DataStream *const rawValues,
+        gabac::DataStream *const lengths
 ){
     assert(guard > 0);
     assert(rawValues != nullptr);
     assert(lengths != nullptr);
 
+    lengths->clear();
+
+    if (rawValues->empty()) {
+        return;
+    }
+
     // input for rawValues is guaranteed to grow slower than reading process
     // -> in place possible
 
-    lengths->clear();
 
     StreamReader r = rawValues->getReader();
     StreamReader w = rawValues->getReader();
 
-
-    while(r.isValid()) {
-        uint64_t prev = r.get();
+    uint64_t cur = r.get();
+    r.inc();
+    uint64_t lengthValue = 1;
+    while (r.isValid()) {
+        uint64_t tmp = r.get();
         r.inc();
-        uint64_t cur = r.get();
-        w.set(prev);
-        w.inc();
-        uint64_t lengthValue = 1;
-        while ((r.isValid()) && ( cur == prev))
-        {
-            lengthValue++;
-            prev = cur;
-            r.inc();
-            cur = r.get();
+        if (tmp == cur) {
+            ++lengthValue;
         }
-        while (lengthValue > guard)
-        {
-            lengths->push_back(guard);
-            lengthValue -= guard;
+        else {
+            w.set(cur);
+            w.inc();
+            cur = tmp;
+            while (lengthValue > guard) {
+                lengths->push_back(guard);
+                lengthValue -= guard;
+            }
+            lengths->push_back(lengthValue - 1);
+            lengthValue = 1;
         }
-        lengths->push_back(lengthValue - 1);
     }
-    rawValues->resize(rawValues->size() - (w.end-w.curr)/w.wordSize);
+
+    w.set(cur);
+    w.inc();
+    while (lengthValue > guard) {
+        lengths->push_back(guard);
+        lengthValue -= guard;
+    }
+    lengths->push_back(lengthValue - 1);
+
+
+    rawValues->resize(rawValues->size() - (w.end - w.curr) / w.wordSize);
 }
 
 
 void inverseTransformRleCoding(
         const uint64_t guard,
-        gabac::DataStream* const rawValues,
-        gabac::DataStream* const lengths
+        gabac::DataStream *const rawValues,
+        gabac::DataStream *const lengths
 ){
     assert(rawValues != nullptr);
     assert(!rawValues->empty());
@@ -150,21 +164,18 @@ void inverseTransformRleCoding(
     StreamReader rVal = rawValues->getReader();
     StreamReader rLen = lengths->getReader();
     // Re-compute the symbol sequence
-    while(rVal.isValid())
-    {
+    while (rVal.isValid()) {
         uint64_t rawValue = rVal.get();
         uint64_t lengthValue = rLen.get();
         rLen.inc();
         uint64_t totalLengthValue = lengthValue;
-        while ((lengthValue != 0) && (totalLengthValue == guard))
-        {
+        while (lengthValue == guard) {
             lengthValue = rLen.get();
             rLen.inc();
             totalLengthValue += lengthValue;
         }
         totalLengthValue++;
-        while (totalLengthValue > 0)
-        {
+        while (totalLengthValue > 0) {
             totalLengthValue--;
             symbols.push_back(rawValue);
         }

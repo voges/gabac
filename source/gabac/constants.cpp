@@ -180,13 +180,13 @@ const std::vector<TransformationProperties> transformationInformation = {
         {
                 "rle_coding", // Name
                 {"raw_values", "lengths"}, // StreamNames
-                {0, 4}, // WordSizes (0: non fixed current stream wordsize)
+                {0, 1}, // WordSizes (0: non fixed current stream wordsize)
                 [](uint64_t param,
                    std::vector<DataStream> *const transformedSequences
                 )
                 {
                     transformedSequences->resize(2);
-                    (*transformedSequences)[1] = gabac::DataStream(0, 4);
+                    (*transformedSequences)[1] = gabac::DataStream(0, 1);
                     gabac::transformRleCoding(
                             param,
                             &(*transformedSequences)[0],

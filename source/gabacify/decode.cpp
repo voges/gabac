@@ -43,7 +43,7 @@ static size_t extractFromBytestream(
             bytestream.begin() + bytestreamPosition + chunkSize
     );
 
-    return bytestreamPosition;
+    return bytestreamPosition + chunkSize;
 }
 
 //------------------------------------------------------------------------------

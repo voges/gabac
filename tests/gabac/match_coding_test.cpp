@@ -15,7 +15,7 @@
 class matchCodingTest : public ::testing::Test
 {
  protected:
-    const unsigned int largeTestSize = 1 * 1024 * 1024;
+    const unsigned int largeTestSize = 1 * 10 * 1024;
     std::vector<int>
             windowSizes = {1024};  // minimum value: 0,
             // which should not perform a search, maximum reasonable value: 32768
