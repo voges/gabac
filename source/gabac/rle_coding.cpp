@@ -104,21 +104,23 @@ void transformRleCoding(
 
     lengths->clear();
 
-    size_t rawValuesPos = 0;
+    StreamReader r = rawValues->getReader();
+    StreamReader w = rawValues->getReader();
 
-    // Do the RLE coding
-    for (size_t i = 0; i < rawValues->size();)
-    {
-        uint64_t prev = rawValues->get(i++);
-        uint64_t cur = rawValues->get(i);
-        rawValues->set(rawValuesPos++, prev);
+
+    while(r.isValid()) {
+        uint64_t prev = r.get();
+        r.inc();
+        uint64_t cur = r.get();
+        w.set(prev);
+        w.inc();
         uint64_t lengthValue = 1;
-        while ((i < rawValues->size()) && ( cur == prev))
+        while ((r.isValid()) && ( cur == prev))
         {
             lengthValue++;
-            i++;
             prev = cur;
-            cur = rawValues->get(i);
+            r.inc();
+            cur = r.get();
         }
         while (lengthValue > guard)
         {
@@ -127,7 +129,7 @@ void transformRleCoding(
         }
         lengths->push_back(lengthValue - 1);
     }
-    rawValues->resize(rawValuesPos);
+    rawValues->resize(rawValues->size() - (w.end-w.curr)/w.wordSize);
 }
 
 
@@ -145,16 +147,19 @@ void inverseTransformRleCoding(
 
     gabac::DataStream symbols(0, rawValues->getWordSize());
 
+    StreamReader rVal = rawValues->getReader();
+    StreamReader rLen = lengths->getReader();
     // Re-compute the symbol sequence
-    size_t j = 0;
-    for (size_t i = 0; i < rawValues->size(); ++i)
+    while(rVal.isValid())
     {
-        uint64_t rawValue = rawValues->get(i);
-        uint64_t lengthValue = lengths->get(j++);
+        uint64_t rawValue = rVal.get();
+        uint64_t lengthValue = rLen.get();
+        rLen.inc();
         uint64_t totalLengthValue = lengthValue;
-        while ((lengthValue != 0) && (totalLengthValue % guard == 0))
+        while ((lengthValue != 0) && (totalLengthValue == guard))
         {
-            lengthValue = lengths->get(j++);
+            lengthValue = rLen.get();
+            rLen.inc();
             totalLengthValue += lengthValue;
         }
         totalLengthValue++;
@@ -163,6 +168,7 @@ void inverseTransformRleCoding(
             totalLengthValue--;
             symbols.push_back(rawValue);
         }
+        rVal.inc();
     }
 
     symbols.swap(rawValues);

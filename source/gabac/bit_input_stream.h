@@ -16,7 +16,7 @@ class BitInputStream
 {
  public:
     explicit BitInputStream(
-            const gabac::DataStream& bitstream
+            DataStream* bitstream
     );
 
     ~BitInputStream();
@@ -34,7 +34,7 @@ class BitInputStream
 
     gabac::DataStream m_bitstream;
 
-    size_t m_bitstreamIndex;
+    gabac::StreamReader m_reader;
 
     unsigned char m_heldBits;
 

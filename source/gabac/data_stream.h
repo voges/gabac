@@ -9,12 +9,60 @@
 
 namespace gabac {
 
+struct StreamReader {
+    uint8_t* curr;
+    uint8_t* end;
+    uint8_t wordSize;
+    inline bool isValid() const{
+        return curr != end;
+    }
+    inline void inc() {
+        curr += wordSize;
+    }
+    inline uint64_t get() const {
+        switch(wordSize) {
+            case 1:
+                return *(uint8_t*) (curr);
+            case 2:
+                return *(uint16_t*) (curr);
+            case 4:
+                return *(uint32_t*) (curr);
+            case 8:
+                return *(uint64_t*) (curr);
+        }
+        return 0;
+    }
+
+    inline void set(uint64_t val) const {
+        switch(wordSize) {
+            case 1:
+                *(uint8_t*) (curr) = val;
+                return;
+            case 2:
+                *(uint16_t*) (curr)= val;
+                return;
+            case 4:
+                *(uint32_t*) (curr)= val;
+                return;
+            case 8:
+                *(uint64_t*) (curr)= val;
+                return;
+        }
+    }
+};
+
 class DataStream
 {
  private:
     uint8_t wordSize;
+
     std::vector<uint8_t> data;
  public:
+
+    StreamReader getReader () const {
+        return {(uint8_t*)data.data(), (uint8_t*)data.end().base(), wordSize};
+    }
+
     bool operator==(const DataStream& d) const{
         return wordSize == d.wordSize && data == d.data;
     }
@@ -31,29 +79,33 @@ class DataStream
     inline uint64_t get(size_t index) const {
         switch(wordSize) {
             case 1:
-                return *(uint8_t*) (data.data()+index*1);
+                return *(uint8_t*) (data.data()+index);
             case 2:
-                return *(uint16_t*) (data.data()+index*2);
+                return *(uint16_t*) (data.data()+(index<<1));
             case 4:
-                return *(uint32_t*) (data.data()+index*4);
+                return *(uint32_t*) (data.data()+(index<<2));
             case 8:
-                return *(uint64_t*) (data.data()+index*8);
+                return *(uint64_t*) (data.data()+(index<<3));
+            default:
+                return 0;
         }
     }
 
     inline void set(size_t index, uint64_t val) {
         switch(wordSize) {
             case 1:
-                *(uint8_t*) (data.data()+index*1) = val;
+                *(uint8_t*) (data.data()+index) = val;
                 return;
             case 2:
-                *(uint16_t*) (data.data()+index*2)= val;
+                *(uint16_t*) (data.data()+(index<<1))= val;
                 return;
             case 4:
-                *(uint32_t*) (data.data()+index*4)= val;
+                *(uint32_t*) (data.data()+(index<<2))= val;
                 return;
             case 8:
-                *(uint64_t*) (data.data()+index*8)= val;
+                *(uint64_t*) (data.data()+(index<<3))= val;
+                return;
+            default:
                 return;
         }
     }
@@ -225,16 +277,16 @@ class DataStream
         data.resize(data.size() + wordSize);
         switch(wordSize) {
             case 1:
-                *(uint8_t*) (data.data()+data.size()-1) = val;
+                *(uint8_t*) (data.end().base()-1) = val;
                 return;
             case 2:
-                *(uint16_t*) (data.data()+data.size()-2) = val;
+                *(uint16_t*) (data.end().base()-2) = val;
                 return;
             case 4:
-                *(uint32_t*) (data.data()+data.size()-4) = val;
+                *(uint32_t*) (data.end().base()-4) = val;
                 return;
             case 8:
-                *(uint64_t*) (data.data()+data.size()-8) = val;
+                *(uint64_t*) (data.end().base()-8) = val;
                 return;
         }
     }

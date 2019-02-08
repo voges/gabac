@@ -105,9 +105,12 @@ int encode(
 
     size_t ctr = 0;
 
-    for (size_t i = 0; i < symbols->size(); ++i)
+    StreamReader r = symbols->getReader();
+
+    while(r.isValid())
     {
-        uint64_t symbol = symbols->get(i);
+        uint64_t symbol = r.get();
+        r.inc();
         if (contextSelectionId == ContextSelectionId::bypass)
         {
             writer.writeBypassValue(

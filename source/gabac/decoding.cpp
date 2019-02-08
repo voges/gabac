@@ -98,17 +98,18 @@ int decode(
         return GABAC_FAILURE;
     }
 
-    Reader reader(*bitstream);
+    Reader reader(bitstream);
     size_t symbolsSize = reader.start();
 
     // symbols->clear();
     symbols.resize(symbolsSize);
 
-    int64_t symbol = 0;
+    uint64_t symbol = 0;
     unsigned int previousSymbol = 0;
     unsigned int previousPreviousSymbol = 0;
 
-    for (size_t i = 0; i < symbolsSize; i++)
+    StreamReader r = symbols.getReader();
+    while(r.isValid())
     {
         if (contextSelectionId == ContextSelectionId::bypass)
         {
@@ -116,7 +117,7 @@ int decode(
                     binarizationId,
                     binarizationParameters
             );
-            symbols.set(i, symbol);
+            r.set(symbol);
         }
         else if (contextSelectionId
                  == ContextSelectionId::adaptive_coding_order_0)
@@ -127,7 +128,7 @@ int decode(
                     0,
                     0
             );
-            symbols.set(i, symbol);
+            r.set(symbol);
         }
         else if (contextSelectionId
                  == ContextSelectionId::adaptive_coding_order_1)
@@ -138,10 +139,10 @@ int decode(
                     previousSymbol,
                     0
             );
-            symbols.set(i, symbol);
-            if (symbol < 0)
+            r.set(symbol);
+            if (int64_t (symbol) < 0)
             {
-                symbol = -symbol;
+                symbol = uint64_t (-int64_t (symbol));
             }
             if (symbol > 3)
             {
@@ -162,11 +163,11 @@ int decode(
                     previousSymbol,
                     previousPreviousSymbol
             );
-            symbols.set(i, symbol);
+            r.set(symbol);
             previousPreviousSymbol = previousSymbol;
-            if (symbol < 0)
+            if (int64_t (symbol) < 0)
             {
-                symbol = -symbol;
+                symbol = uint64_t (-int64_t (symbol));
             }
             if (symbol > 3)
             {
@@ -182,6 +183,7 @@ int decode(
         {
             return GABAC_FAILURE;
         }
+        r.inc();
     }
 
     reader.reset();

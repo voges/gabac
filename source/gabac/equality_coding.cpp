@@ -110,14 +110,14 @@ static void transformEqualityCoding0(
     uint64_t previousSymbol = 0;
     *equalityFlags = DataStream(0, values->getWordSize());
 
-
+    StreamReader r = values->getReader();
     // Treat value as equalityFlags and vice versa
-    for (size_t i = 0; i < values->size(); ++i) {
-        uint64_t symbol = values->get(i);
+    while(r.isValid()){
+        uint64_t symbol = r.get();
         if (symbol == previousSymbol) {
-            values->set(i, 1);
+            r.set(1);
         } else {
-            values->set(i, 0);
+            r.set(0);
             if (symbol > previousSymbol) {
                 equalityFlags->push_back(symbol - 1);
             } else {
@@ -125,6 +125,7 @@ static void transformEqualityCoding0(
             }
             previousSymbol = symbol;
         }
+        r.inc();
     }
 
     // Swap back before returning
@@ -139,23 +140,27 @@ static void transformEqualityCoding1(
     uint64_t previousSymbol = 0;
 
     *equalityFlags = DataStream(0, 1);
-    size_t outpos = 0;
+    StreamReader r = values->getReader();
+    StreamReader w = values->getReader();
     // Treat value as equalityFlags and vice versa
-    for (size_t i = 0; i < values->size(); ++i) {
-        uint64_t symbol = values->get(i);
+    while(r.isValid()){
+        uint64_t symbol = r.get();
         if (symbol == previousSymbol) {
             equalityFlags->push_back(1);
         } else {
             equalityFlags->push_back(0);
             if (symbol > previousSymbol) {
-                values->set(outpos++, symbol - 1);
+                w.set(symbol - 1);
             } else {
-                values->set(outpos++, symbol);
+                w.set(symbol);
             }
+            w.inc();
             previousSymbol = symbol;
         }
+        r.inc();
     }
-    values->resize(outpos);
+
+    values->resize(values->size() - (w.end-w.curr)/w.wordSize);
 }
 
 void transformEqualityCoding(
@@ -194,21 +199,27 @@ void inverseTransformEqualityCoding(
 
     // Re-compute the symbols from the equality flags and values
     uint64_t previousSymbol = 0;
-    size_t valuesIdx = 0;
-    size_t outpos = 0;
 
-    for (size_t i = 0; i < equalityFlags->size(); i++) {
-        if(equalityFlags->get(i) == 0) {
-            if (values->get(valuesIdx) >= previousSymbol) {
-                previousSymbol = values->get(valuesIdx++) + 1;
+    StreamReader rflag = equalityFlags->getReader();
+    StreamReader rval = values->getReader();
+    StreamReader rwrite = outputptr->getReader();
+
+    while(rflag.isValid()) {
+        if(rflag.get() == 0) {
+            uint64_t val = rval.get();
+            rval.inc();
+            if (val >= previousSymbol) {
+                previousSymbol = val + 1;
             } else {
-                previousSymbol = values->get(valuesIdx++);
+                previousSymbol = val;
             }
         }
 
-        outputptr->set(outpos++, previousSymbol);
+        rwrite.set(previousSymbol);
+        rwrite.inc();
+        rflag.inc();
     }
-    outputptr->resize(outpos);
+    outputptr->resize(outputptr->size() - (rwrite.end-rwrite.curr)/rwrite.wordSize);
 
     // Swap memory to value buffer to meet conventions
     if(values->getWordSize() == 1) {

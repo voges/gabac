@@ -129,9 +129,11 @@ static void inferLut0(
 
     if (maxValue < CTR_THRESHOLD) {
         std::vector<uint64_t> freq(maxValue + 1);
-        for (size_t i = 0; i < symbols.size(); ++i) {
-            uint64_t symbol = symbols.get(i);
+        StreamReader r = symbols.getReader();
+        while(r.isValid()){
+            uint64_t symbol = r.get();
             freq[symbol]++;
+            r.inc();
         }
         for (size_t i = 0; i < freq.size(); ++i) {
             if (freq[i]) {
@@ -140,12 +142,14 @@ static void inferLut0(
         }
     } else {
         std::unordered_map<uint64_t, uint64_t> freq;
-        for (size_t i = 0; i < symbols.size(); ++i) {
-            uint64_t symbol = symbols.get(i);
+        StreamReader r = symbols.getReader();
+        while(r.isValid()){
+            uint64_t symbol = r.get();
             freq[symbol]++;
             if (freq.size() >= MAX_LUT_SIZE) {
                 return;
             }
+            r.inc();
         }
         std::copy(freq.begin(), freq.end(), std::back_inserter(freqVec));
     }
@@ -248,9 +252,9 @@ static void transformLutTransform_core(
     std::vector<uint64_t> lastSymbols(ORDER + 1, 0);
 
 
-    // Do the LUT transform
-    for (size_t i = 0; i < transformedSymbols->size(); ++i) {
-        uint64_t symbol = transformedSymbols->get(i);
+    StreamReader r = transformedSymbols->getReader();
+    while(r.isValid()){
+        uint64_t symbol = r.get();
         // Update history
         for (size_t j = ORDER; j > 0; --j) {
             lastSymbols[j] = lastSymbols[j - 1];
@@ -274,7 +278,8 @@ static void transformLutTransform_core(
             index += lastSymbols[0];
             transformed = lut.get(index);
         }
-        transformedSymbols->set(i, transformed);
+        r.set(transformed);
+        r.inc();
     }
 }
 
@@ -291,9 +296,11 @@ static void inverseTransformLutTransform_core(
 
     std::vector<uint64_t> lastSymbols(ORDER + 1, 0);
 
+    StreamReader r = symbols->getReader();
+
     // Do the LUT transform
-    for (size_t i = 0; i < symbols->size(); ++i) {
-        uint64_t symbol = symbols->get(i);
+    while (r.isValid()) {
+        uint64_t symbol = r.get();
         // Update history
         for (size_t j = ORDER; j > 0; --j) {
             lastSymbols[j] = lastSymbols[j - 1];
@@ -301,7 +308,8 @@ static void inverseTransformLutTransform_core(
         lastSymbols[0] = static_cast<uint64_t>(symbol);
 
         if (ORDER == 0) {
-            symbols->set(i, inverseLut0->get(lastSymbols[0]));
+            r.set(inverseLut0->get(lastSymbols[0]));
+            r.inc();
             continue;
         }
 
@@ -317,7 +325,8 @@ static void inverseTransformLutTransform_core(
         // Transform
         uint64_t unTransformed = inverseLut->get(index);
         lastSymbols[0] = unTransformed;
-        symbols->set(i, inverseLut0->get(unTransformed));
+        r.set(inverseLut0->get(unTransformed));
+        r.inc();
     }
 }
 
@@ -357,8 +366,9 @@ void inferLut(
     std::vector<std::pair<uint64_t, uint64_t>> ctr(size, {std::numeric_limits<uint64_t>::max(), 0});
     std::vector<uint64_t> lastSymbols(ORDER + 1, 0);
 
-    for (size_t i = 0; i < symbols.size(); ++i) {
-        uint64_t symbol = symbols.get(i);
+    StreamReader r = symbols.getReader();
+    while(r.isValid()){
+        uint64_t symbol = r.get();
         // Update history
         for (size_t j = ORDER; j > 0; --j) {
             lastSymbols[j] = lastSymbols[j - 1];
@@ -380,6 +390,7 @@ void inferLut(
 
         // Count
         ctr[index].second++;
+        r.inc();
     }
 
     // Step through all single LUTs

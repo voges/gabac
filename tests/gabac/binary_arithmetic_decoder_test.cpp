@@ -24,7 +24,8 @@ class BinaryArithmeticDecoderTest : public ::testing::Test
 
 
 TEST_F(BinaryArithmeticDecoderTest, decodeBinsEp){
-    gabac::BitInputStream bitInputStream(bitStream_);
+    gabac::DataStream tmp = bitStream_;
+    gabac::BitInputStream bitInputStream(&tmp);
     gabac::BinaryArithmeticDecoder bad(bitInputStream);
 
     EXPECT_EQ(48, bad.decodeBinsEP(8));
@@ -34,7 +35,8 @@ TEST_F(BinaryArithmeticDecoderTest, decodeBinsEp){
 }
 
 TEST_F(BinaryArithmeticDecoderTest, decodeBin){
-    gabac::BitInputStream bitInputStream(bitStream_);
+    gabac::DataStream tmp = bitStream_;
+    gabac::BitInputStream bitInputStream(&tmp);
     gabac::BinaryArithmeticDecoder bad(bitInputStream);
 
 
@@ -122,7 +124,8 @@ TEST_F(BinaryArithmeticDecoderTest, decodeBin){
 }
 
 TEST_F(BinaryArithmeticDecoderTest, decodeBinTrm){
-    gabac::BitInputStream bitInputStream(bitStream_);
+    gabac::DataStream tmp = bitStream_;
+    gabac::BitInputStream bitInputStream(&tmp);
     gabac::BinaryArithmeticDecoder bad(bitInputStream);
 
     EXPECT_NO_THROW(bad.decodeBinTrm());

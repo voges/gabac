@@ -89,12 +89,13 @@ void transformDiffCoding(
 
     // Do the diff coding
     uint64_t previousSymbol = 0;
-    for (size_t i = 0; i < transformedSymbols->size(); i++)
-    {
-        uint64_t symbol = transformedSymbols->get(i);
+    StreamReader r = transformedSymbols->getReader();
+    while(r.isValid()) {
+        uint64_t symbol = r.get();
         uint64_t diff = symbol - previousSymbol;
-        transformedSymbols->set(i, diff);
+        r.set(diff);
         previousSymbol = symbol;
+        r.inc();
     }
 }
 
@@ -106,11 +107,12 @@ void inverseTransformDiffCoding(
 
     // Re-compute the symbols from the differences
     uint64_t previousSymbol = 0;
-    for (size_t i = 0; i < symbols->size(); i++)
-    {
-        uint64_t symbol = symbols->get(i);
-        (*symbols).set(i, previousSymbol + symbol);
+    StreamReader r = symbols->getReader();
+    while(r.isValid()) {
+        uint64_t symbol = r.get();
+        r.set(previousSymbol + symbol);
         previousSymbol = previousSymbol + symbol;
+        r.inc();
     }
 }
 

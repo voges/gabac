@@ -18,7 +18,7 @@ namespace gabac {
 
 
 Reader::Reader(
-        const DataStream& bitstream
+        DataStream* const bitstream
 )
         : m_bitInputStream(bitstream),
         m_contextSelector(),
@@ -30,7 +30,7 @@ Reader::Reader(
 Reader::~Reader() = default;
 
 
-int64_t Reader::readBypassValue(
+uint64_t Reader::readBypassValue(
         const BinarizationId& binarizationId,
         const std::vector<unsigned int>& binarizationParameters
 ){
@@ -38,25 +38,17 @@ int64_t Reader::readBypassValue(
     switch (binarizationId)
     {
         case BinarizationId::BI:
-            ureturn = readAsBIbypass(binarizationParameters[0]);
-            assert(ureturn <= std::numeric_limits<int64_t>::max());
-            return static_cast<int64_t>(ureturn);
+            return readAsBIbypass(binarizationParameters[0]);
         case BinarizationId::TU:
-            ureturn = readAsTUbypass(binarizationParameters[0]);
-            assert(ureturn <= std::numeric_limits<int64_t>::max());
-            return static_cast<int64_t>(ureturn);
+            return readAsTUbypass(binarizationParameters[0]);
         case BinarizationId::EG:
-            ureturn = readAsEGbypass();
-            assert(ureturn <= std::numeric_limits<int64_t>::max());
-            return static_cast<int64_t>(ureturn);
+            return readAsEGbypass();
         case BinarizationId::SEG:
-            return readAsSEGbypass();
+            return static_cast<uint64_t >(readAsSEGbypass());
         case BinarizationId::TEG:
-            ureturn = readAsTEGbypass(binarizationParameters[0]);
-            assert(ureturn <= std::numeric_limits<int64_t>::max());
-            return static_cast<int64_t>(ureturn);
+            return readAsTEGbypass(binarizationParameters[0]);
         case BinarizationId::STEG:
-            return readAsSTEGbypass(binarizationParameters[0]);
+            return static_cast<uint64_t >(readAsSTEGbypass(binarizationParameters[0]));
         default:
             // TODO(Jan): handle default case
             break;
@@ -66,7 +58,7 @@ int64_t Reader::readBypassValue(
 }
 
 
-int64_t Reader::readAdaptiveCabacValue(
+uint64_t Reader::readAdaptiveCabacValue(
         const BinarizationId& binarizationId,
         const std::vector<unsigned int>& binarizationParameters,
         unsigned int prevValue,
@@ -88,17 +80,17 @@ int64_t Reader::readAdaptiveCabacValue(
         case BinarizationId::EG:
             return readAsEGcabac(offset);
         case BinarizationId::SEG:
-            return readAsSEGcabac(offset);
+            return static_cast<uint64_t >(readAsSEGcabac(offset));
         case BinarizationId::TEG:
             return readAsTEGcabac(
                     binarizationParameters[0],
                     offset
             );
         case BinarizationId::STEG:
-            return readAsSTEGcabac(
+            return static_cast<uint64_t >(readAsSTEGcabac(
                     binarizationParameters[0],
                     offset
-            );
+            ));
         default:
             // TODO(Jan): handle default case
             break;

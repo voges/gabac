@@ -20,19 +20,19 @@ class Reader
 {
  public:
     explicit Reader(
-            const DataStream& bitstream
+            DataStream* bitstream
     );
 
     ~Reader();
 
     size_t readNumSymbols();
 
-    int64_t readBypassValue(
+    uint64_t readBypassValue(
             const BinarizationId& binarizationId,
             const std::vector<unsigned int>& binarizationParameters
     );
 
-    int64_t readAdaptiveCabacValue(
+    uint64_t readAdaptiveCabacValue(
             const BinarizationId& binarizationId,
             const std::vector<unsigned int>& binarizationParameters,
             unsigned int prevValue,

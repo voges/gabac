@@ -161,7 +161,6 @@ int gabac_inverseTransformMatchCoding(
 
 namespace gabac {
 
-//TODO: Review if in place possible
 void transformMatchCoding(
         const uint32_t windowSize,
         gabac::DataStream *const symbols,
@@ -224,7 +223,6 @@ void transformMatchCoding(
 
     rawValues.swap(symbols);
 }
-
 // ----------------------------------------------------------------------------
 
 void inverseTransformMatchCoding(

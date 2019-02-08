@@ -9,21 +9,22 @@ namespace gabac {
 
 
 static unsigned char readIn(
-        const DataStream& bitstream,
-        size_t *const bitstreamIndex
+        gabac::StreamReader* reader
 ){
-    if(bitstream.size() <= *bitstreamIndex)
+    if(!reader->isValid())
         throw std::runtime_error("Index out of bounds");
-    unsigned char byte = bitstream.get(*bitstreamIndex);
-    (*bitstreamIndex)++;
+    auto byte = static_cast<unsigned char>(reader->get());
+    reader->inc();
     return byte;
 }
 
 
 BitInputStream::BitInputStream(
-        const DataStream& bitstream
+        DataStream* const bitstream
 )
-        : m_bitstream(bitstream), m_heldBits(0), m_numHeldBits(0){
+        : m_heldBits(0), m_numHeldBits(0){
+    m_bitstream.swap(bitstream);
+    m_reader = m_bitstream.getReader();
     reset();
 }
 
@@ -46,7 +47,7 @@ unsigned char BitInputStream::readByte(){
 void BitInputStream::reset(){
     m_heldBits = 0;
     m_numHeldBits = 0;
-    m_bitstreamIndex = 0;
+    m_reader = m_bitstream.getReader();
 }
 
 
@@ -77,19 +78,19 @@ unsigned int BitInputStream::read(
     {
         case 4:
         {
-            alignedWord |= (readIn(m_bitstream, &m_bitstreamIndex) << 24u);
+            alignedWord |= (readIn(&m_reader) << 24u);
         }  // fall-through
         case 3:
         {
-            alignedWord |= (readIn(m_bitstream, &m_bitstreamIndex) << 16u);
+            alignedWord |= (readIn(&m_reader) << 16u);
         }  // fall-through
         case 2:
         {
-            alignedWord |= (readIn(m_bitstream, &m_bitstreamIndex) << 8u);
+            alignedWord |= (readIn(&m_reader) << 8u);
         }  // fall-through
         case 1:
         {
-            alignedWord |= (readIn(m_bitstream, &m_bitstreamIndex));
+            alignedWord |= (readIn(&m_reader));
         }  // fall-through
         default:
         {

@@ -46,8 +46,8 @@ void transformEqualityCoding(
 
 
 void inverseTransformEqualityCoding(
-        DataStream *const values,
-        DataStream *const equalityFlags
+        DataStream *values,
+        DataStream *equalityFlags
 );
 
 
