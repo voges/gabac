@@ -103,34 +103,32 @@ int encode(
     unsigned int previousSymbol = 0;
     unsigned int previousPreviousSymbol = 0;
 
-    size_t ctr = 0;
-
     StreamReader r = symbols->getReader();
 
-    while(r.isValid())
-    {
-        uint64_t symbol = r.get();
-        r.inc();
-        if (contextSelectionId == ContextSelectionId::bypass)
-        {
+    if (contextSelectionId == ContextSelectionId::bypass) {
+        while (r.isValid()) {
             writer.writeBypassValue(
-                    symbol,
+                    r.get(),
                     binarizationId,
                     binarizationParameters
             );
+            r.inc();
         }
-        else if (contextSelectionId == ContextSelectionId::adaptive_coding_order_0)
-        {
+    } else if (contextSelectionId == ContextSelectionId::adaptive_coding_order_0) {
+        while (r.isValid()) {
             writer.writeCabacAdaptiveValue(
-                    symbol,
+                    r.get(),
                     binarizationId,
                     binarizationParameters,
                     0,
                     0
             );
+            r.inc();
         }
-        else if (contextSelectionId == ContextSelectionId::adaptive_coding_order_1)
-        {
+    } else if (contextSelectionId == ContextSelectionId::adaptive_coding_order_1) {
+        while (r.isValid()) {
+            uint64_t symbol = r.get();
+            r.inc();
             writer.writeCabacAdaptiveValue(
                     symbol,
                     binarizationId,
@@ -138,22 +136,20 @@ int encode(
                     previousSymbol,
                     0
             );
-            if (int64_t (symbol) < 0)
-            {
-                symbol = uint64_t (-int64_t (symbol));
+            if (int64_t(symbol) < 0) {
+                symbol = uint64_t(-int64_t(symbol));
             }
-            if (symbol > 3)
-            {
+            if (symbol > 3) {
                 previousSymbol = 3;
-            }
-            else
-            {
+            } else {
                 assert(symbol <= std::numeric_limits<unsigned int>::max());
                 previousSymbol = static_cast<unsigned int>(symbol);
             }
         }
-        else if (contextSelectionId == ContextSelectionId::adaptive_coding_order_2)
-        {
+    } else if (contextSelectionId == ContextSelectionId::adaptive_coding_order_2) {
+        while (r.isValid()) {
+            uint64_t symbol = r.get();
+            r.inc();
             writer.writeCabacAdaptiveValue(
                     symbol,
                     binarizationId,
@@ -162,25 +158,18 @@ int encode(
                     previousPreviousSymbol
             );
             previousPreviousSymbol = previousSymbol;
-            if (int64_t (symbol) < 0)
-            {
-                symbol = uint64_t (-int64_t (symbol));
+            if (int64_t(symbol) < 0) {
+                symbol = uint64_t(-int64_t(symbol));
             }
-            if (symbol > 3)
-            {
+            if (symbol > 3) {
                 previousSymbol = 3;
-            }
-            else
-            {
+            } else {
                 assert(symbol <= std::numeric_limits<unsigned int>::max());
                 previousSymbol = static_cast<unsigned int>(symbol);
             }
         }
-        else
-        {
-            return GABAC_FAILURE;
-        }
-        ++ctr;
+    } else {
+        return GABAC_FAILURE;
     }
 
     writer.reset();
