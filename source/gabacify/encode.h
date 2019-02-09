@@ -16,11 +16,6 @@ void encode(
         const std::string& outputFilePath
 );
 
-void appendToBytestream(
-        const gabac::DataStream& bytes,
-        gabac::DataStream *bytestream
-);
-
 void doDiffTransform(bool enabled,
                      gabac::DataStream *diffAndLutTransformedSequence
 );
@@ -28,7 +23,8 @@ void doDiffTransform(bool enabled,
 void doLutTransform(bool enabled,
                     unsigned int order,
                     std::vector<gabac::DataStream> *lutSequences,
-                    unsigned *bits0
+                    unsigned *bits0,
+                    gabac::OutputStream* out
 );
 
 void doSequenceTransform(gabac::DataStream& sequence,

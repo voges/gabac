@@ -123,7 +123,7 @@ void getOptimumOfBinarizationParameter(const gabac::DataStream& diffTransformedS
         {
             GABACIFY_LOG_TRACE << "Found new best context config: " << currentConfig->toPrintableString();
             *bestByteStream = lut;
-            appendToBytestream(currentStream, bestByteStream);
+//            appendToBytestream(currentStream, bestByteStream);
             *bestConfig = *currentConfig;
         }
 

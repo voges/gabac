@@ -9,6 +9,7 @@
 
 namespace gabac {
 
+
 struct StreamReader {
     uint8_t* curr;
     uint8_t* end;
@@ -331,6 +332,177 @@ class DataStream
     DataStream (size_t size = 0, size_t wsize = 1) : wordSize(wsize), data(size * wsize) {
     }
 
+};
+
+class InputStream {
+ public:
+    virtual size_t readStream (DataStream* buffer) = 0;
+    virtual size_t readBytes(size_t size, DataStream* buffer) = 0;
+    virtual size_t readFull(DataStream* buffer) = 0;
+    virtual bool isValid() = 0;
+    virtual ~InputStream() = default;
+    virtual size_t getTotalSize() = 0;
+    virtual size_t getRemainingSize() = 0;
+};
+
+class BufferInputStream : public InputStream {
+ private:
+    DataStream mainBuffer;
+    StreamReader r;
+ public:
+    BufferInputStream(DataStream* stream) : mainBuffer(0, 1){
+        mainBuffer.swap(stream);
+        mainBuffer.setWordSize(1);
+        r = mainBuffer.getReader();
+    }
+    size_t readStream (DataStream* buffer) override{
+        uint32_t streamSize = 0;
+        auto* streamPtr = (uint8_t*)&streamSize;
+        *streamPtr = (uint8_t) r.get();
+        r.inc();
+        *streamPtr = (uint8_t) r.get();
+        r.inc();
+        *streamPtr = (uint8_t) r.get();
+        r.inc();
+        *streamPtr = (uint8_t) r.get();
+        r.inc();
+
+        return readBytes(streamSize, buffer);
+    }
+    size_t readBytes(size_t size, DataStream* buffer) override{
+        *buffer = DataStream(0,1);
+        buffer->resize(size);
+        memcpy(buffer->getData(), this->mainBuffer.getData(), size);
+        r.curr += size;
+        return size;
+    }
+
+    size_t readFull(DataStream* buffer) override {
+        mainBuffer.swap(buffer);
+        return buffer->size();
+    }
+
+    bool isValid() override{
+        return r.isValid();
+    }
+
+    size_t getTotalSize() override{
+        return mainBuffer.size();
+    }
+    size_t getRemainingSize() override {
+        return r.end - r.curr;
+    }
+};
+
+class FileInputStream  : public InputStream{
+    FILE* input;
+    size_t fpos;
+    size_t fsize;
+ public:
+    FileInputStream(FILE* file) : input(file) {
+        fpos = ftell(input);
+        fseek(input, 0, SEEK_END);
+        fsize = ftell(input);
+        fseek(input, fpos, SEEK_SET);
+    }
+    size_t readStream (DataStream* buffer) override{
+        uint32_t streamSize = 0;
+        if(fread(&streamSize, sizeof(uint32_t), 1, input) != 1){
+            throw std::runtime_error("Unexpected file end");
+        }
+        return readBytes(streamSize, buffer);
+    }
+    size_t readBytes(size_t size, DataStream* buffer) override{
+        buffer->resize(size);
+        if(fread(buffer->getData(), 1, size, input) != size){
+            throw std::runtime_error("Unexpected file end");
+        }
+        return fpos += size;
+    }
+
+    size_t readFull(DataStream* buffer) override {
+        return readBytes(getRemainingSize(), buffer);
+    }
+
+    bool isValid() override{
+        return fpos < fsize;
+    }
+
+    size_t getTotalSize() override{
+        return fsize;
+    }
+    size_t getRemainingSize() override {
+        return fsize - fpos;
+    }
+};
+
+class OutputStream {
+ public:
+    virtual size_t writeStream (DataStream* buffer) = 0;
+    virtual size_t writeBytes(DataStream* buffer) = 0;
+    virtual size_t bytesWritten() = 0;
+    virtual ~OutputStream() = default;
+};
+
+class BufferOutputStream : public OutputStream{
+    DataStream buffer;
+ public:
+    BufferOutputStream() : buffer(0,1) {
+
+    }
+    size_t writeStream (DataStream* inbuffer) override {
+        uint32_t size = inbuffer->size() * inbuffer->getWordSize();
+        auto* ptr = (uint8_t*) &size;
+        buffer.push_back(*(ptr++));
+        buffer.push_back(*(ptr++));
+        buffer.push_back(*(ptr++));
+        buffer.push_back(*(ptr));
+
+        return writeBytes(inbuffer) + sizeof(uint32_t);
+    }
+    size_t writeBytes(DataStream* inbuffer) override {
+        size_t oldSize = buffer.size();
+        size_t newSize = inbuffer->size()* inbuffer->getWordSize();
+        buffer.resize(oldSize + newSize);
+        memcpy((uint8_t*)buffer.getData() + oldSize, inbuffer->getData(), newSize);
+        inbuffer->clear();
+        inbuffer->shrink_to_fit();
+        return newSize;
+    }
+
+    void flush (DataStream* outbuffer) {
+        outbuffer->swap(&buffer);
+        buffer = DataStream(0,1);
+    }
+
+    size_t bytesWritten() override {
+        return buffer.size();
+    }
+};
+
+class FileOutputStream : public OutputStream{
+    FILE* file;
+ public:
+    FileOutputStream(FILE* f) : file(f) {
+
+    }
+    size_t writeStream (DataStream* inbuffer) override {
+        uint32_t size = inbuffer->size() * inbuffer->getWordSize();
+        auto* ptr = (uint8_t*) &size;
+        fwrite(ptr,sizeof(uint32_t),1, file);
+
+        return writeBytes(inbuffer) + sizeof(uint32_t);
+    }
+    size_t writeBytes(DataStream* inbuffer) override {
+        size_t ret = fwrite(inbuffer->getData(), 1, inbuffer->size() * inbuffer->getWordSize(), file);
+        inbuffer->clear();
+        inbuffer->shrink_to_fit();
+        return ret;
+    }
+
+    size_t bytesWritten() override {
+        return ftell(file);
+    }
 };
 
 }

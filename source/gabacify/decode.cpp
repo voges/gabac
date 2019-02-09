@@ -1,5 +1,6 @@
 #include "gabacify/decode.h"
 
+
 #include <cassert>
 #include <cmath>
 #include <vector>
@@ -18,52 +19,15 @@
 
 namespace gabacify {
 
-
 //------------------------------------------------------------------------------
 
-static size_t extractFromBytestream(
-        const gabac::DataStream& bytestream,
-        size_t bytestreamPosition,
-        gabac::DataStream *const bytes
-){
-    assert(bytes != nullptr);
-
-    // Set up our output 'bytes'
-    bytes->clear();
-
-    uint32_t chunkSize = 0;
-    auto *ptr = (uint8_t *) &chunkSize;
-    for (size_t ctr = 0; ctr < sizeof(uint32_t); ++ctr) {
-        *(ptr++) = (uint8_t) bytestream.get(bytestreamPosition++);
-    }
-
-    bytes->insert(
-            bytes->end(),
-            bytestream.begin() + bytestreamPosition,
-            bytestream.begin() + bytestreamPosition + chunkSize
-    );
-
-    return bytestreamPosition + chunkSize;
-}
-
-//------------------------------------------------------------------------------
-
-static void decodeInverseLUT(const gabac::DataStream& bytestream,
-                             size_t *const bytestreamPosition,
-                             unsigned bits0,
+static void decodeInverseLUT(unsigned bits0,
                              unsigned order,
+                             gabac::InputStream* inStream,
                              gabac::DataStream *const inverseLut,
                              gabac::DataStream *const inverseLut1
 ){
-    // Decode the inverse LUT
-    *inverseLut = gabac::DataStream(0, 1);
-    *inverseLut1 = gabac::DataStream(0, 1);
-    *bytestreamPosition = extractFromBytestream(bytestream, *bytestreamPosition, inverseLut);
-    if (order > 0) {
-        *bytestreamPosition = extractFromBytestream(bytestream, *bytestreamPosition, inverseLut1);
-    }
-    GABACIFY_LOG_TRACE << "Read LUT0 bitstream with size: " << inverseLut->size();
-    GABACIFY_LOG_TRACE << "Read LUT1 bitstream with size: " << inverseLut1->size();
+    inStream->readStream(inverseLut);
 
     size_t lutWordSize = 0;
     if (bits0 <= 8) {
@@ -85,6 +49,7 @@ static void decodeInverseLUT(const gabac::DataStream& bytestream,
     );
 
     if (order > 0) {
+        inStream->readStream(inverseLut1);
         unsigned bits1 = unsigned(inverseLut->size());
 
         bits1 = unsigned(std::ceil(std::log2(bits1)));
@@ -145,19 +110,14 @@ static void doLUTCoding(bool enabled,
 
 //------------------------------------------------------------------------------
 
-static void doEntropyCoding(const gabac::DataStream& bytestream,
-                            const TransformedSequenceConfiguration& transformedSequenceConfiguration,
+static void doEntropyCoding(const TransformedSequenceConfiguration& transformedSequenceConfiguration,
                             uint8_t wordsize,
-                            size_t *const bytestreamPosition,
+                            gabac::InputStream* inStream,
                             gabac::DataStream *const diffAndLutTransformedSequence
 ){
-    // Extract encoded diff-and-LUT-transformed sequence (i.e. a
-    // bitstream) from the bytestream
-    gabac::DataStream bitstream(0, 1);
-    *bytestreamPosition = extractFromBytestream(bytestream, *bytestreamPosition, &bitstream);
-    GABACIFY_LOG_TRACE << "Bitstream size: " << bitstream.size();
+    inStream->readStream(diffAndLutTransformedSequence);
+    GABACIFY_LOG_TRACE << "Bitstream size: " << diffAndLutTransformedSequence->size();
 
-    *diffAndLutTransformedSequence = bitstream;
     // Decoding
     gabac::decode(
             wordsize,
@@ -166,15 +126,16 @@ static void doEntropyCoding(const gabac::DataStream& bytestream,
             transformedSequenceConfiguration.contextSelectionId,
             diffAndLutTransformedSequence
     );
+
 }
 
 //------------------------------------------------------------------------------
 
 static void decodeWithConfiguration(
         const Configuration& configuration,
-        gabac::DataStream *const sequence
+        gabac::InputStream *const inStream,
+        gabac::OutputStream *const outStream
 ){
-    assert(sequence != nullptr);
 
     // Set up for the inverse sequence transformation
     size_t numTransformedSequences =
@@ -182,7 +143,6 @@ static void decodeWithConfiguration(
 
     // Loop through the transformed sequences
     std::vector<gabac::DataStream> transformedSequences;
-    size_t bytestreamPosition = 0;
     for (size_t i = 0; i < numTransformedSequences; i++) {
         GABACIFY_LOG_TRACE << "Processing transformed sequence: " << i;
         auto transformedSequenceConfiguration = configuration.transformedSequenceConfigurations.at(i);
@@ -190,10 +150,9 @@ static void decodeWithConfiguration(
         std::vector<gabac::DataStream> lutTransformedSequences(3);
         if (transformedSequenceConfiguration.lutTransformationEnabled) {
             decodeInverseLUT(
-                    *sequence,
-                    &bytestreamPosition,
                     configuration.transformedSequenceConfigurations[i].lutBits,
                     configuration.transformedSequenceConfigurations[i].lutOrder,
+                    inStream,
                     &lutTransformedSequences[1],
                     &lutTransformedSequences[2]
             );
@@ -205,10 +164,9 @@ static void decodeWithConfiguration(
         }
 
         doEntropyCoding(
-                *sequence,
                 configuration.transformedSequenceConfigurations[i],
                 wsize,
-                &bytestreamPosition,
+                inStream,
                 &lutTransformedSequences[0]
         );
 
@@ -227,15 +185,14 @@ static void decodeWithConfiguration(
         transformedSequences.back().swap(&(lutTransformedSequences[0]));
     }
 
-    sequence->clear();
-    sequence->shrink_to_fit();
 
     gabac::transformationInformation[unsigned(configuration.sequenceTransformationId)].inverseTransform(
             configuration.sequenceTransformationParameter,
             &transformedSequences
     );
-    sequence->swap(&(transformedSequences[0]));
-    GABACIFY_LOG_TRACE << "Decoded sequence of length: " << sequence->size();
+    GABACIFY_LOG_TRACE << "Decoded sequence of length: " << transformedSequences[0].size();
+
+    outStream->writeBytes(&transformedSequences[0]);
 }
 
 //------------------------------------------------------------------------------
@@ -251,9 +208,7 @@ void decode(
 
     // Read in the entire input file
     InputFile inputFile(inputFilePath);
-    size_t bytestreamSize = inputFile.size();
-    gabac::DataStream bytestream(bytestreamSize, 1);
-    inputFile.read(bytestream.getData(), 1, bytestream.size());
+    gabac::FileInputStream inStream(inputFile.handle());
 
     // Read the entire configuration file as a string and convert the JSON
     // input string to the internal GABAC configuration
@@ -262,13 +217,15 @@ void decode(
     configurationFile.read(&jsonInput[0], 1, jsonInput.size());
     Configuration configuration(jsonInput);
 
-    decodeWithConfiguration(configuration, &bytestream);
-
     // Write the bytestream
     OutputFile outputFile(outputFilePath);
-    outputFile.write(bytestream.getData(), 1, bytestream.size() * bytestream.getWordSize());
+    gabac::FileOutputStream outStream(outputFile.handle());
+
+    decodeWithConfiguration(configuration, &inStream, &outStream);
+
+
     GABACIFY_LOG_INFO << "Wrote buffer of size "
-                      << bytestream.size() * bytestream.getWordSize()
+                      << outStream.bytesWritten()
                       << " to: "
                       << outputFilePath;
 }
