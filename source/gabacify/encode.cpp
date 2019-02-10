@@ -167,7 +167,7 @@ static void encodeWithConfiguration(
         gabac::InputStream* inStream,
         gabac::OutputStream* outStream
 ){
-    const size_t BLOCKSIZE = 1000000000;//16000000;
+    const size_t BLOCKSIZE = 16000000;
     while(inStream->isValid()) {
         gabac::DataStream sequence(0, 1);
         size_t readLength = std::min(BLOCKSIZE, inStream->getRemainingSize());
