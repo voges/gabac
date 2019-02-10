@@ -40,22 +40,22 @@ int gabac_inverseTransformRleCoding(
 #include <cstdint>
 #include <vector>
 
-#include "gabac/data_stream.h"
+#include "gabac/data_block.h"
 
 namespace gabac {
 
 
 void transformRleCoding(
         uint64_t guard,
-        DataStream *rawValues,
-        DataStream *lengths
+        DataBlock *rawValues,
+        DataBlock *lengths
 );
 
 
 void inverseTransformRleCoding(
         uint64_t guard,
-        DataStream* rawValues,
-        DataStream* lengths
+        DataBlock* rawValues,
+        DataBlock* lengths
 );
 
 

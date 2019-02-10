@@ -5,7 +5,6 @@
 
 #include "gabac/constants.h"
 #include "gabac/context_tables.h"
-#include "gabac/return_codes.h"
 
 //
 // #include binary_arithmetic_decoder.cpp from here instead of compiling it
@@ -18,7 +17,7 @@ namespace gabac {
 
 
 Reader::Reader(
-        DataStream* const bitstream
+        DataBlock* const bitstream
 )
         : m_bitInputStream(bitstream),
         m_contextSelector(),

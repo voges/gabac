@@ -3,7 +3,7 @@
 #include <cassert>
 #include <string>
 
-#include "gabacify/exceptions.h"
+#include "gabac/exceptions.h"
 
 
 namespace gabacify {
@@ -19,7 +19,7 @@ TmpFile::TmpFile(
     }
     if (path.substr(path.size() - 4, 4) == ".tmp")
     {
-        GABACIFY_LOG_TRACE << "Tmp file opened: " << path;
+        //GABACIFY_LOG_TRACE << "Tmp file opened: " << path;
         fileList.emplace_back(path);
     }
 }
@@ -30,11 +30,11 @@ void TmpFile::closeAll(){
         int result = std::remove(s.c_str());
         if (result == 0)
         {
-            GABACIFY_LOG_TRACE << "Tmp file successfully closed: " << s;
+            //GABACIFY_LOG_TRACE << "Tmp file successfully closed: " << s;
         }
         else
         {
-            GABACIFY_LOG_WARNING << "Failed to close tmp file: " << s;
+            //GABACIFY_LOG_WARNING << "Failed to close tmp file: " << s;
         }
     }
     fileList.clear();

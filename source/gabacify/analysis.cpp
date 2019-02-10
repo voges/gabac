@@ -17,11 +17,9 @@
 #include "gabac/constants.h"
 #include "gabac/encoding.h"
 
-#include "gabacify/configuration.h"
+#include "gabac/configuration.h"
 #include "gabacify/encode.h"
-#include "gabacify/exceptions.h"
-#include "gabacify/helpers.h"
-#include "gabacify/log.h"
+#include "gabac/exceptions.h"
 #include "output_file.h"
 #include "input_file.h"
 
@@ -100,28 +98,28 @@ static const CandidateConfig& getCandidateConfig(){
 
 //------------------------------------------------------------------------------
 
-void getOptimumOfBinarizationParameter(const gabac::DataStream& diffTransformedSequence,
+void getOptimumOfBinarizationParameter(const gabac::DataBlock& diffTransformedSequence,
                                        gabac::BinarizationId binID,
                                        unsigned binParameter,
-                                       gabac::DataStream *const bestByteStream,
-                                       const gabac::DataStream& lut,
-                                       TransformedSequenceConfiguration *const bestConfig,
-                                       TransformedSequenceConfiguration *const currentConfig
+                                       gabac::DataBlock *const bestByteStream,
+                                       const gabac::DataBlock& lut,
+                                       gabac::TransformedSequenceConfiguration *const bestConfig,
+                                       gabac::TransformedSequenceConfiguration *const currentConfig
 ){
 
     for (const auto& transID : getCandidateConfig().candidateContextSelectionIds)
     {
-        GABACIFY_LOG_TRACE << "Trying Context: " << unsigned(transID);
-        gabac::DataStream currentStream = diffTransformedSequence;
+      //  //GABACIFY_LOG_TRACE << "Trying Context: " << unsigned(transID);
+        gabac::DataBlock currentStream = diffTransformedSequence;
 
         currentConfig->contextSelectionId = transID;
-        gabac::encode(binID, {binParameter}, transID, &currentStream);
+        gabac::encode_cabac(binID, {binParameter}, transID, &currentStream);
 
-        GABACIFY_LOG_TRACE << "Compressed size with parameter: " << currentStream.size();
+      //  //GABACIFY_LOG_TRACE << "Compressed size with parameter: " << currentStream.size();
 
         if ((currentStream.size() + lut.size() + 4 < bestByteStream->size()) || bestByteStream->empty())
         {
-            GABACIFY_LOG_TRACE << "Found new best context config: " << currentConfig->toPrintableString();
+         //   //GABACIFY_LOG_TRACE << "Found new best context config: " << currentConfig->toPrintableString();
             *bestByteStream = lut;
 //            appendToBytestream(currentStream, bestByteStream);
             *bestConfig = *currentConfig;
@@ -132,13 +130,13 @@ void getOptimumOfBinarizationParameter(const gabac::DataStream& diffTransformedS
 
 //------------------------------------------------------------------------------
 
-void getOptimumOfBinarization(const gabac::DataStream& diffTransformedSequence,
+void getOptimumOfBinarization(const gabac::DataBlock& diffTransformedSequence,
                               gabac::BinarizationId binID,
                               int64_t min, int64_t max,
-                              gabac::DataStream *const bestByteStream,
-                              const gabac::DataStream& lut,
-                              TransformedSequenceConfiguration *const bestConfig,
-                              TransformedSequenceConfiguration *const currentConfig
+                              gabac::DataBlock *const bestByteStream,
+                              const gabac::DataBlock& lut,
+                              gabac::TransformedSequenceConfiguration *const bestConfig,
+                              gabac::TransformedSequenceConfiguration *const currentConfig
 ){
 
     const unsigned BIPARAM = (max > 0) ? unsigned(std::floor(std::log2(max))+1) : 1;
@@ -152,11 +150,11 @@ void getOptimumOfBinarization(const gabac::DataStream& diffTransformedSequence,
 
     for (const auto& transID : candidates[unsigned(binID)])
     {
-        GABACIFY_LOG_TRACE << "Trying Parameter: " << transID;
+        //GABACIFY_LOG_TRACE << "Trying Parameter: " << transID;
 
         if (!gabac::binarizationInformation[unsigned(binID)].sbCheck(min, max, transID))
         {
-            GABACIFY_LOG_TRACE << "NOT valid for this stream!" << transID;
+            //GABACIFY_LOG_TRACE << "NOT valid for this stream!" << transID;
             continue;
         }
 
@@ -177,18 +175,18 @@ void getOptimumOfBinarization(const gabac::DataStream& diffTransformedSequence,
 
 //------------------------------------------------------------------------------
 
-void getOptimumOfDiffTransformedStream(const gabac::DataStream& diffTransformedSequence,
+void getOptimumOfDiffTransformedStream(const gabac::DataBlock& diffTransformedSequence,
                                        unsigned wordsize,
-                                       gabac::DataStream *const bestByteStream,
-                                       const gabac::DataStream& lut,
-                                       TransformedSequenceConfiguration *const bestConfig,
-                                       TransformedSequenceConfiguration *const currentConfig
+                                       gabac::DataBlock *const bestByteStream,
+                                       const gabac::DataBlock& lut,
+                                       gabac::TransformedSequenceConfiguration *const bestConfig,
+                                       gabac::TransformedSequenceConfiguration *const currentConfig
 ){
-    int64_t min, max;
-    GABACIFY_LOG_TRACE << "Stream analysis: ";
-    deriveMinMaxSigned(diffTransformedSequence, wordsize, &min, &max);
+  /*  int64_t min, max;
+    //GABACIFY_LOG_TRACE << "Stream analysis: ";
+//    deriveMinMaxSigned(diffTransformedSequence, wordsize, &min, &max);
 
-    GABACIFY_LOG_TRACE << "Min: " << min << "; Max: " << max;
+    //GABACIFY_LOG_TRACE << "Min: " << min << "; Max: " << max;
 
     std::vector<gabac::BinarizationId>
             candidates = (min >= 0)
@@ -197,7 +195,7 @@ void getOptimumOfDiffTransformedStream(const gabac::DataStream& diffTransformedS
 
     for (const auto& transID : candidates)
     {
-        GABACIFY_LOG_TRACE << "Trying Binarization: " << unsigned(transID);
+        //GABACIFY_LOG_TRACE << "Trying Binarization: " << unsigned(transID);
 
 
         currentConfig->binarizationId = transID;
@@ -212,25 +210,25 @@ void getOptimumOfDiffTransformedStream(const gabac::DataStream& diffTransformedS
                 currentConfig
         );
 
-    }
+    }*/
 }
 
 //------------------------------------------------------------------------------
 
-void getOptimumOfLutTransformedStream(gabac::DataStream&,
+void getOptimumOfLutTransformedStream(gabac::DataBlock&,
                                       unsigned wordsize,
-                                      gabac::DataStream *const bestByteStream,
-                                      const gabac::DataStream& lut,
-                                      TransformedSequenceConfiguration *const bestConfig,
-                                      TransformedSequenceConfiguration *const currentConfig
+                                      gabac::DataBlock *const bestByteStream,
+                                      const gabac::DataBlock& lut,
+                                      gabac::TransformedSequenceConfiguration *const bestConfig,
+                                      gabac::TransformedSequenceConfiguration *const currentConfig
 ){
     for (const auto& transID : getCandidateConfig().candidateDiffParameters)
     {
-        GABACIFY_LOG_DEBUG << "Trying Diff transformation: " << transID;
-        gabac::DataStream diffStream(0, wordsize);
+        //GABACIFY_LOG_DEBUG << "Trying Diff transformation: " << transID;
+        gabac::DataBlock diffStream(0, wordsize);
 
 //REPLACE        doDiffTransform(transID, lutTransformedSequence, &diffStream);
-        GABACIFY_LOG_DEBUG << "Diff stream (uncompressed): " << diffStream.size() << " bytes";
+        //GABACIFY_LOG_DEBUG << "Diff stream (uncompressed): " << diffStream.size() << " bytes";
         currentConfig->diffCodingEnabled = transID;
         getOptimumOfDiffTransformedStream(diffStream, wordsize, bestByteStream, lut, bestConfig, currentConfig);
     }
@@ -238,11 +236,11 @@ void getOptimumOfLutTransformedStream(gabac::DataStream&,
 
 //------------------------------------------------------------------------------
 
-void getOptimumOfLutOrder(const gabac::DataStream& transformedSequence,
+void getOptimumOfLutOrder(const gabac::DataBlock& transformedSequence,
                           unsigned wordsize,
-                          gabac::DataStream *const bestByteStream,
-                          TransformedSequenceConfiguration *const bestConfig,
-                          TransformedSequenceConfiguration *const currentConfig
+                          gabac::DataBlock *const bestByteStream,
+                          gabac::TransformedSequenceConfiguration *const bestConfig,
+                          gabac::TransformedSequenceConfiguration *const currentConfig
 ){
     for (const auto& transID : getCandidateConfig().candidateLUTCodingParameters)
     {
@@ -251,17 +249,17 @@ void getOptimumOfLutOrder(const gabac::DataStream& transformedSequence,
             continue;
         }
 
-        GABACIFY_LOG_DEBUG << "Trying LUT transformation: " << transID;
+        //GABACIFY_LOG_DEBUG << "Trying LUT transformation: " << transID;
 
-        gabac::DataStream lutEnc(0, wordsize);
-        std::vector<gabac::DataStream> lutStreams;
+        gabac::DataBlock lutEnc(0, wordsize);
+        std::vector<gabac::DataBlock> lutStreams;
 
         lutStreams.resize(3);
 
         currentConfig->lutBits = 0;
         currentConfig->lutTransformationEnabled = transID;
 
-        gabac::DataStream g = transformedSequence;
+        gabac::DataBlock g = transformedSequence;
 
  /*REPLACE       doLutTransform(
                 transID,
@@ -273,12 +271,12 @@ void getOptimumOfLutOrder(const gabac::DataStream& transformedSequence,
         );*/
         if (lutStreams[0].size() != transformedSequence.size())
         {
-            GABACIFY_LOG_DEBUG << "Lut transformed failed. Probably the symbol space is too large. Skipping. ";
+            //GABACIFY_LOG_DEBUG << "Lut transformed failed. Probably the symbol space is too large. Skipping. ";
             continue;
         }
-        GABACIFY_LOG_DEBUG << "LutTransformedSequence uncompressed size: " << lutStreams[0].size() << " bytes";
-        GABACIFY_LOG_DEBUG << "Lut table (uncompressed): " << lutStreams[1].size() << " bytes";
-        GABACIFY_LOG_DEBUG << "Lut table1 (uncompressed): " << lutStreams[2].size() << " bytes";
+        //GABACIFY_LOG_DEBUG << "LutTransformedSequence uncompressed size: " << lutStreams[0].size() << " bytes";
+        //GABACIFY_LOG_DEBUG << "Lut table (uncompressed): " << lutStreams[1].size() << " bytes";
+        //GABACIFY_LOG_DEBUG << "Lut table1 (uncompressed): " << lutStreams[2].size() << " bytes";
 
         getOptimumOfLutTransformedStream(
                 lutStreams[0],
@@ -294,15 +292,15 @@ void getOptimumOfLutOrder(const gabac::DataStream& transformedSequence,
 
 //------------------------------------------------------------------------------
 
-void getOptimumOfTransformedStream(const gabac::DataStream& transformedSequence,
+void getOptimumOfTransformedStream(const gabac::DataBlock& transformedSequence,
                                    unsigned wordsize,
-                                   gabac::DataStream *const bestByteStream,
-                                   TransformedSequenceConfiguration *const bestConfig
+                                   gabac::DataBlock *const bestByteStream,
+                                   gabac::TransformedSequenceConfiguration *const bestConfig
 ){
     for (const auto& transID : getCandidateConfig().candidateLutOrder)
     {
-        GABACIFY_LOG_TRACE << "Trying LUT order: " << transID;
-        TransformedSequenceConfiguration currentConfiguration;
+        //GABACIFY_LOG_TRACE << "Trying LUT order: " << transID;
+        gabac::TransformedSequenceConfiguration currentConfiguration;
         currentConfiguration.lutOrder = transID;
         getOptimumOfLutOrder(transformedSequence, wordsize, bestByteStream, bestConfig, &currentConfiguration);
     }
@@ -310,24 +308,24 @@ void getOptimumOfTransformedStream(const gabac::DataStream& transformedSequence,
 
 //------------------------------------------------------------------------------
 
-void getOptimumOfSequenceTransform(const gabac::DataStream& symbols,
+void getOptimumOfSequenceTransform(const gabac::DataBlock& symbols,
                                    const std::vector<uint32_t>& candidateParameters,
-                                   gabac::DataStream *const bestByteStream,
-                                   Configuration *const bestConfig,
-                                   Configuration *const currentConfig
+                                   gabac::DataBlock *const bestByteStream,
+                                   gabac::Configuration *const bestConfig,
+                                   gabac::Configuration *const currentConfig
 ){
     for (auto const& p : candidateParameters)
     {
-        GABACIFY_LOG_DEBUG << "Trying sequence transformation parameter: " << unsigned(p);
+        //GABACIFY_LOG_DEBUG << "Trying sequence transformation parameter: " << unsigned(p);
 
         // Execute sequence transform
-        std::vector<gabac::DataStream> transformedSequences;
-        gabac::DataStream s = symbols;
+        std::vector<gabac::DataBlock> transformedSequences;
+        gabac::DataBlock s = symbols;
 //REPLACE        doSequenceTransform(s, currentConfig->sequenceTransformationId, p, &transformedSequences);
-        GABACIFY_LOG_DEBUG << "Got " << transformedSequences.size() << " transformed sequences";
+        //GABACIFY_LOG_DEBUG << "Got " << transformedSequences.size() << " transformed sequences";
         for (unsigned i = 0; i < transformedSequences.size(); ++i)
         {
-            GABACIFY_LOG_DEBUG << i << ": " << transformedSequences[i].size() << " bytes";
+            //GABACIFY_LOG_DEBUG << i << ": " << transformedSequences[i].size() << " bytes";
         }
 
 
@@ -335,7 +333,7 @@ void getOptimumOfSequenceTransform(const gabac::DataStream& symbols,
         currentConfig->transformedSequenceConfigurations.resize(transformedSequences.size());
 
         // Analyze transformed sequences
-        gabac::DataStream completeStream(0, 1);
+        gabac::DataBlock completeStream(0, 1);
         bool error = false;
         for (unsigned i = 0; i < transformedSequences.size(); ++i)
         {
@@ -343,10 +341,10 @@ void getOptimumOfSequenceTransform(const gabac::DataStream& symbols,
                     gabac::transformationInformation[unsigned(currentConfig->sequenceTransformationId)].wordsizes,
                     currentConfig->wordSize
             )[i];*/
-            GABACIFY_LOG_DEBUG << "Analyzing sequence: "
+            /*GABACIFY_LOG_DEBUG << "Analyzing sequence: "
                                << gabac::transformationInformation[unsigned(currentConfig->sequenceTransformationId)].streamNames[i]
-                               << "";
-            gabac::DataStream bestTransformedStream(0, 1);
+                               << "";*/
+            gabac::DataBlock bestTransformedStream(0, 1);
             getOptimumOfTransformedStream(
                     transformedSequences[i],
                     currWordSize,
@@ -360,7 +358,7 @@ void getOptimumOfSequenceTransform(const gabac::DataStream& symbols,
                 break;
             }
 
-            GABACIFY_LOG_TRACE << "Transformed and compressed sequence size: " << bestTransformedStream.size();
+            //GABACIFY_LOG_TRACE << "Transformed and compressed sequence size: " << bestTransformedStream.size();
 
             //appendToBytestream(bestTransformedStream, &completeStream);
             completeStream.insert(completeStream.end(), bestTransformedStream.begin(), bestTransformedStream.end());
@@ -368,28 +366,28 @@ void getOptimumOfSequenceTransform(const gabac::DataStream& symbols,
             if ((completeStream.size() >= bestByteStream->size()) &&
                 (!bestByteStream->empty()))
             {
-                GABACIFY_LOG_TRACE << "Already bigger stream than current maximum (Sequence transform level): Skipping "
-                                   << bestTransformedStream.size();
+                /*GABACIFY_LOG_TRACE << "Already bigger stream than current maximum (Sequence transform level): Skipping "
+                                   << bestTransformedStream.size();*/
                 error = true;
                 break;
             }
         }
         if (error)
         {
-            GABACIFY_LOG_DEBUG << "Could not find working configuration for this stream, or smaller stream exists. skipping: "
-                               << completeStream.size();
+            //GABACIFY_LOG_DEBUG << "Could not find working configuration for this stream, or smaller stream exists. skipping: "
+             //                  << completeStream.size();
             continue;
         }
 
-        GABACIFY_LOG_TRACE << "With parameter complete transformed size: " << completeStream.size();
+        //GABACIFY_LOG_TRACE << "With parameter complete transformed size: " << completeStream.size();
 
         // Update optimum
         if (completeStream.size() < bestByteStream->size() || bestByteStream->empty())
         {
-            GABACIFY_LOG_DEBUG << "Found new best sequence transform: "
+            /*GABACIFY_LOG_DEBUG << "Found new best sequence transform: "
                                << unsigned(currentConfig->sequenceTransformationId)
                                << " with size "
-                               << completeStream.size();
+                               << completeStream.size();*/
             *bestByteStream = std::move(completeStream);
             *bestConfig = *currentConfig;
         }
@@ -398,10 +396,10 @@ void getOptimumOfSequenceTransform(const gabac::DataStream& symbols,
 
 //------------------------------------------------------------------------------
 
-void getOptimumOfSymbolSequence(const gabac::DataStream& symbols,
-                                gabac::DataStream *const bestByteStream,
-                                Configuration *const bestConfig,
-                                Configuration *const currentConfiguration
+void getOptimumOfSymbolSequence(const gabac::DataBlock& symbols,
+                                gabac::DataBlock *const bestByteStream,
+                                gabac::Configuration *const bestConfig,
+                                gabac::Configuration *const currentConfiguration
 ){
     const std::vector<uint32_t> candidateDefaultParameters = {0};
     const std::vector<uint32_t> *params[] = {&candidateDefaultParameters,
@@ -410,8 +408,8 @@ void getOptimumOfSymbolSequence(const gabac::DataStream& symbols,
                                              &getCandidateConfig().candidateRLECodingParameters};
     for (const auto& transID : getCandidateConfig().candidateSequenceTransformationIds)
     {
-        GABACIFY_LOG_DEBUG << "Trying sequence transformation: "
-                           << gabac::transformationInformation[unsigned(transID)].name;
+        //GABACIFY_LOG_DEBUG << "Trying sequence transformation: "
+         //                  << gabac::transformationInformation[unsigned(transID)].name;
 
         currentConfiguration->sequenceTransformationId = transID;
         // Core of analysis
@@ -423,7 +421,7 @@ void getOptimumOfSymbolSequence(const gabac::DataStream& symbols,
                 currentConfiguration
         );
 
-        GABACIFY_LOG_TRACE << "Sequence transformed compressed size: " << bestByteStream->size();
+        //GABACIFY_LOG_TRACE << "Sequence transformed compressed size: " << bestByteStream->size();
     }
 }
 
@@ -433,8 +431,8 @@ void encode_analyze(const std::string& inputFilePath,
                     const std::string& configurationFilePath,
                     const std::string& outputFilePath
 ){
-    Configuration bestConfig;
-    gabac::DataStream bestByteStream(0, 1);
+    gabac::Configuration bestConfig;
+    gabac::DataBlock bestByteStream(0, 1);
     for (const auto& w : getCandidateConfig().candidateWordsizes)
     {
 
@@ -442,24 +440,24 @@ void encode_analyze(const std::string& inputFilePath,
 
         if (inputFile.size() % w != 0)
         {
-            GABACIFY_LOG_INFO << "Input stream size "
+            /*GABACIFY_LOG_INFO << "Input stream size "
                               << inputFile.size()
                               << " is not a multiple of word size "
                               << w
-                              << "! Skipping word size.";
+                              << "! Skipping word size.";*/
             continue;
         }
 
-        gabac::DataStream buffer(inputFile.size(), 1);
+        gabac::DataBlock buffer(inputFile.size(), 1);
         inputFile.read(buffer.getData(), 1, buffer.size());
 
-        Configuration currentConfig;
+        gabac::Configuration currentConfig;
 
         currentConfig.wordSize = w;
 
         // Generate symbol stream from byte buffer
-        gabac::DataStream symbols(0, w);
-        generateSymbolStream(buffer, w, &symbols);
+        gabac::DataBlock symbols(0, w);
+//        generateSymbolStream(buffer, w, &symbols);
         buffer.clear();
         buffer.shrink_to_fit();
 
@@ -468,25 +466,25 @@ void encode_analyze(const std::string& inputFilePath,
 
         if (bestByteStream.empty())
         {
-            GABACIFY_DIE("NO CONFIG FOUND");
+            GABAC_DIE("NO CONFIG FOUND");
         }
     }
 
     // Write the smallest bytestream
     OutputFile outputFile(outputFilePath);
     outputFile.write(bestByteStream.getData(), 1, bestByteStream.size());
-    GABACIFY_LOG_INFO << "Wrote smallest bytestream of size "
+    /*GABACIFY_LOG_INFO << "Wrote smallest bytestream of size "
                       << bestByteStream.size()
                       << " to: "
-                      << outputFilePath;
+                      << outputFilePath;*/
 
     // Write the best configuration as JSON
     std::string jsonString = bestConfig.toJsonString();
     OutputFile configurationFile(configurationFilePath);
     configurationFile.write(&jsonString[0], 1, jsonString.size());
-    GABACIFY_LOG_DEBUG << "with configuration: \n"
+    /*GABACIFY_LOG_DEBUG << "with configuration: \n"
                        << bestConfig.toPrintableString();
-    GABACIFY_LOG_INFO << "Wrote best configuration to: " << configurationFilePath;
+    //GABACIFY_LOG_INFO << "Wrote best configuration to: " << configurationFilePath;*/
 }
 
 //------------------------------------------------------------------------------

@@ -8,7 +8,7 @@
 #include "gabac/constants.h"
 
 
-namespace gabacify {
+namespace gabac {
 
 
 struct TransformedSequenceConfiguration
@@ -47,7 +47,7 @@ class Configuration
 };
 
 
-}  // namespace gabacify
+}  // namespace gabac
 
 
 #endif  // GABACIFY_CONFIGURATION_H_

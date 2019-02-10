@@ -3,11 +3,12 @@
 
 
 #include <cstdlib>
+#include <cstddef>
 #include <vector>
 
-#include "gabac/data_stream.h"
+#include "gabac/data_block.h"
+#include "gabac/block_stepper.h"
 
-using std::size_t;
 
 namespace gabac {
 
@@ -16,7 +17,7 @@ class BitInputStream
 {
  public:
     explicit BitInputStream(
-            DataStream* bitstream
+            DataBlock* bitstream
     );
 
     ~BitInputStream();
@@ -32,9 +33,9 @@ class BitInputStream
             unsigned int numBits
     );
 
-    gabac::DataStream m_bitstream;
+    gabac::DataBlock m_bitstream;
 
-    gabac::StreamReader m_reader;
+    gabac::BlockStepper m_reader;
 
     unsigned char m_heldBits;
 

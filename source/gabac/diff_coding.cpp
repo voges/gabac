@@ -4,7 +4,6 @@
 #include <cassert>
 #include <limits>
 
-#include "gabac/return_codes.h"
 
 
 /*int gabac_transformDiffCoding(
@@ -23,7 +22,7 @@
     try
     {
         // C++-style vectors to receive input data / accumulate output data
-        DataStream symbolsVector(symbols, (symbols + symbolsSize));
+        DataBlock symbolsVector(symbols, (symbols + symbolsSize));
         std::vector<int64_t> transformedSymbolsVector;
 
         // Execute
@@ -83,13 +82,13 @@ namespace gabac {
 
 
 void transformDiffCoding(
-        DataStream *const transformedSymbols
+        DataBlock *const transformedSymbols
 ){
     assert(transformedSymbols != nullptr);
 
     // Do the diff coding
     uint64_t previousSymbol = 0;
-    StreamReader r = transformedSymbols->getReader();
+    BlockStepper r = transformedSymbols->getReader();
     while(r.isValid()) {
         uint64_t symbol = r.get();
         uint64_t diff = symbol - previousSymbol;
@@ -101,13 +100,13 @@ void transformDiffCoding(
 
 
 void inverseTransformDiffCoding(
-        DataStream *const symbols
+        DataBlock *const symbols
 ){
     assert(symbols != nullptr);
 
     // Re-compute the symbols from the differences
     uint64_t previousSymbol = 0;
-    StreamReader r = symbols->getReader();
+    BlockStepper r = symbols->getReader();
     while(r.isValid()) {
         uint64_t symbol = r.get();
         r.set(previousSymbol + symbol);

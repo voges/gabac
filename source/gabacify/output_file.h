@@ -7,7 +7,6 @@
 #include <iostream>
 
 #include "gabacify/file.h"
-#include "gabacify/log.h"
 
 namespace gabacify {
 

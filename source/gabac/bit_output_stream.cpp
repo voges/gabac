@@ -9,14 +9,14 @@ namespace gabac {
 
 static void writeOut(
         unsigned char byte,
-        DataStream *const bitstream
+        DataBlock *const bitstream
 ){
     bitstream->push_back(byte);
 }
 
 
 BitOutputStream::BitOutputStream(
-        DataStream *const bitstream
+        DataBlock *const bitstream
 )
         : m_bitstream(bitstream), m_heldBits(0), m_numHeldBits(0){
     // Nothing to do here

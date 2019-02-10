@@ -9,7 +9,7 @@ namespace gabac {
 
 
 static unsigned char readIn(
-        gabac::StreamReader* reader
+        gabac::BlockStepper* reader
 ){
     if(!reader->isValid())
         throw std::runtime_error("Index out of bounds");
@@ -20,7 +20,7 @@ static unsigned char readIn(
 
 
 BitInputStream::BitInputStream(
-        DataStream* const bitstream
+        DataBlock* const bitstream
 )
         : m_heldBits(0), m_numHeldBits(0){
     m_bitstream.swap(bitstream);

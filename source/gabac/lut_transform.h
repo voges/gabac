@@ -65,7 +65,7 @@ int gabac_inverseTransformLutTransform0(
 #include <utility>
 #include <vector>
 
-#include "gabac/data_stream.h"
+#include "gabac/data_block.h"
 
 namespace gabac {
 
@@ -77,9 +77,9 @@ namespace gabac {
  */
 void transformLutTransform0(
         unsigned order,
-        DataStream *transformedSymbols,
-        DataStream *inverseLUT,
-        DataStream *inverseLUT1
+        DataBlock *transformedSymbols,
+        DataBlock *inverseLUT,
+        DataBlock *inverseLUT1
 );
 
 /**
@@ -90,9 +90,9 @@ void transformLutTransform0(
  */
 void inverseTransformLutTransform0(
         unsigned order,
-        DataStream *symbols,
-        DataStream *inverseLUT,
-        DataStream *inverseLUT1
+        DataBlock *symbols,
+        DataBlock *inverseLUT,
+        DataBlock *inverseLUT1
 );
 
 }  // namespace gabac

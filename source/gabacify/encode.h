@@ -13,26 +13,9 @@ void encode(
         const std::string& inputFilePath,
         bool analyze,
         const std::string& configurationFilePath,
-        const std::string& outputFilePath
+        const std::string& outputFilePath,
+        size_t blocksize
 );
-
-void doDiffTransform(bool enabled,
-                     gabac::DataStream *diffAndLutTransformedSequence
-);
-
-void doLutTransform(bool enabled,
-                    unsigned int order,
-                    std::vector<gabac::DataStream> *lutSequences,
-                    unsigned *bits0,
-                    gabac::OutputStream* out
-);
-
-void doSequenceTransform(gabac::DataStream& sequence,
-                         const gabac::SequenceTransformationId& transID,
-                         uint64_t param,
-                         std::vector<gabac::DataStream> *transformedSequences
-);
-
 
 }  // namespace gabacify
 

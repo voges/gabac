@@ -1,7 +1,7 @@
-#include "gabacify/exceptions.h"
+#include "exceptions.h"
 
 
-namespace gabacify {
+namespace gabac {
 
 
 Exception::Exception(
@@ -47,7 +47,7 @@ RuntimeException::RuntimeException(
 }
 
 RuntimeException::RuntimeException(
-        const gabacify::RuntimeException& e
+        const gabac::RuntimeException& e
 ) noexcept
         : Exception(e.what())
 {

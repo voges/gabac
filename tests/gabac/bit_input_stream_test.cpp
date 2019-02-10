@@ -19,7 +19,7 @@ class BitInputStreamTest : public ::testing::Test
 
 
 TEST_F(BitInputStreamTest, readByte){
-    gabac::DataStream bitstream(0, 1);
+    gabac::DataBlock bitstream(0, 1);
     bitstream = {0xFF};
     gabac::BitInputStream bitInputStream(&bitstream);
     EXPECT_EQ(0xFF, bitInputStream.readByte());

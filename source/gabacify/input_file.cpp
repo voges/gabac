@@ -3,7 +3,7 @@
 #include <cassert>
 #include <string>
 
-#include "gabacify/exceptions.h"
+#include "gabac/exceptions.h"
 
 
 namespace gabacify {
@@ -33,9 +33,9 @@ void InputFile::read(
     {
         if (feof(m_fp) != 0)
         {
-            GABACIFY_DIE("Hit EOF while trying to read from file");
+            GABAC_DIE("Hit EOF while trying to read from file");
         }
-        GABACIFY_DIE("fread from '" + m_path + "' failed");
+        GABAC_DIE("fread from '" + m_path + "' failed");
     }
 }
 

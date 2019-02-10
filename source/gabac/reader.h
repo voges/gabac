@@ -8,7 +8,7 @@
 #include "gabac/constants.h"
 #include "gabac/context_model.h"
 #include "gabac/context_selector.h"
-#include "gabac/data_stream.h"
+#include "gabac/data_block.h"
 #include "gabac/binary_arithmetic_decoder.h"
 
 using std::size_t;
@@ -20,7 +20,7 @@ class Reader
 {
  public:
     explicit Reader(
-            DataStream* bitstream
+            DataBlock* bitstream
     );
 
     ~Reader();

@@ -31,13 +31,13 @@ class matchCodingTest : public ::testing::Test
 
 
 TEST_F(matchCodingTest, transformMatchCoding){
-    gabac::DataStream symbols(0, 8);
-    gabac::DataStream pointers(0, 4);
-    gabac::DataStream expectedPointers(0, 4);
-    gabac::DataStream lengths(0, 4);
-    gabac::DataStream expectedLengths (0, 4);
-    gabac::DataStream rawValues(0, 8);
-    gabac::DataStream expectedRawValues(0, 8);
+    gabac::DataBlock symbols(0, 8);
+    gabac::DataBlock pointers(0, 4);
+    gabac::DataBlock expectedPointers(0, 4);
+    gabac::DataBlock lengths(0, 4);
+    gabac::DataBlock expectedLengths (0, 4);
+    gabac::DataBlock rawValues(0, 8);
+    gabac::DataBlock expectedRawValues(0, 8);
     int windowSize;
 
     for (auto& windowSizeIt : windowSizes)
@@ -81,11 +81,11 @@ TEST_F(matchCodingTest, transformMatchCoding){
 }
 
 TEST_F(matchCodingTest, inverseTransformMatchCoding){
-    gabac::DataStream symbols(0,8);
-    gabac::DataStream expectedSymbols(0,8);
-    gabac::DataStream pointers(0,4);
-    gabac::DataStream lengths(0,4);
-    gabac::DataStream rawValues(0,8);
+    gabac::DataBlock symbols(0,8);
+    gabac::DataBlock expectedSymbols(0,8);
+    gabac::DataBlock pointers(0,4);
+    gabac::DataBlock lengths(0,4);
+    gabac::DataBlock rawValues(0,8);
 
     // Void input shall lead to void output
     pointers = {};
@@ -121,11 +121,11 @@ TEST_F(matchCodingTest, inverseTransformMatchCoding){
 
 
 TEST_F(matchCodingTest, roundTripCoding){
-    gabac::DataStream symbols(0, 8);
-    gabac::DataStream decodedSymbols(0, 8);
-    gabac::DataStream pointers(0, 4);
-    gabac::DataStream lengths(0, 4);
-    gabac::DataStream rawValues(0, 8);
+    gabac::DataBlock symbols(0, 8);
+    gabac::DataBlock decodedSymbols(0, 8);
+    gabac::DataBlock pointers(0, 4);
+    gabac::DataBlock lengths(0, 4);
+    gabac::DataBlock rawValues(0, 8);
 
 
     // test large file size word size 1

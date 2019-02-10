@@ -28,6 +28,7 @@ class ProgramOptions
     std::string inputFilePath;
     std::string outputFilePath;
     std::string task;
+    size_t blocksize;
 
  private:
     void processCommandLine(

@@ -1,4 +1,4 @@
-#include "gabacify/configuration.h"
+#include "configuration.h"
 
 #include <cassert>
 #include <iostream>
@@ -9,10 +9,10 @@
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
 
-#include "gabacify/exceptions.h"
+#include "exceptions.h"
 
 
-namespace gabacify {
+namespace gabac {
 
 
 Configuration::Configuration()
@@ -73,7 +73,7 @@ Configuration::Configuration(
     }
     catch (const boost::property_tree::ptree_error& e)
     {
-        GABACIFY_DIE("JSON parsing error: " + std::string(e.what()));
+        GABAC_DIE("JSON parsing error: " + std::string(e.what()));
     }
 }
 
@@ -159,7 +159,7 @@ std::string Configuration::toJsonString() const{
     }
     catch (const boost::property_tree::ptree_error& e)
     {
-        GABACIFY_DIE("JSON write error: " + std::string(e.what()));
+        GABAC_DIE("JSON write error: " + std::string(e.what()));
     }
 
     return jsonString;
@@ -200,4 +200,4 @@ std::string TransformedSequenceConfiguration::toPrintableString() const{
 }
 
 
-}  // namespace gabacify
+}  // namespace gabac

@@ -3,7 +3,7 @@
 #include <cassert>
 #include <string>
 
-#include "gabacify/exceptions.h"
+#include "gabac/exceptions.h"
 
 
 namespace gabacify {
@@ -16,7 +16,7 @@ OutputFile::OutputFile(
     // Check if file with content existed before by opening in append mode
     // and getting size
     if(size() != 0)
-        GABACIFY_DIE("Output file already exists: " + path);
+        GABAC_DIE("Output file already exists: " + path);
     close();
     open(path, "wb");
 }
@@ -38,9 +38,9 @@ void OutputFile::write(
     {
         if (feof(m_fp) != 0)
         {
-            GABACIFY_DIE("Hit EOF while trying to write to file: " + m_path);
+            GABAC_DIE("Hit EOF while trying to write to file: " + m_path);
         }
-        GABACIFY_DIE("fwrite to '" + m_path + "' failed");
+        GABAC_DIE("fwrite to '" + m_path + "' failed");
     }
 }
 

@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <cassert>
 
-#include "gabac/return_codes.h"
 
 /*
 
@@ -25,9 +24,9 @@ int gabac_transformRleCoding(
     try
     {
         // C++-style vectors to receive input data / accumulate output data
-        gabac::DataStream symbolsVector(symbols, (symbols + symbolsSize));
-        gabac::DataStream rawValuesVector;
-        gabac::DataStream lengthsVector;
+        gabac::DataBlock symbolsVector(symbols, (symbols + symbolsSize));
+        gabac::DataBlock rawValuesVector;
+        gabac::DataBlock lengthsVector;
 
         // Execute
         gabac::transformRleCoding(symbolsVector, guard, &rawValuesVector, &lengthsVector);
@@ -66,9 +65,9 @@ int gabac_inverseTransformRleCoding(
     try
     {
         // C++-style vectors to receive input data / accumulate output data
-        gabac::DataStream rawValuesVector(rawValues, (rawValues + rawValuesSize));
-        gabac::DataStream lengthsVector(lengths, (lengths + lengthsSize));
-        gabac::DataStream symbolsVector;
+        gabac::DataBlock rawValuesVector(rawValues, (rawValues + rawValuesSize));
+        gabac::DataBlock lengthsVector(lengths, (lengths + lengthsSize));
+        gabac::DataBlock symbolsVector;
 
         // Execute
         gabac::inverseTransformRleCoding(rawValuesVector, lengthsVector, guard, &symbolsVector);
@@ -92,8 +91,8 @@ namespace gabac {
 
 void transformRleCoding(
         const uint64_t guard,
-        gabac::DataStream *const rawValues,
-        gabac::DataStream *const lengths
+        gabac::DataBlock *const rawValues,
+        gabac::DataBlock *const lengths
 ){
     assert(guard > 0);
     assert(rawValues != nullptr);
@@ -109,8 +108,8 @@ void transformRleCoding(
     // -> in place possible
 
 
-    StreamReader r = rawValues->getReader();
-    StreamReader w = rawValues->getReader();
+    BlockStepper r = rawValues->getReader();
+    BlockStepper w = rawValues->getReader();
 
     uint64_t cur = r.get();
     r.inc();
@@ -149,8 +148,8 @@ void transformRleCoding(
 
 void inverseTransformRleCoding(
         const uint64_t guard,
-        gabac::DataStream *const rawValues,
-        gabac::DataStream *const lengths
+        gabac::DataBlock *const rawValues,
+        gabac::DataBlock *const lengths
 ){
     assert(rawValues != nullptr);
     assert(!rawValues->empty());
@@ -159,10 +158,10 @@ void inverseTransformRleCoding(
     // input for rawValues is not guaranteed to grow slower than reading process
     // -> in place not possible
 
-    gabac::DataStream symbols(0, rawValues->getWordSize());
+    gabac::DataBlock symbols(0, rawValues->getWordSize());
 
-    StreamReader rVal = rawValues->getReader();
-    StreamReader rLen = lengths->getReader();
+    BlockStepper rVal = rawValues->getReader();
+    BlockStepper rLen = lengths->getReader();
     // Re-compute the symbol sequence
     while (rVal.isValid()) {
         uint64_t rawValue = rVal.get();

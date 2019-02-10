@@ -18,13 +18,13 @@ class BinaryArithmeticDecoderTest : public ::testing::Test
         // Code here will be called immediately after each test
     }
 
-    gabac::DataStream bitStream_;
+    gabac::DataBlock bitStream_;
     std::vector<gabac::ContextModel> contextModels_;
 };
 
 
 TEST_F(BinaryArithmeticDecoderTest, decodeBinsEp){
-    gabac::DataStream tmp = bitStream_;
+    gabac::DataBlock tmp = bitStream_;
     gabac::BitInputStream bitInputStream(&tmp);
     gabac::BinaryArithmeticDecoder bad(bitInputStream);
 
@@ -35,7 +35,7 @@ TEST_F(BinaryArithmeticDecoderTest, decodeBinsEp){
 }
 
 TEST_F(BinaryArithmeticDecoderTest, decodeBin){
-    gabac::DataStream tmp = bitStream_;
+    gabac::DataBlock tmp = bitStream_;
     gabac::BitInputStream bitInputStream(&tmp);
     gabac::BinaryArithmeticDecoder bad(bitInputStream);
 
@@ -124,7 +124,7 @@ TEST_F(BinaryArithmeticDecoderTest, decodeBin){
 }
 
 TEST_F(BinaryArithmeticDecoderTest, decodeBinTrm){
-    gabac::DataStream tmp = bitStream_;
+    gabac::DataBlock tmp = bitStream_;
     gabac::BitInputStream bitInputStream(&tmp);
     gabac::BinaryArithmeticDecoder bad(bitInputStream);
 

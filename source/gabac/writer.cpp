@@ -58,7 +58,7 @@ static unsigned int bitLength(
 
 
 Writer::Writer(
-        DataStream *const bitstream
+        DataBlock *const bitstream
 )
         : m_bitOutputStream(bitstream),
         m_contextSelector(),

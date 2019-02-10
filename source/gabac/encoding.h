@@ -30,19 +30,45 @@ int gabac_encode(
 #include <vector>
 
 #include "gabac/constants.h"
-#include "gabac/data_stream.h"
+#include "gabac/data_block.h"
+#include "gabac/configuration.h"
 
 
 namespace gabac {
 
+class OutputStream;
+class InputStream;
 
-int encode(
+int encode_cabac(
         const BinarizationId& binarizationId,
         const std::vector<unsigned int>& binarizationParameters,
         const ContextSelectionId& contextSelectionId,
-        DataStream *const symbols
+        DataBlock *const symbols
 );
 
+void doDiffTransform(bool enabled,
+                     gabac::DataBlock *diffAndLutTransformedSequence
+);
+
+void doLutTransform(bool enabled,
+                    unsigned int order,
+                    std::vector<gabac::DataBlock> *lutSequences,
+                    unsigned *bits0,
+                    gabac::OutputStream* out
+);
+
+void doSequenceTransform(gabac::DataBlock& sequence,
+                         const gabac::SequenceTransformationId& transID,
+                         uint64_t param,
+                         std::vector<gabac::DataBlock> *transformedSequences
+);
+
+void encode(
+        const gabac::Configuration& configuration,
+        gabac::InputStream* inStream,
+        gabac::OutputStream* outStream,
+        size_t blocksize
+);
 
 }  // namespace gabac
 

@@ -61,7 +61,7 @@ message(STATUS "Selected build type: ${CMAKE_BUILD_TYPE}")
 # Boost
 #==============================================================================
 
-find_package(Boost 1.54.0 REQUIRED COMPONENTS regex log program_options)
+find_package(Boost 1.54.0 REQUIRED COMPONENTS regex program_options)
 
 #==============================================================================
 # gabacify
@@ -77,14 +77,10 @@ set(gabacify_include_dir ${PARENT_DIR})
 
 # List all source files (alphabetically)
 set(gabacify_source_files ${gabacify_source_files} ${gabacify_source_dir}/analysis.cpp)
-set(gabacify_source_files ${gabacify_source_files} ${gabacify_source_dir}/configuration.cpp)
 set(gabacify_source_files ${gabacify_source_files} ${gabacify_source_dir}/decode.cpp)
 set(gabacify_source_files ${gabacify_source_files} ${gabacify_source_dir}/encode.cpp)
-set(gabacify_source_files ${gabacify_source_files} ${gabacify_source_dir}/exceptions.cpp)
 set(gabacify_source_files ${gabacify_source_files} ${gabacify_source_dir}/file.cpp)
-set(gabacify_source_files ${gabacify_source_files} ${gabacify_source_dir}/helpers.cpp)
 set(gabacify_source_files ${gabacify_source_files} ${gabacify_source_dir}/input_file.cpp)
-set(gabacify_source_files ${gabacify_source_files} ${gabacify_source_dir}/log.cpp)
 set(gabacify_source_files ${gabacify_source_files} ${gabacify_source_dir}/main.cpp)
 set(gabacify_source_files ${gabacify_source_files} ${gabacify_source_dir}/output_file.cpp)
 set(gabacify_source_files ${gabacify_source_files} ${gabacify_source_dir}/program_options.cpp)
@@ -94,11 +90,8 @@ set(gabacify_header_files ${gabacify_header_files} ${gabacify_header_dir}/tmp_fi
 set(gabacify_header_files ${gabacify_header_files} ${gabacify_header_dir}/analysis.h)
 set(gabacify_header_files ${gabacify_header_files} ${gabacify_header_dir}/decode.h)
 set(gabacify_header_files ${gabacify_header_files} ${gabacify_header_dir}/encode.h)
-set(gabacify_header_files ${gabacify_header_files} ${gabacify_header_dir}/exceptions.h)
 set(gabacify_header_files ${gabacify_header_files} ${gabacify_header_dir}/file.h)
-set(gabacify_header_files ${gabacify_header_files} ${gabacify_header_dir}/helpers.h)
 set(gabacify_header_files ${gabacify_header_files} ${gabacify_header_dir}/input_file.h)
-set(gabacify_header_files ${gabacify_header_files} ${gabacify_header_dir}/log.h)
 set(gabacify_header_files ${gabacify_header_files} ${gabacify_header_dir}/output_file.h)
 set(gabacify_header_files ${gabacify_header_files} ${gabacify_header_dir}/program_options.h)
 set(gabacify_header_files ${gabacify_header_files} ${gabacify_header_dir}/tmp_file.h)
@@ -109,10 +102,8 @@ source_group("gabacify Header Files" FILES ${gabacify_header_files})
 
 # Set up the target
 add_executable(${gabacify} EXCLUDE_FROM_ALL ${gabacify_source_files} ${gabacify_header_files})
-target_compile_definitions(${gabacify} PRIVATE BOOST_LOG_DYN_LINK)
 target_include_directories(${gabacify} PRIVATE ${gabacify_include_dir})
 target_include_directories(${gabacify} PRIVATE ${PARENT_DIR}/gabac})
 target_link_libraries(${gabacify} gabac)
-target_link_libraries(${gabacify} Boost::log)
 target_link_libraries(${gabacify} Boost::program_options)
 

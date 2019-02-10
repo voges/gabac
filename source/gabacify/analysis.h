@@ -4,7 +4,7 @@
 
 #include <vector>
 
-#include "gabacify/configuration.h"
+#include "gabac/configuration.h"
 
 
 namespace gabacify {

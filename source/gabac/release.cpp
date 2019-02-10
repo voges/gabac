@@ -1,8 +1,8 @@
 #include "gabac/release.h"
+#include "constants.h"
 
 #include <cassert>
 
-#include "gabac/return_codes.h"
 
 
 int gabac_release(

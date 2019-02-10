@@ -7,8 +7,7 @@
 
 #include "gabacify/decode.h"
 #include "gabacify/encode.h"
-#include "gabacify/exceptions.h"
-#include "gabacify/log.h"
+#include "gabac/exceptions.h"
 #include "gabacify/program_options.h"
 #include "gabacify/tmp_file.h"
 
@@ -23,7 +22,7 @@ static void writeCommandLine(
     {
         commandLine << arg << " ";
     }
-    GABACIFY_LOG_DEBUG << "Command line: " << commandLine.str();
+    //GABACIFY_LOG_DEBUG << "Command line: " << commandLine.str();
 }
 
 
@@ -33,9 +32,7 @@ static int gabacify_main(
 ){
     try
     {
-        gabacify::initLog();
         gabacify::ProgramOptions programOptions(argc, argv);
-        gabacify::setLogLevel(programOptions.logLevel);
         writeCommandLine(argc, argv);
 
         if (programOptions.task == "encode")
@@ -44,7 +41,8 @@ static int gabacify_main(
                     programOptions.inputFilePath,
                     programOptions.analyze,
                     programOptions.configurationFilePath,
-                    programOptions.outputFilePath
+                    programOptions.outputFilePath,
+                    programOptions.blocksize
             );
         }
         else if (programOptions.task == "decode")
@@ -57,24 +55,24 @@ static int gabacify_main(
         }
         else
         {
-            GABACIFY_DIE("Invalid task: " + std::string(programOptions.task));
+            GABAC_DIE("Invalid task: " + std::string(programOptions.task));
         }
     }
-    catch (const gabacify::RuntimeException& e)
+    catch (const gabac::RuntimeException& e)
     {
-        GABACIFY_LOG_ERROR << "Runtime error: " << e.message();
+        //GABACIFY_LOG_ERROR << "Runtime error: " << e.message();
         gabacify::TmpFile::closeAll();
         return -1;
     }
     catch (const std::exception& e)
     {
-        GABACIFY_LOG_ERROR << "Standard library error: " << e.what();
+        //GABACIFY_LOG_ERROR << "Standard library error: " << e.what();
         gabacify::TmpFile::closeAll();
         return -1;
     }
     catch (...)
     {
-        GABACIFY_LOG_ERROR << "Unkown error occurred";
+        //GABACIFY_LOG_ERROR << "Unkown error occurred";
         gabacify::TmpFile::closeAll();
         return -1;
     }
@@ -88,7 +86,7 @@ extern "C" void handleSignal(
         int sig
 ){
     std::signal(sig, SIG_IGN);  // Ignore the signal
-    GABACIFY_LOG_WARNING << "Caught signal: " << sig;
+    //GABACIFY_LOG_WARNING << "Caught signal: " << sig;
     switch (sig)
     {
         case SIGINT:
@@ -104,7 +102,7 @@ extern "C" void handleSignal(
         case SIGBUS:
         case SIGSYS:
         case SIGPIPE:
-            GABACIFY_LOG_WARNING << "Process killed";
+            //GABACIFY_LOG_WARNING << "Process killed";
             gabacify::TmpFile::closeAll();
     }
     std::signal(sig, SIG_DFL);  // Invoke the default signal action
@@ -135,7 +133,7 @@ int main(
     int rc = gabacify_main(argc, argv);
     if (rc != 0)
     {
-        GABACIFY_LOG_FATAL << "Failed to run";
+        //GABACIFY_LOG_FATAL << "Failed to run";
     }
 
     // The C standard makes no guarantees as to when output to stdout or

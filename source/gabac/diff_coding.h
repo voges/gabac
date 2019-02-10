@@ -29,19 +29,19 @@ int gabac_inverseTransformDiffCoding(
 }  // extern "C"
 
 
-#include "gabac/data_stream.h"
+#include "gabac/data_block.h"
 
 
 namespace gabac {
 
 
 void transformDiffCoding(
-        DataStream *transformedSymbols
+        DataBlock *transformedSymbols
 );
 
 
 void inverseTransformDiffCoding(
-        DataStream *transformedSymbols
+        DataBlock *transformedSymbols
 );
 
 

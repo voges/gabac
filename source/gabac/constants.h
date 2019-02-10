@@ -8,7 +8,11 @@
 #include <vector>
 #include <string>
 
-#include "gabac/data_stream.h"
+#include "gabac/data_block.h"
+
+#define GABAC_SUCCESS 0
+
+#define GABAC_FAILURE (-1)
 
 namespace gabac {
 
@@ -53,7 +57,7 @@ enum class ContextSelectionId
 #ifdef __cplusplus
 
 using SequenceTransform = std::function<void(const uint64_t param,
-                                             std::vector<gabac::DataStream> *const
+                                             std::vector<gabac::DataBlock> *const
 )>;
 
 using SignedBinarizationCheck = std::function<bool(int64_t min, int64_t max, uint64_t parameter
@@ -87,7 +91,7 @@ struct BinarizationProperties
 extern const std::vector<TransformationProperties> transformationInformation;
 extern const std::vector<BinarizationProperties> binarizationInformation;
 
-//std::vector<unsigned> fixWordSizes(const std::vector<unsigned>& list, unsigned wordsize);
+
 
 }  // namespace gabac
 

@@ -21,14 +21,14 @@ class lutTransformTest : public ::testing::Test
 
 TEST_F(lutTransformTest, roundTripCoding0){
     // Void input
-    gabac::DataStream symbols(0, 1);
+    gabac::DataBlock symbols(0, 1);
     symbols.resize(1024 * 1024);
     fillVectorRandomUniform(0, 64, &symbols);
-    gabac::DataStream transsymbols = symbols;
-    gabac::DataStream decodedSymbols(0, 1);
+    gabac::DataBlock transsymbols = symbols;
+    gabac::DataBlock decodedSymbols(0, 1);
     std::vector<std::pair<uint64_t, uint64_t>> lut0 = {};
-    gabac::DataStream inverseLut0(0, 1);
-    gabac::DataStream inverseLut1(0, 1);
+    gabac::DataBlock inverseLut0(0, 1);
+    gabac::DataBlock inverseLut1(0, 1);
 
     EXPECT_NO_THROW(gabac::transformLutTransform0(0, &transsymbols, &inverseLut0, &inverseLut1));
     decodedSymbols = transsymbols;

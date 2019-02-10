@@ -4,8 +4,7 @@
 #include <cassert>
 #include <iostream>
 
-#include "gabac/return_codes.h"
-#include "gabac/data_stream.h"
+#include "gabac/data_block.h"
 
 /*
 int gabac_transformEqualityCoding(
@@ -104,13 +103,13 @@ namespace gabac {
 
 // Optimized for wordsize 1. In place for equality flags
 static void transformEqualityCoding0(
-        DataStream *const values,
-        DataStream *const equalityFlags
+        DataBlock *const values,
+        DataBlock *const equalityFlags
 ){
     uint64_t previousSymbol = 0;
-    *equalityFlags = DataStream(0, values->getWordSize());
+    *equalityFlags = DataBlock(0, values->getWordSize());
 
-    StreamReader r = values->getReader();
+    BlockStepper r = values->getReader();
     // Treat value as equalityFlags and vice versa
     while(r.isValid()){
         uint64_t symbol = r.get();
@@ -134,14 +133,14 @@ static void transformEqualityCoding0(
 
 // Optimized for wordsize 1 > 0. In place for values
 static void transformEqualityCoding1(
-        DataStream *const values,
-        DataStream *const equalityFlags
+        DataBlock *const values,
+        DataBlock *const equalityFlags
 ){
     uint64_t previousSymbol = 0;
 
-    *equalityFlags = DataStream(0, 1);
-    StreamReader r = values->getReader();
-    StreamReader w = values->getReader();
+    *equalityFlags = DataBlock(0, 1);
+    BlockStepper r = values->getReader();
+    BlockStepper w = values->getReader();
     // Treat value as equalityFlags and vice versa
     while(r.isValid()){
         uint64_t symbol = r.get();
@@ -164,8 +163,8 @@ static void transformEqualityCoding1(
 }
 
 void transformEqualityCoding(
-        DataStream *const values,
-        DataStream *const equalityFlags
+        DataBlock *const values,
+        DataBlock *const equalityFlags
 ){
     assert(equalityFlags != nullptr);
     assert(values != nullptr);
@@ -180,13 +179,13 @@ void transformEqualityCoding(
 // ----------------------------------------------------------------------------
 
 void inverseTransformEqualityCoding(
-        DataStream *const values,
-        DataStream *const equalityFlags
+        DataBlock *const values,
+        DataBlock *const equalityFlags
 ){
     assert(values != nullptr);
     assert(equalityFlags != nullptr);
-    DataStream output(0, values->getWordSize());
-    DataStream *outputptr;
+    DataBlock output(0, values->getWordSize());
+    DataBlock *outputptr;
 
     // Wordsize 1 allows in place operation in equality flag buffer
     if(values->getWordSize() == 1) {
@@ -200,9 +199,9 @@ void inverseTransformEqualityCoding(
     // Re-compute the symbols from the equality flags and values
     uint64_t previousSymbol = 0;
 
-    StreamReader rflag = equalityFlags->getReader();
-    StreamReader rval = values->getReader();
-    StreamReader rwrite = outputptr->getReader();
+    BlockStepper rflag = equalityFlags->getReader();
+    BlockStepper rval = values->getReader();
+    BlockStepper rwrite = outputptr->getReader();
 
     while(rflag.isValid()) {
         if(rflag.get() == 0) {

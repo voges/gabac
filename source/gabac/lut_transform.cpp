@@ -7,8 +7,6 @@
 #include <unordered_map>
 #include <utility>
 
-#include "gabac/return_codes.h"
-
 
 // ----------------------------------------------------------------------------
 // C wrapper BEGIN
@@ -29,9 +27,9 @@
         return GABAC_FAILURE;
     }
 
-    DataStream symbolsVecCpp(symbols, symbols + symbolsSize);
-    DataStream transformedVec;
-    DataStream invLutVec;
+    DataBlock symbolsVecCpp(symbols, symbols + symbolsSize);
+    DataBlock transformedVec;
+    DataBlock invLutVec;
 
     gabac::transformLutTransform0(symbolsVecCpp, &transformedVec, &invLutVec);
 
@@ -62,9 +60,9 @@ int gabac_inverseTransformLutTransform0(
         return GABAC_FAILURE;
     }
 
-    DataStream transSymVec(transformedSymbols, transformedSymbols + transformedSymbolsSize);
-    DataStream invLutVec(inverseLUT, inverseLUT + inverseLUTSize);
-    DataStream symVec;
+    DataBlock transSymVec(transformedSymbols, transformedSymbols + transformedSymbolsSize);
+    DataBlock invLutVec(inverseLUT, inverseLUT + inverseLUTSize);
+    DataBlock symVec;
 
     gabac::inverseTransformLutTransform0(transSymVec, invLutVec, &symVec);
 
@@ -86,10 +84,10 @@ const size_t MAX_LUT_SIZE = 1u << 20u; // 8MB table
 
 // Inplace not reasonable, because symbols stream is reused 100% of time and lut is much smaller
 static void inferLut0(
-        const DataStream& symbols,
+        const DataBlock& symbols,
         std::vector<std::pair<uint64_t, uint64_t>> *const lut,
-        DataStream *const fastlut,
-        DataStream *const inverseLut
+        DataBlock *const fastlut,
+        DataBlock *const inverseLut
 ){
 
     uint64_t maxValue = 0;
@@ -129,7 +127,7 @@ static void inferLut0(
 
     if (maxValue < CTR_THRESHOLD) {
         std::vector<uint64_t> freq(maxValue + 1);
-        StreamReader r = symbols.getReader();
+        BlockStepper r = symbols.getReader();
         while(r.isValid()){
             uint64_t symbol = r.get();
             freq[symbol]++;
@@ -142,7 +140,7 @@ static void inferLut0(
         }
     } else {
         std::unordered_map<uint64_t, uint64_t> freq;
-        StreamReader r = symbols.getReader();
+        BlockStepper r = symbols.getReader();
         while(r.isValid()){
             uint64_t symbol = r.get();
             freq[symbol]++;
@@ -228,7 +226,7 @@ static uint64_t lut0SingleTransform(
 // ----------------------------------------------------------------------------
 
 static uint64_t lut0SingleTransformFast(
-        const DataStream& lut0,
+        const DataBlock& lut0,
         uint64_t symbol
 ){
     return lut0.get(symbol);
@@ -239,9 +237,9 @@ static uint64_t lut0SingleTransformFast(
 static void transformLutTransform_core(
         const size_t ORDER,
         const std::vector<std::pair<uint64_t, uint64_t>>& lut0,
-        const DataStream& fastlut,
-        const DataStream& lut,
-        DataStream *const transformedSymbols
+        const DataBlock& fastlut,
+        const DataBlock& lut,
+        DataBlock *const transformedSymbols
 ){
     assert(transformedSymbols != nullptr);
 
@@ -252,7 +250,7 @@ static void transformLutTransform_core(
     std::vector<uint64_t> lastSymbols(ORDER + 1, 0);
 
 
-    StreamReader r = transformedSymbols->getReader();
+    BlockStepper r = transformedSymbols->getReader();
     while(r.isValid()){
         uint64_t symbol = r.get();
         // Update history
@@ -287,16 +285,16 @@ static void transformLutTransform_core(
 
 static void inverseTransformLutTransform_core(
         const size_t ORDER,
-        DataStream *const symbols,
-        DataStream *const inverseLut0,
-        DataStream *const inverseLut
+        DataBlock *const symbols,
+        DataBlock *const inverseLut0,
+        DataBlock *const inverseLut
 ){
     assert(symbols != nullptr);
 
 
     std::vector<uint64_t> lastSymbols(ORDER + 1, 0);
 
-    StreamReader r = symbols->getReader();
+    BlockStepper r = symbols->getReader();
 
     // Do the LUT transform
     while (r.isValid()) {
@@ -332,12 +330,12 @@ static void inverseTransformLutTransform_core(
 
 void inferLut(
         const size_t ORDER,
-        const DataStream& symbols,
+        const DataBlock& symbols,
         std::vector<std::pair<uint64_t, uint64_t>> *const lut0,
-        DataStream *const fastlut,
-        DataStream *const inverseLut0,
-        DataStream *const lut1,
-        DataStream *const inverseLut1
+        DataBlock *const fastlut,
+        DataBlock *const inverseLut0,
+        DataBlock *const lut1,
+        DataBlock *const inverseLut1
 ){
     // Clear
     lut1->clear();
@@ -366,7 +364,7 @@ void inferLut(
     std::vector<std::pair<uint64_t, uint64_t>> ctr(size, {std::numeric_limits<uint64_t>::max(), 0});
     std::vector<uint64_t> lastSymbols(ORDER + 1, 0);
 
-    StreamReader r = symbols.getReader();
+    BlockStepper r = symbols.getReader();
     while(r.isValid()){
         uint64_t symbol = r.get();
         // Update history
@@ -462,13 +460,13 @@ void inferLut(
 
 void transformLutTransform0(
         unsigned order,
-        DataStream *const transformedSymbols,
-        DataStream *const inverseLUT,
-        DataStream *const inverseLUT1
+        DataBlock *const transformedSymbols,
+        DataBlock *const inverseLUT,
+        DataBlock *const inverseLUT1
 ){
     std::vector<std::pair<uint64_t, uint64_t>> lut;
-    DataStream fastlut(0, transformedSymbols->getWordSize()); // For small, dense symbol spaces
-    DataStream lut1(0, transformedSymbols->getWordSize());
+    DataBlock fastlut(0, transformedSymbols->getWordSize()); // For small, dense symbol spaces
+    DataBlock lut1(0, transformedSymbols->getWordSize());
     inferLut(order, *transformedSymbols, &lut, &fastlut, inverseLUT, &lut1, inverseLUT1);
     if (lut.empty()) {
         inverseLUT->clear();
@@ -482,9 +480,9 @@ void transformLutTransform0(
 
 void inverseTransformLutTransform0(
         unsigned order,
-        DataStream *const symbols,
-        DataStream *const inverseLUT,
-        DataStream *const inverseLUT1
+        DataBlock *const symbols,
+        DataBlock *const inverseLUT,
+        DataBlock *const inverseLUT1
 ){
     inverseTransformLutTransform_core(order, symbols, inverseLUT, inverseLUT1);
 }

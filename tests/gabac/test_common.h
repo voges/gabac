@@ -9,7 +9,7 @@
 #include <vector>
 
 
-inline void fillVectorRandomUniform(uint64_t min, uint64_t max, gabac::DataStream *const vector){
+inline void fillVectorRandomUniform(uint64_t min, uint64_t max, gabac::DataBlock *const vector){
     // First create an instance of an engine.
     std::random_device rnd_device;
     // Specify the engine and distribution.
@@ -32,7 +32,7 @@ inline void fillVectorRandomUniform(uint64_t min, uint64_t max, gabac::DataStrea
 }
 
 
-inline void fillVectorRandomGeometric(gabac::DataStream *const vector){
+inline void fillVectorRandomGeometric(gabac::DataBlock *const vector){
     // First create an instance of an engine.
     std::random_device rnd_device;
     // Specify the engine and distribution.

@@ -33,21 +33,21 @@ int gabac_inverseTransformEqualityCoding(
 }  // extern "C"
 
 
-#include "gabac/data_stream.h"
+#include "gabac/data_block.h"
 
 
 namespace gabac {
 
 
 void transformEqualityCoding(
-        gabac::DataStream *equalityFlags,
-        gabac::DataStream *values
+        gabac::DataBlock *equalityFlags,
+        gabac::DataBlock *values
 );
 
 
 void inverseTransformEqualityCoding(
-        DataStream *values,
-        DataStream *equalityFlags
+        DataBlock *values,
+        DataBlock *equalityFlags
 );
 
 

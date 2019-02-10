@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <iostream>
 
-#include "gabac/return_codes.h"
 
 
 // ----------------------------------------------------------------------------
@@ -53,10 +52,10 @@ int gabac_transformMatchCoding(
     }
 
     // C++-style vectors to receive input data / accumulate output data
-    gabac::DataStream symbolsVector(symbols, (symbols + symbolsSize));
-    gabac::DataStream pointersVector;
-    gabac::DataStream lengthsVector;
-    gabac::DataStream rawValuesVector;
+    gabac::DataBlock symbolsVector(symbols, (symbols + symbolsSize));
+    gabac::DataBlock pointersVector;
+    gabac::DataBlock lengthsVector;
+    gabac::DataBlock rawValuesVector;
 
     // Execute
     try
@@ -122,13 +121,13 @@ int gabac_inverseTransformMatchCoding(
     }
 
     // C++-style vectors to receive input data / accumulate output data
-    gabac::DataStream pointersVector(pointers, (pointers + pointersSize));
-    gabac::DataStream lengthsVector(lengths, (lengths + lengthsSize));
-    gabac::DataStream rawValuesVector(
+    gabac::DataBlock pointersVector(pointers, (pointers + pointersSize));
+    gabac::DataBlock lengthsVector(lengths, (lengths + lengthsSize));
+    gabac::DataBlock rawValuesVector(
             rawValues,
             (rawValues + rawValuesSize)
     );
-    gabac::DataStream symbolsVector;
+    gabac::DataBlock symbolsVector;
 
     // Execute
     try
@@ -163,14 +162,14 @@ namespace gabac {
 
 void transformMatchCoding(
         const uint32_t windowSize,
-        gabac::DataStream *const symbols,
-        gabac::DataStream *const pointers,
-        gabac::DataStream *const lengths
+        gabac::DataBlock *const symbols,
+        gabac::DataBlock *const pointers,
+        gabac::DataBlock *const lengths
 ){
     assert(pointers != nullptr);
     assert(lengths != nullptr);
     assert(symbols != nullptr);
-    gabac::DataStream rawValues(0, symbols->getWordSize());
+    gabac::DataBlock rawValues(0, symbols->getWordSize());
 
     // Prepare the output vectors
     pointers->clear();
@@ -226,20 +225,20 @@ void transformMatchCoding(
 // ----------------------------------------------------------------------------
 
 void inverseTransformMatchCoding(
-        gabac::DataStream* const rawValues,
-        gabac::DataStream* const pointers,
-        gabac::DataStream* const lengths
+        gabac::DataBlock* const rawValues,
+        gabac::DataBlock* const pointers,
+        gabac::DataBlock* const lengths
 ){
-    gabac::DataStream symbols(0, rawValues->getWordSize());
+    gabac::DataBlock symbols(0, rawValues->getWordSize());
     assert(lengths->size() == pointers->size() + rawValues->size());
 
     // In-place probably not possible
 
     // Re-compute the symbols from the pointer, lengths and raw values
     size_t n = 0;
-    StreamReader t0 = pointers->getReader();
-    StreamReader t1 = lengths->getReader();
-    StreamReader t2 = rawValues->getReader();
+    BlockStepper t0 = pointers->getReader();
+    BlockStepper t1 = lengths->getReader();
+    BlockStepper t2 = rawValues->getReader();
     while (t1.isValid())
     {
         uint64_t length = t1.get();
