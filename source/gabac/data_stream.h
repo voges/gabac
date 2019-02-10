@@ -417,7 +417,7 @@ class FileInputStream  : public InputStream{
         if(fread(buffer->getData(), 1, size, input) != size){
             throw std::runtime_error("Unexpected file end");
         }
-        return fpos += size;
+        return fpos += size + sizeof(uint32_t);
     }
 
     size_t readFull(DataStream* buffer) override {
