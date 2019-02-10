@@ -167,29 +167,33 @@ static void encodeWithConfiguration(
         gabac::InputStream* inStream,
         gabac::OutputStream* outStream
 ){
-    gabac::DataStream sequence(0,1);
-    inStream->readFull(&sequence);
-    sequence.setWordSize(configuration.wordSize);
-    // Insert sequence into vector
-    std::vector<gabac::DataStream> transformedSequences;
-    transformedSequences.resize(1);
-    transformedSequences[0].swap(&sequence);
+    const size_t BLOCKSIZE = 1000000000;//16000000;
+    while(inStream->isValid()) {
+        gabac::DataStream sequence(0, 1);
+        size_t readLength = std::min(BLOCKSIZE, inStream->getRemainingSize());
+        inStream->readBytes(readLength, &sequence);
+        sequence.setWordSize(configuration.wordSize);
+        // Insert sequence into vector
+        std::vector<gabac::DataStream> transformedSequences;
+        transformedSequences.resize(1);
+        transformedSequences[0].swap(&sequence);
 
-    // Put symbol stream in, get transformed streams out
-    doSequenceTransform(
-            configuration.sequenceTransformationId,
-            configuration.sequenceTransformationParameter,
-            &transformedSequences
-    );
-
-    // Loop through the transformed sequences
-    for (size_t i = 0; i < transformedSequences.size(); i++) {
-        // Put transformed sequence in, get partial bytestream back
-        encodeSingleSequence(
-                configuration.transformedSequenceConfigurations[i],
-                &(transformedSequences[i]),
-                outStream
+        // Put symbol stream in, get transformed streams out
+        doSequenceTransform(
+                configuration.sequenceTransformationId,
+                configuration.sequenceTransformationParameter,
+                &transformedSequences
         );
+
+        // Loop through the transformed sequences
+        for (size_t i = 0; i < transformedSequences.size(); i++) {
+            // Put transformed sequence in, get partial bytestream back
+            encodeSingleSequence(
+                    configuration.transformedSequenceConfigurations[i],
+                    &(transformedSequences[i]),
+                    outStream
+            );
+        }
     }
 
 }
