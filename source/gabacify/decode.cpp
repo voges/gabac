@@ -39,13 +39,20 @@ void decode(
     InputFile configurationFile(configurationFilePath);
     std::string jsonInput("\0", configurationFile.size());
     configurationFile.read(&jsonInput[0], 1, jsonInput.size());
-    gabac::Configuration configuration(jsonInput);
+    gabac::EncodingConfiguration configuration(jsonInput);
 
     // Write the bytestream
     OutputFile outputFile(outputFilePath);
     gabac::FileOutputStream outStream(outputFile.handle());
 
-    gabac::decode(configuration, &inStream, &outStream);
+    gabac::IOConfiguration ioconf = {&inStream,
+                                      &outStream,
+                                      0,
+                                      &std::cout,
+                                      gabac::IOConfiguration::LogLevel::INFO
+    };
+
+    gabac::decode(ioconf, configuration);
 
 
     /*GABACIFY_LOG_INFO << "Wrote buffer of size "

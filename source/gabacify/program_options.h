@@ -22,7 +22,6 @@ class ProgramOptions
     ~ProgramOptions();
 
  public:
-    bool analyze;
     std::string configurationFilePath;
     std::string logLevel;
     std::string inputFilePath;

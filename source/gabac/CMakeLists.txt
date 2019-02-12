@@ -77,7 +77,7 @@ message("Include dir: ${gabac_include_dir}")
 
 
 # List all source files (alphabetically)
-#set(gabac_source_files ${gabac_source_files} ${gabac_source_dir}/analyze.cpp)
+set(gabac_source_files ${gabac_source_files} ${gabac_source_dir}/analysis.cpp)
 #set(gabac_source_files ${gabac_source_files} ${gabac_source_dir}/binary_arithmetic_encoder.cpp)
 #set(gabac_source_files ${gabac_source_files} ${gabac_source_dir}/binary_arithmetic_decoder.cpp)
 set(gabac_source_files ${gabac_source_files} ${gabac_source_dir}/bit_input_stream.cpp)
@@ -106,7 +106,7 @@ set(gabac_source_files ${gabac_source_files} ${gabac_source_dir}/rle_coding.cpp)
 set(gabac_source_files ${gabac_source_files} ${gabac_source_dir}/writer.cpp)
 
 # List all header files (alphabetically)
-#set(gabac_source_files ${gabac_source_files} ${gabac_source_dir}/analyze.h)
+set(gabac_source_files ${gabac_source_files} ${gabac_source_dir}/analysis.h)
 set(gabac_header_files ${gabac_header_files} ${gabac_header_dir}/binary_arithmetic_encoder.h)
 set(gabac_header_files ${gabac_header_files} ${gabac_header_dir}/binary_arithmetic_decoder.h)
 set(gabac_header_files ${gabac_header_files} ${gabac_header_dir}/buffer_input_stream.h)

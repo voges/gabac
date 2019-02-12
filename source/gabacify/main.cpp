@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "gabacify/analyze.h"
 #include "gabacify/decode.h"
 #include "gabacify/encode.h"
 #include "gabac/exceptions.h"
@@ -18,8 +19,7 @@ static void writeCommandLine(
 ){
     std::vector<std::string> args(argv, (argv + argc));
     std::stringstream commandLine;
-    for (const auto& arg : args)
-    {
+    for (const auto& arg : args) {
         commandLine << arg << " ";
     }
     //GABACIFY_LOG_DEBUG << "Command line: " << commandLine.str();
@@ -30,48 +30,43 @@ static int gabacify_main(
         int argc,
         char *argv[]
 ){
-    try
-    {
+    try {
         gabacify::ProgramOptions programOptions(argc, argv);
         writeCommandLine(argc, argv);
 
-        if (programOptions.task == "encode")
-        {
+        if (programOptions.task == "encode") {
             gabacify::encode(
                     programOptions.inputFilePath,
-                    programOptions.analyze,
                     programOptions.configurationFilePath,
                     programOptions.outputFilePath,
                     programOptions.blocksize
             );
-        }
-        else if (programOptions.task == "decode")
-        {
+        } else if (programOptions.task == "decode") {
             gabacify::decode(
                     programOptions.inputFilePath,
                     programOptions.configurationFilePath,
                     programOptions.outputFilePath
             );
-        }
-        else
-        {
+        } else if (programOptions.task == "analyze") {
+            gabacify::analyze(
+                    programOptions.inputFilePath,
+                    programOptions.configurationFilePath
+            );
+        } else {
             GABAC_DIE("Invalid task: " + std::string(programOptions.task));
         }
     }
-    catch (const gabac::RuntimeException& e)
-    {
-        //GABACIFY_LOG_ERROR << "Runtime error: " << e.message();
+    catch (const gabac::RuntimeException& e) {
+        std::cerr << e.message() << std::endl;
         gabacify::TmpFile::closeAll();
         return -1;
     }
-    catch (const std::exception& e)
-    {
-        //GABACIFY_LOG_ERROR << "Standard library error: " << e.what();
+    catch (const std::exception& e) {
+        std::cerr << e.what() << std::endl;
         gabacify::TmpFile::closeAll();
         return -1;
     }
-    catch (...)
-    {
+    catch (...) {
         //GABACIFY_LOG_ERROR << "Unkown error occurred";
         gabacify::TmpFile::closeAll();
         return -1;
@@ -87,8 +82,7 @@ extern "C" void handleSignal(
 ){
     std::signal(sig, SIG_IGN);  // Ignore the signal
     //GABACIFY_LOG_WARNING << "Caught signal: " << sig;
-    switch (sig)
-    {
+    switch (sig) {
         case SIGINT:
         case SIGILL:
         case SIGABRT:
@@ -131,8 +125,7 @@ int main(
 
     // Fire up main method
     int rc = gabacify_main(argc, argv);
-    if (rc != 0)
-    {
+    if (rc != 0) {
         //GABACIFY_LOG_FATAL << "Failed to run";
     }
 
@@ -142,12 +135,10 @@ int main(
     // the data (after program termination), then the output may be lost.
     // Thus we explicitly flush stdout and stderr. On failure, we notify the
     // operating system by returning with EXIT_FAILURE.
-    if (fflush(stdout) == EOF)
-    {
+    if (fflush(stdout) == EOF) {
         return EXIT_FAILURE;
     }
-    if (fflush(stderr) == EOF)
-    {
+    if (fflush(stderr) == EOF) {
         return EXIT_FAILURE;
     }
 

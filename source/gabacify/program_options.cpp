@@ -22,8 +22,7 @@ ProgramOptions::ProgramOptions(
         int argc,
         char *argv[]
 )
-        : analyze(false),
-        configurationFilePath(),
+        : configurationFilePath(),
         logLevel(),
         inputFilePath(),
         outputFilePath(),
@@ -72,7 +71,7 @@ void ProgramOptions::processCommandLine(
                 (
                         "task",
                         po::value<std::string>(&(this->task))->required(),
-                        "Task ('encode' or 'decode')"
+                        "Task ('encode' or 'decode' or 'analyze')"
                 )
                 (
                         "block size",
@@ -113,16 +112,16 @@ void ProgramOptions::processCommandLine(
 
 
 void ProgramOptions::validate(void){
+
+    if (!fileExists(this->inputFilePath)) {
+        GABAC_DIE("Input file does not exist");
+    }
     // Do stuff depending on the task
     if (this->task == "encode") {
         // It's fine not to provide a configuration file path for encoding.
         // This will trigger the analysis.
         if (this->configurationFilePath.empty()) {
-            //GABACIFY_LOG_INFO << "No configuration file path provided";
-            this->analyze = true;
-            //GABACIFY_LOG_INFO << "This triggers the analysis before encoding";
-            this->configurationFilePath = this->inputFilePath + m_defaultConfigurationFilePathExtension;
-            //GABACIFY_LOG_INFO << "Using generated configuration file path: " << this->configurationFilePath;
+            GABAC_DIE("No configuration path provided");
         }
 
         // We need an output file path - generate one if not provided by the
@@ -140,12 +139,7 @@ void ProgramOptions::validate(void){
         // We need a configuration file path - guess one if not provided by
         // the user
         if (this->configurationFilePath.empty()) {
-            //GABACIFY_LOG_INFO << "No configuration file path provided";
-            this->configurationFilePath = this->inputFilePath;
-            size_t pos = this->configurationFilePath.find(m_defaultBytestreamFilePathExtension);
-            this->configurationFilePath.erase(pos, std::string::npos);
-            this->configurationFilePath += m_defaultConfigurationFilePathExtension;
-            //GABACIFY_LOG_INFO << "Trying generated configuration file path: " << this->configurationFilePath;
+            GABAC_DIE("No configuration path provided");
         }
 
         // We need an output file path - generate one if not provided by the
@@ -162,8 +156,28 @@ void ProgramOptions::validate(void){
         if (fileExists(this->outputFilePath)) {
             GABAC_DIE("Output file already existing: " + this->outputFilePath);
         }
+    }else if (this->task == "analyze") {
+        // We need a configuration file path - guess one if not provided by
+        // the user
+        if (this->configurationFilePath.empty()) {
+            //GABACIFY_LOG_INFO << "No output file path provided";
+            this->outputFilePath = this->inputFilePath;
+            size_t pos = this->outputFilePath.find(m_defaultBytestreamFilePathExtension);
+            this->outputFilePath.erase(pos, std::string::npos);
+            this->outputFilePath += m_defaultConfigurationFilePathExtension;
+            //GABACIFY_LOG_INFO << "Using generated output file path: " << this->outputFilePath;
+        }
+
+        // We need an output file path - generate one if not provided by the
+        // user
+        if (!this->outputFilePath.empty()) {
+            GABAC_DIE("Analyze does not accept output file paths");
+        }
+        if (fileExists(this->configurationFilePath)) {
+            GABAC_DIE("Config file already existing: " + this->outputFilePath);
+        }
     } else {
-        GABAC_DIE("Task '" + this->task + "' is invalid");
+        GABAC_DIE("Task '" + this->task + "' is invaid");
     }
 }
 

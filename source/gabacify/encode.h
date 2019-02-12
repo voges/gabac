@@ -11,11 +11,11 @@ namespace gabacify {
 
 void encode(
         const std::string& inputFilePath,
-        bool analyze,
         const std::string& configurationFilePath,
         const std::string& outputFilePath,
         size_t blocksize
 );
+
 
 }  // namespace gabacify
 

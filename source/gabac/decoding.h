@@ -45,26 +45,26 @@ int gabac_decode(
 
 #include "gabac/constants.h"
 #include "gabac/data_block.h"
+#include "gabac/configuration.h"
 
 
 namespace gabac {
 
-struct Configuration;
+struct EncodingConfiguration;
 class InputStream;
 class OutputStream;
 
 int decode_cabac(
         const uint8_t wordsize,
         const BinarizationId& binarizationId,
-        const std::vector<unsigned int>& binarizationParameters,
+        const std::vector<uint32_t>& binarizationParameters,
         const ContextSelectionId& contextSelectionId,
         DataBlock *const bitstream
 );
 
 void decode(
-        const gabac::Configuration& configuration,
-        gabac::InputStream *const inStream,
-        gabac::OutputStream *const outStream
+        const IOConfiguration& ioConf,
+        const EncodingConfiguration& enConf
 );
 
 

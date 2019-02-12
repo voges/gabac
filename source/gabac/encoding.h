@@ -14,7 +14,7 @@ extern "C" {
 int gabac_encode(
         int64_t *symbols,
         size_t symbolsSize,
-        unsigned int binarizationId,
+        uint32_t binarizationId,
         unsigned int *binarizationParameters,
         size_t binarizationParametersSize,
         unsigned int contextSelectionId,
@@ -28,6 +28,7 @@ int gabac_encode(
 
 
 #include <vector>
+#include <limits>
 
 #include "gabac/constants.h"
 #include "gabac/data_block.h"
@@ -37,37 +38,20 @@ int gabac_encode(
 namespace gabac {
 
 class OutputStream;
+
 class InputStream;
 
 int encode_cabac(
         const BinarizationId& binarizationId,
-        const std::vector<unsigned int>& binarizationParameters,
+        const std::vector<uint32_t>& binarizationParameters,
         const ContextSelectionId& contextSelectionId,
-        DataBlock *const symbols
-);
-
-void doDiffTransform(bool enabled,
-                     gabac::DataBlock *diffAndLutTransformedSequence
-);
-
-void doLutTransform(bool enabled,
-                    unsigned int order,
-                    std::vector<gabac::DataBlock> *lutSequences,
-                    unsigned *bits0,
-                    gabac::OutputStream* out
-);
-
-void doSequenceTransform(gabac::DataBlock& sequence,
-                         const gabac::SequenceTransformationId& transID,
-                         uint64_t param,
-                         std::vector<gabac::DataBlock> *transformedSequences
+        DataBlock *const symbols,
+        size_t maxsize = std::numeric_limits<size_t>::max()
 );
 
 void encode(
-        const gabac::Configuration& configuration,
-        gabac::InputStream* inStream,
-        gabac::OutputStream* outStream,
-        size_t blocksize
+        const IOConfiguration& ioConf,
+        const EncodingConfiguration& enConf
 );
 
 }  // namespace gabac

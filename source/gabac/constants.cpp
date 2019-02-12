@@ -24,6 +24,7 @@ const std::vector<BinarizationProperties> binarizationInformation = {
                 "BI",
                 1,
                 32,
+                false,
                 [](uint64_t) -> int64_t
                 {
                     return 0;
@@ -37,6 +38,7 @@ const std::vector<BinarizationProperties> binarizationInformation = {
                 "TU",
                 1,
                 32,
+                false,
                 [](uint64_t) -> int64_t
                 {
                     return 0;
@@ -50,6 +52,7 @@ const std::vector<BinarizationProperties> binarizationInformation = {
                 "EG",
                 0,
                 0,
+                false,
                 [](uint64_t) -> int64_t
                 {
                     return 0;
@@ -63,6 +66,7 @@ const std::vector<BinarizationProperties> binarizationInformation = {
                 "SEG",
                 0,
                 0,
+                true,
                 [](uint64_t) -> int64_t
                 {
                     return std::numeric_limits<int32_t>::min() / 2;
@@ -76,6 +80,7 @@ const std::vector<BinarizationProperties> binarizationInformation = {
                 "TEG",
                 0,
                 255,
+                false,
                 [](uint64_t) -> int64_t
                 {
                     return 0;
@@ -89,6 +94,7 @@ const std::vector<BinarizationProperties> binarizationInformation = {
                 "STEG",
                 0,
                 255,
+                true,
                 [](uint64_t param) -> int64_t
                 {
                     return std::numeric_limits<int32_t>::min() / 2ll - param;

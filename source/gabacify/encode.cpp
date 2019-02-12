@@ -13,7 +13,7 @@
 #include "gabac/encoding.h"
 #include "gabac/diff_coding.h"
 
-#include "gabacify/analysis.h"
+#include "gabac/analysis.h"
 #include "gabac/configuration.h"
 #include "gabac/file_input_stream.h"
 #include "gabac/file_output_stream.h"
@@ -26,7 +26,7 @@ namespace gabacify {
 
 //------------------------------------------------------------------------------
 
-void encode_plain(const std::string& inputFilePath,
+void encode(const std::string& inputFilePath,
                   const std::string& configurationFilePath,
                   const std::string& outputFilePath,
                   size_t blocksize
@@ -34,7 +34,7 @@ void encode_plain(const std::string& inputFilePath,
     InputFile configurationFile(configurationFilePath);
     std::string jsonInput("\0", configurationFile.size());
     configurationFile.read(&jsonInput[0], 1, jsonInput.size());
-    gabac::Configuration configuration(jsonInput);
+    gabac::EncodingConfiguration configuration(jsonInput);
 
     // Read in the entire input file
     InputFile inputFile(inputFilePath);
@@ -44,33 +44,20 @@ void encode_plain(const std::string& inputFilePath,
     OutputFile outputFile(outputFilePath);
     gabac::FileOutputStream outstream(outputFile.handle());
 
+    gabac::IOConfiguration ioConf = {&instream,
+                                     &outstream,
+                                     blocksize,
+                                     &std::cout,
+                                     gabac::IOConfiguration::LogLevel::INFO
+    };
+
     // Convert Symbol stream to bytestream
-    gabac::encode(configuration, &instream, &outstream, blocksize);
+    gabac::encode(ioConf, configuration);
 
     /*GABACIFY_LOG_INFO << "Wrote bytestream of size "
                       << outstream.bytesWritten()
                       << " to: "
                       << outputFilePath;*/
-}
-
-//------------------------------------------------------------------------------
-
-void encode(
-        const std::string& inputFilePath,
-        bool analyze,
-        const std::string& configurationFilePath,
-        const std::string& outputFilePath,
-        size_t blocksize
-){
-    assert(!inputFilePath.empty());
-    assert(!configurationFilePath.empty());
-    assert(!outputFilePath.empty());
-
-    if (analyze) {
-        encode_analyze(inputFilePath, configurationFilePath, outputFilePath);
-        return;
-    }
-    encode_plain(inputFilePath, configurationFilePath, outputFilePath, blocksize);
 }
 
 //------------------------------------------------------------------------------

@@ -60,10 +60,7 @@ using SequenceTransform = std::function<void(const uint64_t param,
                                              std::vector<gabac::DataBlock> *const
 )>;
 
-using SignedBinarizationCheck = std::function<bool(int64_t min, int64_t max, uint64_t parameter
-)>;
-
-using SignedBinarizationBorder = std::function<int64_t (uint64_t parameter
+using SignedBinarizationBorder = std::function<uint64_t (uint64_t parameter
 )>;
 
 
@@ -81,9 +78,13 @@ struct BinarizationProperties
     std::string name;
     int64_t paramMin;
     int64_t paramMax;
+    bool isSigned;
     SignedBinarizationBorder min;
     SignedBinarizationBorder max;
-    bool sbCheck (int64_t minv, int64_t maxv, uint64_t parameter) const {
+    bool sbCheck (uint64_t minv, uint64_t maxv, uint64_t parameter) const {
+        if(isSigned) {
+            return int64_t (minv) >= int64_t (this->min(parameter)) && int64_t (maxv) <= int64_t (this->max(parameter));
+        }
         return minv >= this->min(parameter) && maxv <= this->max(parameter);
     }
 };

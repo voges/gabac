@@ -92,7 +92,8 @@ int encode_cabac(
         const BinarizationId& binarizationId,
         const std::vector<unsigned int>& binarizationParameters,
         const ContextSelectionId& contextSelectionId,
-        DataBlock *const symbols
+        DataBlock *const symbols,
+        size_t maxSize
 ){
     DataBlock bitstream(0, 1);
     assert(symbols != nullptr);
@@ -111,6 +112,8 @@ int encode_cabac(
 
     if (contextSelectionId == ContextSelectionId::bypass) {
         while (r.isValid()) {
+            if(maxSize <= bitstream.size())
+                return GABAC_FAILURE;
             writer.writeBypassValue(
                     r.get(),
                     binarizationId,
@@ -120,6 +123,8 @@ int encode_cabac(
         }
     } else if (contextSelectionId == ContextSelectionId::adaptive_coding_order_0) {
         while (r.isValid()) {
+            if(maxSize <= bitstream.size())
+                return GABAC_FAILURE;
             writer.writeCabacAdaptiveValue(
                     r.get(),
                     binarizationId,
@@ -131,6 +136,8 @@ int encode_cabac(
         }
     } else if (contextSelectionId == ContextSelectionId::adaptive_coding_order_1) {
         while (r.isValid()) {
+            if(maxSize <= bitstream.size())
+                return GABAC_FAILURE;
             uint64_t symbol = r.get();
             r.inc();
             writer.writeCabacAdaptiveValue(
@@ -152,6 +159,8 @@ int encode_cabac(
         }
     } else if (contextSelectionId == ContextSelectionId::adaptive_coding_order_2) {
         while (r.isValid()) {
+            if(maxSize <= bitstream.size())
+                return GABAC_FAILURE;
             uint64_t symbol = r.get();
             r.inc();
             writer.writeCabacAdaptiveValue(
@@ -184,10 +193,10 @@ int encode_cabac(
 }
 
 
-static uint64_t getMax(const gabac::DataBlock& b) {
+static uint64_t getMax(const gabac::DataBlock& b){
     uint64_t max = 0;
     gabac::BlockStepper r = b.getReader();
-    while(r.isValid()) {
+    while (r.isValid()) {
         max = std::max(max, r.get());
     }
     return max;
@@ -216,7 +225,7 @@ void doSequenceTransform(const gabac::SequenceTransformationId& transID,
 
 static void encodeStream(const gabac::TransformedSequenceConfiguration& conf,
                          gabac::DataBlock *const diffAndLutTransformedSequence,
-                         gabac::OutputStream* const out
+                         gabac::OutputStream *const out
 ){
     // Encoding
     gabac::encode_cabac(
@@ -231,19 +240,11 @@ static void encodeStream(const gabac::TransformedSequenceConfiguration& conf,
 
 //------------------------------------------------------------------------------
 
-void doLutTransform(bool enabled,
-                    unsigned int order,
+void doLutTransform(unsigned int order,
                     std::vector<gabac::DataBlock> *const lutSequences,
                     unsigned *bits0,
-                    gabac::OutputStream* out
+                    gabac::OutputStream *out
 ){
-    if (!enabled) {
-        //GABACIFY_LOG_TRACE << "LUT transform *dis*abled";
-        //GABACIFY_LOG_DEBUG << "Got uncompressed stream after LUT: " << 0 << " bytes";
-        //GABACIFY_LOG_DEBUG << "Got table after LUT: " << 0 << " bytes";
-        return;
-    }
-
     //GABACIFY_LOG_TRACE << "LUT transform *en*abled";
     const unsigned LUT_INDEX = 4;
 
@@ -268,30 +269,32 @@ void doLutTransform(bool enabled,
     }
 
     unsigned bits1 = unsigned((*lutSequences)[1].size());
-    encodeStream({false, 0, 0, false, gabac::BinarizationId::BI, {*bits0}, gabac::ContextSelectionId::bypass}, &(*lutSequences)[1], out);
+    encodeStream(
+            {false, 0, 0, false, gabac::BinarizationId::BI, {*bits0}, gabac::ContextSelectionId::bypass},
+            &(*lutSequences)[1],
+            out
+    );
 
     if (order > 0) {
         bits1 = unsigned(std::ceil(std::log2(bits1)));
-        encodeStream({false, 0, 0, false, gabac::BinarizationId::BI, {bits1}, gabac::ContextSelectionId::bypass}, &(*lutSequences)[2], out);
+        encodeStream(
+                {false, 0, 0, false, gabac::BinarizationId::BI, {bits1}, gabac::ContextSelectionId::bypass},
+                &(*lutSequences)[2],
+                out
+        );
     }
 
 }
 
 //------------------------------------------------------------------------------
 
-void doDiffTransform(bool enabled,
-                     gabac::DataBlock *const diffAndLutTransformedSequence
+void doDiffTransform(std::vector<gabac::DataBlock> *const sequence
 ){
-    // Diff coding
-    if (enabled) {
-        //GABACIFY_LOG_TRACE << "Diff coding *en*abled";
-        gabac::transformDiffCoding(diffAndLutTransformedSequence);
-        /*GABACIFY_LOG_DEBUG << "Got uncompressed stream after diff: "
-                           << diffAndLutTransformedSequence->size()
-                           << " bytes";*/
-        return;
-    }
+    //GABACIFY_LOG_TRACE << "LUT transform *en*abled";
+    const unsigned DIFF_INDEX = 5;
 
+    // Put raw sequence in, get transformed sequence and lut tables
+    gabac::transformationInformation[DIFF_INDEX].transform(0, sequence);
 
     //GABACIFY_LOG_TRACE << "Diff coding *dis*abled";
     //GABACIFY_LOG_DEBUG << "Got uncompressed stream after diff: " << diffAndLutTransformedSequence->size() << " bytes";
@@ -301,7 +304,7 @@ void doDiffTransform(bool enabled,
 
 static void encodeSingleSequence(const gabac::TransformedSequenceConfiguration& configuration,
                                  gabac::DataBlock *const seq,
-                                 gabac::OutputStream* const out
+                                 gabac::OutputStream *const out
 ){
     std::vector<gabac::DataBlock> lutTransformedSequences;
 
@@ -310,39 +313,42 @@ static void encodeSingleSequence(const gabac::TransformedSequenceConfiguration& 
     lutTransformedSequences[0].swap(seq);
 
     // Put sequence in, get lut sequence and lut bytestreams
-    unsigned bits = configuration.lutBits;
-    doLutTransform(
-            configuration.lutTransformationEnabled,
-            configuration.lutOrder,
-            &lutTransformedSequences,
-            &bits,
-            out
-    );
+    if (configuration.lutTransformationEnabled) {
+        unsigned bits = configuration.lutBits;
+        doLutTransform(
+                configuration.lutOrder,
+                &lutTransformedSequences,
+                &bits,
+                out
+        );
+    }
 
     // Put lut transformed in, get difftransformed out
-    doDiffTransform(
-            configuration.diffCodingEnabled,
-            &lutTransformedSequences[0]
-    );
+    if (configuration.diffCodingEnabled) {
+        doDiffTransform(
+                &lutTransformedSequences
+        );
+    }
 
     encodeStream(configuration, &lutTransformedSequences[0], out);
 }
 
 //------------------------------------------------------------------------------
 
+
 void encode(
-        const gabac::Configuration& configuration,
-        gabac::InputStream* inStream,
-        gabac::OutputStream* outStream,
-        size_t blocksize
+        const IOConfiguration& conf,
+        const EncodingConfiguration& enConf
 ){
-    while(inStream->isValid()) {
+    conf.validate();
+    while (conf.inputStream->isValid()) {
         gabac::DataBlock sequence(0, 1);
-        size_t readLength = std::min(blocksize, inStream->getRemainingSize());
-        if(!blocksize)
-            readLength = inStream->getRemainingSize();
-        inStream->readBytes(readLength, &sequence);
-        sequence.setWordSize(configuration.wordSize);
+        size_t readLength = std::min(conf.blocksize, conf.inputStream->getRemainingSize());
+        if (!conf.blocksize) {
+            readLength = conf.inputStream->getRemainingSize();
+        }
+        conf.inputStream->readBytes(readLength, &sequence);
+        sequence.setWordSize(enConf.wordSize);
         // Insert sequence into vector
         std::vector<gabac::DataBlock> transformedSequences;
         transformedSequences.resize(1);
@@ -350,8 +356,8 @@ void encode(
 
         // Put symbol stream in, get transformed streams out
         doSequenceTransform(
-                configuration.sequenceTransformationId,
-                configuration.sequenceTransformationParameter,
+                enConf.sequenceTransformationId,
+                enConf.sequenceTransformationParameter,
                 &transformedSequences
         );
 
@@ -359,9 +365,9 @@ void encode(
         for (size_t i = 0; i < transformedSequences.size(); i++) {
             // Put transformed sequence in, get partial bytestream back
             encodeSingleSequence(
-                    configuration.transformedSequenceConfigurations[i],
+                    enConf.transformedSequenceConfigurations[i],
                     &(transformedSequences[i]),
-                    outStream
+                    conf.outputStream
             );
         }
     }

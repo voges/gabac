@@ -311,55 +311,54 @@ static void doEntropyCoding(const gabac::TransformedSequenceConfiguration& trans
 //------------------------------------------------------------------------------
 
 void decode(
-        const gabac::Configuration& configuration,
-        gabac::InputStream *const inStream,
-        gabac::OutputStream *const outStream
+        const IOConfiguration& ioConf,
+        const EncodingConfiguration& enConf
 ){
 
-    while(inStream->isValid()) {
+    while(ioConf.inputStream->isValid()) {
 
         // Set up for the inverse sequence transformation
         size_t numTransformedSequences =
-                gabac::transformationInformation[unsigned(configuration.sequenceTransformationId)].wordsizes.size();
+                gabac::transformationInformation[unsigned(enConf.sequenceTransformationId)].wordsizes.size();
 
         // Loop through the transformed sequences
         std::vector<gabac::DataBlock> transformedSequences;
         for (size_t i = 0; i < numTransformedSequences; i++) {
             //GABACIFY_LOG_TRACE << "Processing transformed sequence: " << i;
-            auto transformedSequenceConfiguration = configuration.transformedSequenceConfigurations.at(i);
+            auto transformedSequenceConfiguration = enConf.transformedSequenceConfigurations.at(i);
 
             std::vector<gabac::DataBlock> lutTransformedSequences(3);
             if (transformedSequenceConfiguration.lutTransformationEnabled) {
                 decodeInverseLUT(
-                        configuration.transformedSequenceConfigurations[i].lutBits,
-                        configuration.transformedSequenceConfigurations[i].lutOrder,
-                        inStream,
+                        enConf.transformedSequenceConfigurations[i].lutBits,
+                        enConf.transformedSequenceConfigurations[i].lutOrder,
+                        ioConf.inputStream,
                         &lutTransformedSequences[1],
                         &lutTransformedSequences[2]
                 );
             }
 
             uint8_t wsize =
-                    gabac::transformationInformation[unsigned(configuration.sequenceTransformationId)].wordsizes[i];
+                    gabac::transformationInformation[unsigned(enConf.sequenceTransformationId)].wordsizes[i];
             if (wsize == 0) {
-                wsize = configuration.wordSize;
+                wsize = enConf.wordSize;
             }
 
             doEntropyCoding(
-                    configuration.transformedSequenceConfigurations[i],
+                    enConf.transformedSequenceConfigurations[i],
                     wsize,
-                    inStream,
+                    ioConf.inputStream,
                     &lutTransformedSequences[0]
             );
 
             doDiffCoding(
-                    configuration.transformedSequenceConfigurations[i].diffCodingEnabled,
+                    enConf.transformedSequenceConfigurations[i].diffCodingEnabled,
                     &(lutTransformedSequences[0])
             );
 
             doLUTCoding(
-                    configuration.transformedSequenceConfigurations[i].lutTransformationEnabled,
-                    configuration.transformedSequenceConfigurations[i].lutOrder,
+                    enConf.transformedSequenceConfigurations[i].lutTransformationEnabled,
+                    enConf.transformedSequenceConfigurations[i].lutOrder,
                     &lutTransformedSequences
             );
 
@@ -368,13 +367,13 @@ void decode(
         }
 
 
-        gabac::transformationInformation[unsigned(configuration.sequenceTransformationId)].inverseTransform(
-                configuration.sequenceTransformationParameter,
+        gabac::transformationInformation[unsigned(enConf.sequenceTransformationId)].inverseTransform(
+                enConf.sequenceTransformationParameter,
                 &transformedSequences
         );
         //GABACIFY_LOG_TRACE << "Decoded sequence of length: " << transformedSequences[0].size();
 
-        outStream->writeBytes(&transformedSequences[0]);
+        ioConf.outputStream->writeBytes(&transformedSequences[0]);
     }
 }
 

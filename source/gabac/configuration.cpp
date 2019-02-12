@@ -11,11 +11,12 @@
 
 #include "exceptions.h"
 
+#include "gabac/input_stream.h"
 
 namespace gabac {
 
 
-Configuration::Configuration()
+EncodingConfiguration::EncodingConfiguration()
         : wordSize(0),
         sequenceTransformationId(gabac::SequenceTransformationId::no_transform),
         sequenceTransformationParameter(0),
@@ -24,7 +25,7 @@ Configuration::Configuration()
 }
 
 
-Configuration::Configuration(
+EncodingConfiguration::EncodingConfiguration(
         const std::string& json
 ){
     try
@@ -78,10 +79,10 @@ Configuration::Configuration(
 }
 
 
-Configuration::~Configuration() = default;
+EncodingConfiguration::~EncodingConfiguration() = default;
 
 
-std::string Configuration::toJsonString() const{
+std::string EncodingConfiguration::toJsonString() const{
     std::string jsonString;
 
     try
@@ -166,7 +167,7 @@ std::string Configuration::toJsonString() const{
 }
 
 
-std::string Configuration::toPrintableString() const{
+std::string EncodingConfiguration::toPrintableString() const{
     std::stringstream s;
 
     s << this->wordSize << "  |  ";
@@ -197,6 +198,21 @@ std::string TransformedSequenceConfiguration::toPrintableString() const{
     s << static_cast<int>(contextSelectionId);
     s << "]";
     return s.str();
+}
+
+void IOConfiguration::validate() const{
+    if(!inputStream || !inputStream->isValid()){
+        GABAC_DIE("Invalid input stream");
+    }
+    if(!outputStream){
+        GABAC_DIE("Invalid output stream");
+    }
+    if(!outputStream) {
+        GABAC_DIE("Invalid logging output stream");
+    }
+    if(unsigned(level) > unsigned(IOConfiguration::LogLevel::FATAL)){
+        GABAC_DIE("Invalid logging level");
+    }
 }
 
 

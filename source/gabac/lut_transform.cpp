@@ -1,5 +1,7 @@
 #include "gabac/lut_transform.h"
 
+#include "gabac/exceptions.h"
+
 #include <algorithm>
 #include <cassert>
 #include <iostream>
@@ -145,7 +147,7 @@ static void inferLut0(
             uint64_t symbol = r.get();
             freq[symbol]++;
             if (freq.size() >= MAX_LUT_SIZE) {
-                return;
+                GABAC_DIE("LUT too big");
             }
             r.inc();
         }
