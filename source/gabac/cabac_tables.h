@@ -14,7 +14,7 @@ namespace gabac {
 namespace cabactables {
 
 
-const std::vector<std::vector<unsigned int>> lpsTable = {
+const std::vector<std::vector<unsigned char>> lpsTable __attribute__ ((aligned (1024))) = {
         {128, 176, 208, 240},
         {128, 167, 197, 227},
         {128, 158, 187, 216},
@@ -82,13 +82,13 @@ const std::vector<std::vector<unsigned int>> lpsTable = {
 };
 
 
-const std::vector<unsigned int> renormTable = {
+const std::vector<unsigned char> renormTable = {
         6, 5, 4, 4, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1,
         1, 1, 1, 1, 1, 1, 1
 };
 
 
-const std::vector<unsigned int> nextStateLps = {
+const std::vector<unsigned char> nextStateLps = {
         1, 0, 0, 1, 2, 3, 4, 5, 4, 5, 8, 9, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17,
         18, 19, 18, 19, 22, 23, 22, 23, 24, 25, 26, 27, 26, 27, 30, 31, 30, 31,
         32, 33, 32, 33, 36, 37, 36, 37, 38, 39, 38, 39, 42, 43, 42, 43, 44, 45,
@@ -99,7 +99,7 @@ const std::vector<unsigned int> nextStateLps = {
 };
 
 
-const std::vector<unsigned int> nextStateMps = {
+const std::vector<unsigned char> nextStateMps = {
         2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
         22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39,
         40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57,

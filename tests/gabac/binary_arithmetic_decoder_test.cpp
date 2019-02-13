@@ -1,6 +1,6 @@
 #include <vector>
 
-#include "gabac/binary_arithmetic_decoder.h"
+#include "gabac/binary_arithmetic_decoder.cpp"
 #include "gabac/context_tables.h"
 #include "gabac/context_selector.h"
 #include "gtest/gtest.h"
