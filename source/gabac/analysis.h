@@ -15,17 +15,17 @@ inline const AnalysisConfiguration& getCandidateConfig(){
                     1,
                        2,
                           4,
-                             8
+                            8
             },
             { // Sequence Transformations
                     gabac::SequenceTransformationId::no_transform,
                        gabac::SequenceTransformationId::equality_coding,
-                          gabac::SequenceTransformationId::match_coding,
+                         gabac::SequenceTransformationId::match_coding,
                              gabac::SequenceTransformationId::rle_coding
             },
             { // Match coding window sizes
                     32,
-                       256
+                      256
             },
             { // RLE Guard
                     255
@@ -53,7 +53,7 @@ inline const AnalysisConfiguration& getCandidateConfig(){
                     15, 30, 255
             },
             { // Context modes
-                    // gabac::ContextSelectionId::bypass,
+                    gabac::ContextSelectionId::bypass,
                     gabac::ContextSelectionId::adaptive_coding_order_0,
                        gabac::ContextSelectionId::adaptive_coding_order_1,
                           gabac::ContextSelectionId::adaptive_coding_order_2

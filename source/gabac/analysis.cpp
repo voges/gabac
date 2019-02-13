@@ -30,7 +30,6 @@ namespace gabac {
 
 struct Snapshot
 {
-    size_t size;
     std::vector<DataBlock> streams;
 };
 
@@ -46,6 +45,8 @@ struct TraversalInfo
 
     size_t currSequenceSize;
     size_t bestSequenceSize;
+
+    size_t currTotalSize;
     size_t bestTotalSize;
 
     std::stack<Snapshot> stack;
@@ -60,12 +61,12 @@ void getOptimumOfBinarizationParameter(const AnalysisConfiguration& aconf,
     for (const auto& transID : aconf.candidateContextSelectionIds) {
         info->currConfig.transformedSequenceConfigurations[info->currStreamIndex].contextSelectionId = transID;
         info->stack.push(info->stack.top());
+        size_t maxSize = std::min(info->bestSequenceSize - info->currSequenceSize, info->bestTotalSize - info->currTotalSize) - sizeof(uint32_t);
         gabac::encode_cabac(
                 info->currConfig.transformedSequenceConfigurations[info->currStreamIndex].binarizationId,
                 info->currConfig.transformedSequenceConfigurations[info->currStreamIndex].binarizationParameters,
                 info->currConfig.transformedSequenceConfigurations[info->currStreamIndex].contextSelectionId,
-                &(info->stack.top().streams.front()),
-                info->bestSequenceSize - info->currSequenceSize - sizeof(uint32_t)
+                &(info->stack.top().streams.front()) , maxSize
         );
         info->currSequenceSize += sizeof(uint32_t) + info->stack.top().streams.front().size();
         if (info->bestSequenceSize > info->currSequenceSize) {
@@ -147,7 +148,7 @@ void getOptimumOfDiffTransformedStream(const AnalysisConfiguration& aconf,
                                        TraversalInfo *info
 ){
     std::vector<gabac::BinarizationId>
-            candidates = (info->currConfig.transformedSequenceConfigurations[info->currStreamIndex].diffCodingEnabled)
+            candidates = (!info->currConfig.transformedSequenceConfigurations[info->currStreamIndex].diffCodingEnabled)
                          ? aconf.candidateUnsignedBinarizationIds
                          : aconf.candidateSignedBinarizationIds; // TODO: avoid copy
 
@@ -273,16 +274,19 @@ void getOptimumOfSequenceTransform(const AnalysisConfiguration& aconf,
         info->stack.push(info->stack.top());
 
         info->currConfig.sequenceTransformationParameter = p;
-        info->currConfig.transformedSequenceConfigurations.resize(info->stack.top().streams.size());
 
         gabac::transformationInformation[unsigned(info->currConfig.sequenceTransformationId)].transform(
                 p,
                 &info->stack.top().streams
         );
 
-        size_t totalSize = 0;
+        info->currTotalSize = 0;
 
         for (unsigned i = 0; i < info->stack.top().streams.size(); ++i) {
+            info->stack.push(info->stack.top());
+            info->stack.top().streams[i].swap(&info->stack.top().streams[0]);
+            info->stack.top().streams.resize(1);
+
             info->ioconf->log(gabac::IOConfiguration::LogLevel::INFO) << "Stream " << i << "..." << std::endl;
             info->bestSequenceSize = std::numeric_limits<size_t>::max();
             info->currStreamIndex = i;
@@ -298,25 +302,28 @@ void getOptimumOfSequenceTransform(const AnalysisConfiguration& aconf,
                         << info->currConfig.wordSize
                         << " Skipping!"
                         << std::endl;
-                totalSize = info->bestSequenceSize;
+                info->currTotalSize = info->bestSequenceSize;
+                info->stack.pop();
                 break;
             }
 
-            totalSize += info->bestSequenceSize;
-            if(totalSize >= info->bestTotalSize) {
+            info->currTotalSize += info->bestSequenceSize;
+            if(info->currTotalSize >= info->bestTotalSize) {
                 info->ioconf->log(gabac::IOConfiguration::LogLevel::TRACE)
                     << "Skipping. Bitstream already larger than permitted." << std::endl;
+                info->stack.pop();
                 break;
             }
+            info->stack.pop();
         }
 
-        if (totalSize < info->bestTotalSize) {
+        if (info->currTotalSize < info->bestTotalSize) {
             info->ioconf->log(gabac::IOConfiguration::LogLevel::DEBUG)
                     << "Found configuration compressing to "
-                    << totalSize
+                    << info->currTotalSize
                     << " bytes."
                     << std::endl;
-            info->bestTotalSize = totalSize;
+            info->bestTotalSize = info->currTotalSize;
             info->bestConfig = info->currConfig;
         }
 

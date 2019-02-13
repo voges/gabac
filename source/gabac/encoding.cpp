@@ -113,7 +113,7 @@ int encode_cabac(
     if (contextSelectionId == ContextSelectionId::bypass) {
         while (r.isValid()) {
             if(maxSize <= bitstream.size())
-                return GABAC_FAILURE;
+                break;
             writer.writeBypassValue(
                     r.get(),
                     binarizationId,
@@ -124,7 +124,7 @@ int encode_cabac(
     } else if (contextSelectionId == ContextSelectionId::adaptive_coding_order_0) {
         while (r.isValid()) {
             if(maxSize <= bitstream.size())
-                return GABAC_FAILURE;
+                break;
             writer.writeCabacAdaptiveValue(
                     r.get(),
                     binarizationId,
@@ -137,7 +137,7 @@ int encode_cabac(
     } else if (contextSelectionId == ContextSelectionId::adaptive_coding_order_1) {
         while (r.isValid()) {
             if(maxSize <= bitstream.size())
-                return GABAC_FAILURE;
+                break;
             uint64_t symbol = r.get();
             r.inc();
             writer.writeCabacAdaptiveValue(
@@ -160,7 +160,7 @@ int encode_cabac(
     } else if (contextSelectionId == ContextSelectionId::adaptive_coding_order_2) {
         while (r.isValid()) {
             if(maxSize <= bitstream.size())
-                return GABAC_FAILURE;
+                break;
             uint64_t symbol = r.get();
             r.inc();
             writer.writeCabacAdaptiveValue(
