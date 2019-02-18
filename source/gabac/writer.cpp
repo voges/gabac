@@ -14,7 +14,7 @@
 // BinaryArithmeticDecoder in this file.
 //
 #include "binary_arithmetic_encoder.cpp"
- 
+
 
 namespace gabac {
 
@@ -61,7 +61,7 @@ Writer::Writer(
         std::vector<unsigned char> *const bitstream
 )
         : m_bitOutputStream(bitstream),
-        m_contextSelector(),
+        // m_contextSelector(),
         m_binaryArithmeticEncoder(m_bitOutputStream),
         m_contextModels(contexttables::buildContextTable()){
 }
