@@ -6,22 +6,27 @@
 #include <string>
 
 
-struct GabacifyLogTmp {
-    ~GabacifyLogTmp() { std::cout << std::endl; }
+struct GabacifyLogTmpStdout {
+    ~GabacifyLogTmpStdout() { std::cout << std::endl; }
 };
 
 
-#define GABACIFY_LOG_TRACE (GabacifyLogTmp(), std::cout << "[" << gabacify::currentDateAndTime() << "] [trace] ")
+struct GabacifyLogTmpStderr {
+    ~GabacifyLogTmpStderr() { std::cout << std::endl; }
+};
 
-#define GABACIFY_LOG_DEBUG (GabacifyLogTmp(), std::cout << "[" << gabacify::currentDateAndTime() << "] [debug] ")
 
-#define GABACIFY_LOG_INFO (GabacifyLogTmp(), std::cout << "[" << gabacify::currentDateAndTime() << "] [info] ")
+#define GABACIFY_LOG_TRACE (GabacifyLogTmpStdout(), std::cout << "[" << gabacify::currentDateAndTime() << "] [trace] ")
 
-#define GABACIFY_LOG_WARNING (GabacifyLogTmp(), std::cerr << "[" << gabacify::currentDateAndTime() << "] [warning] ")
+#define GABACIFY_LOG_DEBUG (GabacifyLogTmpStdout(), std::cout << "[" << gabacify::currentDateAndTime() << "] [debug] ")
 
-#define GABACIFY_LOG_ERROR (GabacifyLogTmp(), std::cerr << "[" << gabacify::currentDateAndTime() << "] [error] ")
+#define GABACIFY_LOG_INFO (GabacifyLogTmpStdout(), std::cout << "[" << gabacify::currentDateAndTime() << "] [info] ")
 
-#define GABACIFY_LOG_FATAL (GabacifyLogTmp(), std::cerr << "[" << gabacify::currentDateAndTime() << "] [fatal] ")
+#define GABACIFY_LOG_WARNING (GabacifyLogTmpStderr(), std::cerr << "[" << gabacify::currentDateAndTime() << "] [warning] ")
+
+#define GABACIFY_LOG_ERROR (GabacifyLogTmpStderr(), std::cerr << "[" << gabacify::currentDateAndTime() << "] [error] ")
+
+#define GABACIFY_LOG_FATAL (GabacifyLogTmpStderr(), std::cerr << "[" << gabacify::currentDateAndTime() << "] [fatal] ")
 
 
 namespace gabacify {
