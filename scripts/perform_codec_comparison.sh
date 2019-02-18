@@ -7,13 +7,13 @@
 
 if [ "$#" -ne 1 ]; then
     printf "Usage: %s <test_file>\\n" "$0"
-    exit -1
+    exit 1
 fi
 
 readonly test_file="$1"
 if [ ! -f "$test_file" ]; then
     printf "Error: '%s' is not a regular file\\n" "$test_file"
-    exit -1
+    exit 1
 fi
 
 
@@ -31,32 +31,32 @@ readonly time="/usr/local/Cellar/gnu-time/1.9/bin/gtime" # macOS w/ Homebrew
 
 if [ ! -x "$gzip" ]; then
     printf "Error: '%s' is not executable\\n" "$gzip"
-    exit -1
+    exit 1
 fi
 
 if [ ! -x "$bzip2" ]; then
     printf "Error: '%s' is not executable\\n" "$bzip2"
-    exit -1
+    exit 1
 fi
 
 if [ ! -x "$gabacify" ]; then
     printf "Error: '%s' is not executable\\n" "$gabacify"
-    exit -1
+    exit 1
 fi
 
 if [ ! -x "$xz" ]; then
     printf "Error: '%s' is not executable\\n" "$xz"
-    exit -1
+    exit 1
 fi
 
 if [ ! -x "$rans" ]; then
     printf "Error: '%s' is not executable\\n" "$rans"
-    exit -1
+    exit 1
 fi
 
 if [ ! -x "$time" ]; then
     printf "Error: '%s' is not executable\\n" "$time"
-    exit -1
+    exit 1
 fi
 
 
@@ -68,7 +68,7 @@ readonly log_file="$test_file.codec_stats"
 printf "Writing statistics to: %s\\n" "$log_file"
 if [ -f "$log_file" ]; then
     printf "Error: '%s' already exists\\n" "$log_file"
-    exit -1
+    exit 1
 fi
 { \
     printf "         tool  "; \
@@ -144,7 +144,7 @@ for i in "${!tools[@]}"; do
 
     # Test roundtrip
     printf "Validating roundtrip\\n"
-    diff "$test_file" "$test_file.$tool.recon" || exit -1
+    diff "$test_file" "$test_file.$tool.recon" || exit 1
 
     # Logging
     uncompressed_size=$(wc -c "$test_file" | awk '{print $1}')
