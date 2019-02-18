@@ -56,6 +56,10 @@ class DataBlock
 
         IteratorCore operator- (size_t offset) const;
 
+        size_t operator- (const IteratorCore& offset) const {
+            return position - offset.position;
+        }
+
         IteratorCore& operator++ ();
 
         IteratorCore& operator-- ();
