@@ -94,7 +94,7 @@ class Reader
  private:
     BitInputStream m_bitInputStream;
 
-    ContextSelector m_contextSelector;
+    // ContextSelector m_contextSelector;
 
     BinaryArithmeticDecoder m_decBinCabac;
 

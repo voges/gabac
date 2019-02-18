@@ -114,7 +114,7 @@ class Writer
  private:
     BitOutputStream m_bitOutputStream;
 
-    ContextSelector m_contextSelector;
+    // ContextSelector m_contextSelector;
 
     BinaryArithmeticEncoder m_binaryArithmeticEncoder;
 
