@@ -11,11 +11,11 @@ if [ ! -d "$build_dir" ]; then
 fi
 
 # Build everything
-cd "$build_dir" || exit -1
+cd "$build_dir" || exit 1
 cmake .. \
     -G "Unix Makefiles" \
     -DCMAKE_BUILD_TYPE=Release \
-    -DGABAC_BUILD_SHARED_LIB=ON || exit -1
-make || exit -1
+    -DGABAC_BUILD_SHARED_LIB=ON || exit 1
+make || exit 1
 #make tests || exit -1
-make gabacify || exit -1
+make gabacify || exit 1

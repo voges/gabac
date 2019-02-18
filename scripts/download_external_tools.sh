@@ -26,16 +26,16 @@ readonly pycodestyle_dir="$external_tools_dir/pycodestyle-2.4.0"
 # Download and build cppcheck if it does not exist already
 if [ ! -d "$cppcheck_dir" ]; then
     printf "Downloading cppcheck\\n"
-    cd "$external_tools_dir" || exit -1
-    wget "$cppcheck_url" || exit -1
-    unzip "$cppcheck_zip" || exit -1
-    rm "$cppcheck_zip" || exit -1
+    cd "$external_tools_dir" || exit 1
+    wget "$cppcheck_url" || exit 1
+    unzip "$cppcheck_zip" || exit 1
+    rm "$cppcheck_zip" || exit 1
     printf "Building cppcheck\\n"
-    cd "$cppcheck_dir" || exit -1
-    mkdir -p build || exit -1
-    cd build || exit -1
-    cmake -DCMAKE_INSTALL_PREFIX=. .. || exit -1
-    make install || exit -1
+    cd "$cppcheck_dir" || exit 1
+    mkdir -p build || exit 1
+    cd build || exit 1
+    cmake -DCMAKE_INSTALL_PREFIX=. .. || exit 1
+    make install || exit 1
 else
     printf "cppcheck already downloaded and built\\n"
 fi
@@ -43,10 +43,10 @@ fi
 # Download cpplint if it does not exist already
 if [ ! -d "$cpplint_dir" ]; then
     printf "Downloading cpplint\\n"
-    cd "$external_tools_dir" || exit -1
-    wget "$cpplint_url" || exit -1
-    unzip "$cpplint_zip" || exit -1
-    rm "$cpplint_zip" || exit -1
+    cd "$external_tools_dir" || exit 1
+    wget "$cpplint_url" || exit 1
+    unzip "$cpplint_zip" || exit 1
+    rm "$cpplint_zip" || exit 1
 else
     printf "cpplint already downloaded\\n"
 fi
@@ -54,10 +54,10 @@ fi
 # Download pycodestyle if it does not exist already
 if [ ! -d "$pycodestyle_dir" ]; then
     printf "Downloading pycodestyle\\n"
-    cd "$external_tools_dir" || exit -1
-    wget "$pycodestyle_url" || exit -1
-    unzip "$pycodestyle_zip" || exit -1
-    rm "$pycodestyle_zip" || exit -1
+    cd "$external_tools_dir" || exit 1
+    wget "$pycodestyle_url" || exit 1
+    unzip "$pycodestyle_zip" || exit 1
+    rm "$pycodestyle_zip" || exit 1
 else
     printf "pycodestyle already downloaded\\n"
 fi
