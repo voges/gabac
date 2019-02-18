@@ -79,9 +79,6 @@ if(${GABAC_USE_NO_SYSTEM_BOOST})
         set(boost_lib_dir ${boost_root_dir}/lib)
         set(boost_libs ${boost_libs} ${boost_lib_dir}/libboost_program_options.a)
 
-        set(BOOST_ROOT ${boost_root_dir})
-        set(Boost_NO_SYSTEM_PATHS "ON")
-
         include(ExternalProject)
         ExternalProject_Add(Boost
             PREFIX ${boost_root_dir}
