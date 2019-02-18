@@ -71,6 +71,10 @@ class DataBlock
         bool operator!= (const IteratorCore& c) const;
 
         using iterator_category = std::random_access_iterator_tag;
+        using reference = ProxyCore<T>;
+        using pointer = ProxyCore<T>*;
+        using value_type = ProxyCore<T>;
+        using difference_type = size_t;
     };
 
     using Iterator = IteratorCore<DataBlock*>;
