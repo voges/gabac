@@ -33,9 +33,9 @@ static int gabacify_main(
 ){
     try
     {
-        gabacify::initLog();
         gabacify::ProgramOptions programOptions(argc, argv);
-        gabacify::setLogLevel(programOptions.logLevel);
+        // TODO(Jan): enable log level setting again
+        // gabacify::setLogLevel(programOptions.logLevel);
         writeCommandLine(argc, argv);
 
         if (programOptions.task == "encode")
