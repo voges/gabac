@@ -21,7 +21,7 @@ Reader::Reader(
         const std::vector<unsigned char>& bitstream
 )
         : m_bitInputStream(bitstream),
-        m_contextSelector(),
+        // m_contextSelector(),
         m_decBinCabac(m_bitInputStream),
         m_contextModels(contexttables::buildContextTable()){
 }

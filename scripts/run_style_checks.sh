@@ -25,7 +25,7 @@ cpp_files+=("$git_root_dir"/tests/gabac/*.h)
 for cpp_file in "${cpp_files[@]}"; do
     if [ ! -f "$cpp_file" ]; then
         printf "Error: '%s' is not a regular file\\n" "$cpp_file"
-        exit -1
+        exit 1
     fi
 done
 
@@ -38,7 +38,7 @@ python_files+=("$git_root_dir"/tests/python_api/*.py)
 for python_file in "${python_files[@]}"; do
     if [ ! -f "$python_file" ]; then
         printf "Error: '%s' is not a regular file\\n" "$python_file"
-        exit -1
+        exit 1
     fi
 done
 
@@ -51,7 +51,7 @@ bash_files+=("$git_root_dir"/scripts/*.sh)
 for bash_file in "${bash_files[@]}"; do
     if [ ! -f "$bash_file" ]; then
         printf "Error: '%s' is not a regular file\\n" "$bash_file"
-        exit -1
+        exit 1
     fi
 done
 
@@ -64,21 +64,21 @@ done
 readonly cppcheck="$git_root_dir/external_tools/cppcheck-1.85/build/bin/cppcheck"
 if [ ! -f "$cppcheck" ]; then
     printf "Error: '%s' is not a regular file\\n" "$cppcheck"
-    exit -1
+    exit 1
 fi
 
 # cpplint.py
 readonly cpplint_py="$git_root_dir/external_tools/cpplint-1.3.0/cpplint.py"
 if [ ! -f "$cpplint_py" ]; then
     printf "Error: '%s' is not a regular file\\n" "$cpplint_py"
-    exit -1
+    exit 1
 fi
 
 # pycodestyle.py
 readonly pycodestyle_py="$git_root_dir/external_tools/pycodestyle-2.4.0/pycodestyle.py"
 if [ ! -f "$pycodestyle_py" ]; then
     printf "Error: '%s' is not a regular file\\n" "$pycodestyle_py"
-    exit -1
+    exit 1
 fi
 
 
@@ -110,7 +110,7 @@ done
 cpplint_cfg="$git_root_dir/source/CPPLINT.cfg"
 if [ ! -f "$cpplint_cfg" ]; then
     printf "Error: '%s' is not a regular file\\n" "$cpplint_cfg"
-    exit -1
+    exit 1
 fi
 
 # Do the work

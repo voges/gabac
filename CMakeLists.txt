@@ -14,8 +14,10 @@ set(CMAKE_CXX_STANDARD 11)
 project("gabac")
 
 # Custom CMake cache variables
-set(gabac OFF CACHE BOOL "Build shared GABAC library.")
+set(GABAC_BUILD_SHARED_LIB OFF CACHE BOOL "Build shared GABAC library.")
+set(GABAC_USE_NO_SYSTEM_BOOST OFF CACHE BOOL "Do not try to use the system Boost installation, instead let CMake download and build Boost internal to this project.")
 message(STATUS "GABAC_BUILD_SHARED_LIB=${GABAC_BUILD_SHARED_LIB}")
+message(STATUS "GABAC_USE_NO_SYSTEM_BOOST=${GABAC_USE_NO_SYSTEM_BOOST}")
 
 
 #==============================================================================
@@ -29,17 +31,16 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshadow")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wstrict-aliasing")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Ofast")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast")
 elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Ofast")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast")
 elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Intel")
     message(STATUS "C++ compiler: Intel")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O2 -g")
-#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -inline-level=1")
+    # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -inline-level=1")
 else()
     message(FATAL_ERROR "C++ compiler currently not supported by CMake build")
 endif()
@@ -52,7 +53,7 @@ endif()
 # Set default build type
 if(NOT CMAKE_BUILD_TYPE)
     message(STATUS "Build type not specified")
-    set(CMAKE_BUILD_TYPE Debug)
+    set(CMAKE_BUILD_TYPE Release)
     message(STATUS "Using fall-back build type '${CMAKE_BUILD_TYPE}'")
 endif()
 
@@ -69,7 +70,31 @@ message(STATUS "Selected build type: ${CMAKE_BUILD_TYPE}")
 # Boost
 #==============================================================================
 
-find_package(Boost 1.54 COMPONENTS regex log program_options REQUIRED)
+if(${GABAC_USE_NO_SYSTEM_BOOST})
+    if(UNIX)
+        set(boost_git_repository https://github.com/boostorg/boost.git)
+        set(boost_git_tag "boost-1.67.0")
+        set(boost_root_dir ${CMAKE_CURRENT_BINARY_DIR}/boost)
+        set(boost_include_dir ${boost_root_dir}/include)
+        set(boost_lib_dir ${boost_root_dir}/lib)
+        set(boost_libs ${boost_libs} ${boost_lib_dir}/libboost_program_options.a)
+
+        include(ExternalProject)
+        ExternalProject_Add(Boost
+            PREFIX ${boost_root_dir}
+            GIT_REPOSITORY ${boost_git_repository}
+            GIT_TAG ${boost_git_tag}
+            CONFIGURE_COMMAND ./bootstrap.sh --with-libraries=program_options --prefix=${boost_root_dir}
+            BUILD_COMMAND ./b2 link=static install
+            BUILD_IN_SOURCE 1
+            INSTALL_COMMAND ""
+        )
+    else()
+        message(FATAL_ERROR "Project-internal Boost build currently not supported on non UNIX-like systems")
+    endif()
+else()
+    find_package(Boost 1.54 COMPONENTS program_options REQUIRED)
+endif()
 
 
 #==============================================================================
@@ -165,7 +190,7 @@ set(gabac_header_files ${gabac_header_files} ${gabac_header_dir}/reader.h)
 set(gabac_header_files ${gabac_header_files} ${gabac_header_dir}/release.h)
 set(gabac_header_files ${gabac_header_files} ${gabac_header_dir}/return_codes.h)
 set(gabac_header_files ${gabac_header_files} ${gabac_header_dir}/rle_coding.h)
-set(gabac_header_files ${gabac_header_files} ${gabac_header_dir}/writer.h source/gabac/constants.cpp)
+set(gabac_header_files ${gabac_header_files} ${gabac_header_dir}/writer.h)
 
 # Group the source and header files
 source_group("GABAC Source Files" FILES ${gabac_source_files})
@@ -228,13 +253,16 @@ source_group("gabacify Header Files" FILES ${gabacify_header_files})
 
 # Set up the target
 add_executable(${gabacify} EXCLUDE_FROM_ALL ${gabacify_source_files} ${gabacify_header_files})
-target_compile_definitions(${gabacify} PRIVATE BOOST_LOG_DYN_LINK)
 target_include_directories(${gabacify} PRIVATE ${gabacify_include_dir})
 target_include_directories(${gabacify} PRIVATE ${gabac_include_dir})
 target_link_libraries(${gabacify} ${gabac})
-target_link_libraries(${gabacify} Boost::log)
-target_link_libraries(${gabacify} Boost::program_options)
-
+if(${GABAC_USE_NO_SYSTEM_BOOST})
+    add_dependencies(${gabacify} Boost)
+    target_include_directories(${gabacify} PRIVATE ${boost_include_dir})
+    target_link_libraries(${gabacify} ${boost_libs})
+else()
+    target_link_libraries(${gabacify} Boost::program_options)
+endif()
 
 #==============================================================================
 # tests
