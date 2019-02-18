@@ -21,9 +21,7 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-5
-            - libboost-log-dev
             - libboost-program-options-dev
-            - libboost-regex-dev
             - python-numpy
       env:
         - MATRIX_EVAL="CC=gcc-5 && CXX=g++-5"
