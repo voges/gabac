@@ -69,6 +69,8 @@ class DataBlock
         bool operator== (const IteratorCore& c) const;
 
         bool operator!= (const IteratorCore& c) const;
+
+        class iterator_category : public std::random_access_iterator_tag {};
     };
 
     using Iterator = IteratorCore<DataBlock*>;
