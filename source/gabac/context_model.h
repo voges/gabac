@@ -15,9 +15,9 @@ class ContextModel
 
     ~ContextModel();
 
-    unsigned char getState() const { return m_state >> 1; }
+    unsigned char getState() const { return m_state >> 1u; }
 
-    unsigned char getMps() const { return m_state & 0x1; }
+    unsigned char getMps() const { return m_state & static_cast<unsigned char>(0x1u); }
 
     void updateLps() { m_state = cabactables::nextStateLps[m_state]; }
 

@@ -19,18 +19,18 @@ class FileInputStream : public InputStream
     size_t fpos;
     size_t fsize;
  public:
-    FileInputStream(FILE *file);
+    explicit FileInputStream(FILE *file);
 
-    size_t readStream(DataBlock *buffer);
+    size_t readStream(DataBlock *buffer) override;
 
-    size_t readBytes(size_t size, DataBlock *buffer);
+    size_t readBytes(size_t size, DataBlock *buffer) override;
 
-    size_t readFull(DataBlock *buffer);
-    bool isValid();
+    size_t readFull(DataBlock *buffer) override;
+    bool isValid() override;
 
-    size_t getTotalSize();
+    size_t getTotalSize() override;
 
-    size_t getRemainingSize();
+    size_t getRemainingSize() override;
 };
 
 }

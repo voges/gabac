@@ -201,7 +201,7 @@ std::string TransformedSequenceConfiguration::toPrintableString() const{
 }
 
 void IOConfiguration::validate() const{
-    if(!inputStream || !inputStream->isValid()){
+    if(!inputStream){
         GABAC_DIE("Invalid input stream");
     }
     if(!outputStream){

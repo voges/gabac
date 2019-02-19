@@ -268,7 +268,7 @@ void doLutTransform(unsigned int order,
         }
     }
 
-    unsigned bits1 = unsigned((*lutSequences)[1].size());
+    auto bits1 = unsigned((*lutSequences)[1].size());
     encodeStream(
             {false, 0, 0, false, gabac::BinarizationId::BI, {*bits0}, gabac::ContextSelectionId::bypass},
             &(*lutSequences)[1],
@@ -348,7 +348,7 @@ void encode(
             readLength = conf.inputStream->getRemainingSize();
         }
         conf.inputStream->readBytes(readLength, &sequence);
-        sequence.setWordSize(enConf.wordSize);
+        sequence.setWordSize(static_cast<uint8_t>(enConf.wordSize));
         // Insert sequence into vector
         std::vector<gabac::DataBlock> transformedSequences;
         transformedSequences.resize(1);

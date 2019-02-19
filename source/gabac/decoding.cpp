@@ -220,7 +220,7 @@ static void decodeInverseLUT(unsigned bits0,
     }
 
     gabac::decode_cabac(
-            lutWordSize,
+            static_cast<uint8_t>(lutWordSize),
             gabac::BinarizationId::BI,
             {bits0},
             gabac::ContextSelectionId::bypass,
@@ -229,7 +229,7 @@ static void decodeInverseLUT(unsigned bits0,
 
     if (order > 0) {
         inStream->readStream(inverseLut1);
-        unsigned bits1 = unsigned(inverseLut->size());
+        auto bits1 = unsigned(inverseLut->size());
 
         bits1 = unsigned(std::ceil(std::log2(bits1)));
 
@@ -245,7 +245,7 @@ static void decodeInverseLUT(unsigned bits0,
         }
 
         gabac::decode_cabac(
-                lut1WordSize,
+                static_cast<uint8_t>(lut1WordSize),
                 gabac::BinarizationId::BI,
                 {bits1},
                 gabac::ContextSelectionId::bypass,
@@ -341,7 +341,7 @@ void decode(
             uint8_t wsize =
                     gabac::transformationInformation[unsigned(enConf.sequenceTransformationId)].wordsizes[i];
             if (wsize == 0) {
-                wsize = enConf.wordSize;
+                wsize = static_cast<uint8_t>(enConf.wordSize);
             }
 
             doEntropyCoding(

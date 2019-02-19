@@ -50,16 +50,14 @@ int gabac_decode(
 
 namespace gabac {
 
-struct EncodingConfiguration;
-class InputStream;
-class OutputStream;
+class EncodingConfiguration;
 
 int decode_cabac(
-        const uint8_t wordsize,
+        uint8_t wordsize,
         const BinarizationId& binarizationId,
         const std::vector<uint32_t>& binarizationParameters,
         const ContextSelectionId& contextSelectionId,
-        DataBlock *const bitstream
+        DataBlock *bitstream
 );
 
 void decode(

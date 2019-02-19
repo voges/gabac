@@ -20,7 +20,7 @@ class BufferInputStream : public InputStream
     DataBlock mainBuffer;
     BlockStepper r;
  public:
-    BufferInputStream(DataBlock *stream);
+    explicit BufferInputStream(DataBlock *stream);
 
     size_t readStream(DataBlock *buffer) override;
 

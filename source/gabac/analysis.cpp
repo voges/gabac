@@ -35,19 +35,19 @@ struct Snapshot
 
 struct TraversalInfo
 {
-    const IOConfiguration *ioconf;
+    const IOConfiguration *ioconf{};
     EncodingConfiguration currConfig;
     EncodingConfiguration bestConfig;
 
     TransformedSequenceConfiguration bestSeqConfig;
 
-    size_t currStreamIndex;
+    size_t currStreamIndex{};
 
-    size_t currSequenceSize;
-    size_t bestSequenceSize;
+    size_t currSequenceSize{};
+    size_t bestSequenceSize{};
 
-    size_t currTotalSize;
-    size_t bestTotalSize;
+    size_t currTotalSize{};
+    size_t bestTotalSize{};
 
     std::stack<Snapshot> stack;
 
@@ -92,7 +92,7 @@ static void getMinMax(const gabac::DataBlock& b, uint64_t *umin, uint64_t *umax,
         uint64_t val = r.get();
         *umax = std::max(*umax, val);
         *umin = std::min(*umin, val);
-        int64_t sval = int64_t(val);
+        auto sval = int64_t(val);
         *smax = std::max(*smax, sval);
         *smin = std::min(*smin, sval);
         r.inc();
@@ -116,7 +116,7 @@ void getOptimumOfBinarization(const AnalysisConfiguration& aconf,
                                                            {0},
                                                            aconf.candidateBinarizationParameters,
                                                            aconf.candidateBinarizationParameters};
-    unsigned id = unsigned(
+    auto id = unsigned(
             info->currConfig
                     .transformedSequenceConfigurations[info->currStreamIndex].binarizationId
     );
@@ -212,7 +212,7 @@ void getOptimumOfLutEnabled(const AnalysisConfiguration& aconf,
         if (max <= 1) {
             bits0 = 1;
         }
-        unsigned bits1 = unsigned(info->stack.top().streams[1].size());
+        auto bits1 = unsigned(info->stack.top().streams[1].size());
 
         info->currConfig.transformedSequenceConfigurations[info->currStreamIndex].lutBits = bits0;
 
@@ -371,7 +371,7 @@ size_t analyze(const IOConfiguration& ioconf, const AnalysisConfiguration& aconf
             continue;
         }
 
-        info.stack.top().streams.front().setWordSize(w);
+        info.stack.top().streams.front().setWordSize((uint8_t) w);
         info.currConfig.wordSize = w;
 
         getOptimumOfSymbolSequence(aconf, &info);

@@ -6,7 +6,7 @@ BufferOutputStream::BufferOutputStream() : buffer(0, 1){
 }
 
 size_t BufferOutputStream::writeStream(DataBlock *inbuffer){
-    uint32_t size = inbuffer->size() * inbuffer->getWordSize();
+    auto size = static_cast<uint32_t>(inbuffer->size() * inbuffer->getWordSize());
     auto *ptr = (uint8_t *) &size;
     buffer.push_back(*(ptr++));
     buffer.push_back(*(ptr++));

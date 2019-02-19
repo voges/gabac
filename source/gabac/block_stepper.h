@@ -22,7 +22,7 @@ inline void BlockStepper::inc() {
 inline uint64_t BlockStepper::get() const {
     switch(wordSize) {
         case 1:
-            return *(uint8_t*) (curr);
+            return *curr;
         case 2:
             return *(uint16_t*) (curr);
         case 4:
@@ -36,16 +36,16 @@ inline uint64_t BlockStepper::get() const {
 inline void BlockStepper::set(uint64_t val) const {
     switch(wordSize) {
         case 1:
-            *(uint8_t*) (curr) = val;
+            *curr = static_cast<uint8_t >(val);
             return;
         case 2:
-            *(uint16_t*) (curr)= val;
+            *(uint16_t*) (curr)= static_cast<uint16_t >(val);
             return;
         case 4:
-            *(uint32_t*) (curr)= val;
+            *(uint32_t*) (curr)= static_cast<uint32_t >(val);
             return;
         case 8:
-            *(uint64_t*) (curr)= val;
+            *(uint64_t*) (curr)= static_cast<uint64_t >(val);
             return;
     }
 

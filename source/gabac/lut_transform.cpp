@@ -259,7 +259,7 @@ static void transformLutTransform_core(
         for (size_t j = ORDER; j > 0; --j) {
             lastSymbols[j] = lastSymbols[j - 1];
         }
-        if (fastlut.size()) {
+        if (!fastlut.empty()) {
             lastSymbols[0] = lut0SingleTransformFast(fastlut, symbol);
         } else {
             lastSymbols[0] = lut0SingleTransform(lut0, symbol);

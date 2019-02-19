@@ -8,7 +8,7 @@ FileOutputStream::FileOutputStream(FILE *f) : file(f){
 }
 
 size_t FileOutputStream::writeStream(DataBlock *inbuffer){
-    uint32_t size = inbuffer->size() * inbuffer->getWordSize();
+    auto size = static_cast<uint32_t>(inbuffer->size() * inbuffer->getWordSize());
     auto *ptr = (uint8_t *) &size;
     fwrite(ptr, sizeof(uint32_t), 1, file);
 
@@ -23,6 +23,6 @@ size_t FileOutputStream::writeBytes(DataBlock *inbuffer){
 }
 
 size_t FileOutputStream::bytesWritten(){
-    return ftell(file);
+    return static_cast<size_t>(ftell(file));
 }
 }

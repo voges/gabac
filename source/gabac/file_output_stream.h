@@ -13,13 +13,13 @@ class FileOutputStream : public OutputStream
 {
     FILE *file;
  public:
-    FileOutputStream(FILE *f);
+    explicit FileOutputStream(FILE *f);
 
-    size_t writeStream(DataBlock *inbuffer);
+    size_t writeStream(DataBlock *inbuffer) override;
 
-    size_t writeBytes(DataBlock *inbuffer);
+    size_t writeBytes(DataBlock *inbuffer) override;
 
-    size_t bytesWritten();
+    size_t bytesWritten() override;
 };
 }
 

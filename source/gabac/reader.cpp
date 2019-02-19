@@ -90,9 +90,6 @@ uint64_t Reader::readAdaptiveCabacValue(
                     binarizationParameters[0],
                     offset
             ));
-        default:
-            // TODO(Jan): handle default case
-            break;
     }
     assert(false);  // We should not get here
     return 0;

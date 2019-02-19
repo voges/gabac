@@ -37,15 +37,12 @@ int gabac_encode(
 
 namespace gabac {
 
-class OutputStream;
-
-class InputStream;
 
 int encode_cabac(
         const BinarizationId& binarizationId,
         const std::vector<uint32_t>& binarizationParameters,
         const ContextSelectionId& contextSelectionId,
-        DataBlock *const symbols,
+        DataBlock *symbols,
         size_t maxsize = std::numeric_limits<size_t>::max()
 );
 

@@ -35,7 +35,7 @@ class DataBlock
      public:
         ProxyCore(T str, size_t pos);
 
-        operator uint64_t () const;
+        explicit operator uint64_t () const;
 
         ProxyCore& operator= (uint64_t val);
 
@@ -115,13 +115,13 @@ class DataBlock
 
     void setWordSize(uint8_t size);
 
-    void swap (DataBlock* const d);
+    void swap (DataBlock*d);
 
 
     template<typename IT1, typename IT2>
     void insert(const IT1& pos, const IT2& start, const IT2& end);
 
-    DataBlock (size_t size = 0, size_t wsize = 1);
+    explicit DataBlock (size_t size = 0, size_t wsize = 1);
 
 };
 
@@ -130,11 +130,11 @@ inline uint64_t DataBlock::get(size_t index) const{
         case 1:
             return *(uint8_t *) (data.data() + index);
         case 2:
-            return *(uint16_t *) (data.data() + (index << 1));
+            return *(uint16_t *) (data.data() + (index << 1u));
         case 4:
-            return *(uint32_t *) (data.data() + (index << 2));
+            return *(uint32_t *) (data.data() + (index << 2u));
         case 8:
-            return *(uint64_t *) (data.data() + (index << 3));
+            return *(uint64_t *) (data.data() + (index << 3u));
         default:
             return 0;
     }
@@ -143,16 +143,16 @@ inline uint64_t DataBlock::get(size_t index) const{
 inline void DataBlock::set(size_t index, uint64_t val){
     switch (wordSize) {
         case 1:
-            *(uint8_t *) (data.data() + index) = val;
+            *(data.data() + index) = static_cast<uint8_t>(val);
             return;
         case 2:
-            *(uint16_t *) (data.data() + (index << 1)) = val;
+            *(uint16_t *) (data.data() + (index << 1u)) = static_cast<uint16_t>(val);
             return;
         case 4:
-            *(uint32_t *) (data.data() + (index << 2)) = val;
+            *(uint32_t *) (data.data() + (index << 2u)) = static_cast<uint32_t>(val);
             return;
         case 8:
-            *(uint64_t *) (data.data() + (index << 3)) = val;
+            *(uint64_t *) (data.data() + (index << 3u)) = static_cast<uint64_t>(val);
             return;
         default:
             return;
@@ -181,16 +181,16 @@ inline void DataBlock::push_back(uint64_t val){
     data.resize(data.size() + wordSize);
     switch (wordSize) {
         case 1:
-            *(uint8_t *) (data.end().base() - 1) = val;
+            *(uint8_t *) (data.end().base() - 1) = static_cast<uint8_t>(val);
             return;
         case 2:
-            *(uint16_t *) (data.end().base() - 2) = val;
+            *(uint16_t *) (data.end().base() - 2) = static_cast<uint16_t>(val);
             return;
         case 4:
-            *(uint32_t *) (data.end().base() - 4) = val;
+            *(uint32_t *) (data.end().base() - 4) = static_cast<uint32_t>(val);
             return;
         case 8:
-            *(uint64_t *) (data.end().base() - 8) = val;
+            *(uint64_t *) (data.end().base() - 8) = static_cast<uint64_t>(val);
             return;
     }
 }

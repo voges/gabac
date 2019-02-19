@@ -223,7 +223,7 @@ const std::vector<TransformationProperties> transformationInformation = {
                     (*transformedSequences)[1] = gabac::DataBlock(0, (*transformedSequences)[0].getWordSize());
                     (*transformedSequences)[2] = gabac::DataBlock(0, (*transformedSequences)[0].getWordSize());
                     gabac::transformLutTransform0(
-                            order,
+                            static_cast<unsigned int>(order),
                             &(*transformedSequences)[0],
                             &(*transformedSequences)[1],
                             &(*transformedSequences)[2]
@@ -234,7 +234,7 @@ const std::vector<TransformationProperties> transformationInformation = {
                 )
                 {
                     gabac::inverseTransformLutTransform0(
-                            order,
+                            static_cast<unsigned int>(order),
                             &(*transformedSequences)[0],
                             &(*transformedSequences)[1],
                             &(*transformedSequences)[2]

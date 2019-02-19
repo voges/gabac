@@ -53,7 +53,7 @@ class OutputStream;
 class NullBuffer : public std::streambuf
 {
  public:
-    int overflow(int c){
+    int overflow(int c) override{
         return c;
     }
 };
@@ -89,7 +89,7 @@ struct IOConfiguration {
 
     std::ostream& log(const LogLevel& l) const{
         static NullStream nullstr;
-        if (int(l) >= int(level)){
+        if (static_cast<int>(l) >= static_cast<int>(level)){
             return *outStream;
         }
         return nullstr;

@@ -47,12 +47,12 @@ bool DataBlock::empty() const{
 void DataBlock::swap(DataBlock *const d){
     size_t tmp = wordSize;
     wordSize = d->wordSize;
-    d->wordSize = tmp;
+    d->wordSize = static_cast<uint8_t>(tmp);
     data.swap(d->data);
 }
 
 
-DataBlock::DataBlock(size_t size, size_t wsize) : wordSize(wsize), data(size * wsize){
+DataBlock::DataBlock(size_t size, size_t wsize) : wordSize(static_cast<uint8_t>(wsize)), data(size * wsize){
 }
 
 }

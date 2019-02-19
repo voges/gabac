@@ -6,9 +6,9 @@ namespace gabac {
 FileInputStream::FileInputStream(FILE
 *file) :
 input(file){
-        fpos = ftell(input);
+        fpos = static_cast<size_t>(ftell(input));
         fseek(input, 0, SEEK_END);
-        fsize = ftell(input);
+        fsize = static_cast<size_t>(ftell(input));
         fseek(input, fpos, SEEK_SET);
 }
 
