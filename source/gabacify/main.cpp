@@ -13,7 +13,7 @@
 
 static void writeCommandLine(
         int argc,
-        char *argv[]
+        char* argv[]
 ){
     std::vector<std::string> args(argv, (argv + argc));
     std::stringstream commandLine;
