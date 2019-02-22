@@ -43,18 +43,22 @@ EncodingConfiguration::EncodingConfiguration(
                 static_cast<gabac::SequenceTransformationId>(propertyTree.get<unsigned int>("sequence_transformation_id"));
         this->sequenceTransformationParameter
                 = propertyTree.get<unsigned int>("sequence_transformation_parameter");
-        for (const auto& child : propertyTree.get_child("transformed_sequences"))
-        {
+        for (const auto& child : propertyTree.get_child("transformed_sequences")) {
             // Declare a transformed sequence configuration
             TransformedSequenceConfiguration transformedSequenceConfiguration;
 
             // Fill the transformed sequence configuration
             transformedSequenceConfiguration.lutTransformationEnabled
                     = static_cast<bool>(child.second.get<unsigned int>("lut_transformation_enabled"));
-            transformedSequenceConfiguration.lutBits
-                    = child.second.get<unsigned int>("lut_transformation_bits");
-            transformedSequenceConfiguration.lutOrder
-                    = child.second.get<unsigned int>("lut_transformation_order");
+            if (transformedSequenceConfiguration.lutTransformationEnabled) {
+                transformedSequenceConfiguration.lutBits
+                        = child.second.get<unsigned int>("lut_transformation_bits");
+                transformedSequenceConfiguration.lutOrder
+                        = child.second.get<unsigned int>("lut_transformation_order");
+            } else {
+                transformedSequenceConfiguration.lutBits = 0;
+                transformedSequenceConfiguration.lutOrder = 0;
+            }
             transformedSequenceConfiguration.diffCodingEnabled
                     = child.second.get<bool>("diff_coding_enabled");
             transformedSequenceConfiguration.binarizationId
@@ -115,14 +119,16 @@ std::string EncodingConfiguration::toJsonString() const{
                     "lut_transformation_enabled",
                     static_cast<int>(transformedSequenceConfiguration.lutTransformationEnabled)
             );
-            transformedSequenceNode.put(
-                    "lut_transformation_bits",
-                    static_cast<int>(transformedSequenceConfiguration.lutBits)
-            );
-            transformedSequenceNode.put(
-                    "lut_transformation_order",
-                    static_cast<int>(transformedSequenceConfiguration.lutOrder)
-            );
+            if(transformedSequenceConfiguration.lutTransformationEnabled) {
+                transformedSequenceNode.put(
+                        "lut_transformation_bits",
+                        static_cast<int>(transformedSequenceConfiguration.lutBits)
+                );
+                transformedSequenceNode.put(
+                        "lut_transformation_order",
+                        static_cast<int>(transformedSequenceConfiguration.lutOrder)
+                );
+            }
             transformedSequenceNode.put(
                     "diff_coding_enabled",
                     static_cast<int>(transformedSequenceConfiguration.diffCodingEnabled)
