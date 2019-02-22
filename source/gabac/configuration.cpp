@@ -50,11 +50,17 @@ EncodingConfiguration::EncodingConfiguration(
             // Fill the transformed sequence configuration
             transformedSequenceConfiguration.lutTransformationEnabled
                     = static_cast<bool>(child.second.get<unsigned int>("lut_transformation_enabled"));
+            transformedSequenceConfiguration.lutBits = wordSize*8;
+            transformedSequenceConfiguration.lutOrder = 0;
             if (transformedSequenceConfiguration.lutTransformationEnabled) {
-                transformedSequenceConfiguration.lutBits
-                        = child.second.get<unsigned int>("lut_transformation_bits");
-                transformedSequenceConfiguration.lutOrder
-                        = child.second.get<unsigned int>("lut_transformation_order");
+                if(child.second.count("lut_transformation_bits") > 0) {
+                    transformedSequenceConfiguration.lutBits
+                            = child.second.get<unsigned int>("lut_transformation_bits");
+                }
+                if(child.second.count("lut_transformation_order") > 0) {
+                    transformedSequenceConfiguration.lutOrder
+                            = child.second.get<unsigned int>("lut_transformation_order");
+                }
             } else {
                 transformedSequenceConfiguration.lutBits = 0;
                 transformedSequenceConfiguration.lutOrder = 0;
