@@ -121,9 +121,10 @@ uint64_t Reader::readAsBIcabac(
 ){
     unsigned int bins = 0;
     unsigned int cm = ContextSelector::getContextForBi(offset, 0);
+    std::vector<ContextModel>::iterator scan = m_contextModels.begin() + cm;
     for (size_t i = 0; i < cLength; i++)
     {
-        bins = (bins << 1u) | m_decBinCabac.decodeBin(&m_contextModels[cm++]);
+        bins = (bins << 1u) | m_decBinCabac.decodeBin(&*(scan++));
     }
     return bins;
 }
@@ -151,7 +152,8 @@ uint64_t Reader::readAsTUcabac(
 ){
     unsigned int i = 0;
     unsigned int cm = ContextSelector::getContextForTu(offset, i);
-    while (m_decBinCabac.decodeBin(&m_contextModels[cm]) == 1)
+    std::vector<ContextModel>::iterator scan = m_contextModels.begin() + cm;
+    while (m_decBinCabac.decodeBin(&*scan) == 1)
     {
         i++;
         if (cMax == i)
@@ -160,7 +162,7 @@ uint64_t Reader::readAsTUcabac(
         }
         else
         {
-            cm++;
+            scan++;
         }
     }
     return i;
@@ -190,12 +192,13 @@ uint64_t Reader::readAsEGcabac(
         unsigned int offset
 ){
     unsigned int cm = ContextSelector::getContextForEg(offset, 0);
-    unsigned int i = cm;
-    while (m_decBinCabac.decodeBin(&m_contextModels[cm]) == 0)
+    std::vector<ContextModel>::iterator scan = m_contextModels.begin() + cm;
+    unsigned int i = 0;
+    while (m_decBinCabac.decodeBin(&*scan) == 0)
     {
-        cm++;
+        scan++;
+        i++;
     }
-    i = cm - i;
     unsigned int bins = 0;
     if (i != 0)
     {
