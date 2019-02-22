@@ -251,9 +251,6 @@ void doLutTransform(unsigned int order,
     // Put raw sequence in, get transformed sequence and lut tables
     gabac::transformationInformation[LUT_INDEX].transform(order, lutSequences);
 
-    if ((*lutSequences)[0].empty()) {
-        return;
-    }
 
     //GABACIFY_LOG_DEBUG << "Got uncompressed stream after LUT: " << (*lutSequences)[0].size() << " bytes";
     //GABACIFY_LOG_DEBUG << "Got table0 after LUT: " << (*lutSequences)[1].size() << " bytes";
