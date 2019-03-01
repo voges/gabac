@@ -122,7 +122,7 @@ uint64_t Reader::readAsBIcabac(
     unsigned int bins = 0;
     unsigned int cm = ContextSelector::getContextForBi(offset, 0);
     std::vector<ContextModel>::iterator scan = m_contextModels.begin() + cm;
-    for (size_t i = 0; i < cLength; i++)
+    for (size_t i = cLength; i > 0; i--)
     {
         bins = (bins << 1u) | m_decBinCabac.decodeBin(&*(scan++));
     }

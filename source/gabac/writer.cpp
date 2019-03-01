@@ -193,9 +193,9 @@ void Writer::writeAsBIcabac(
 
     unsigned int cm = ContextSelector::getContextForBi(offset, 0);
     std::vector<ContextModel>::iterator scan = m_contextModels.begin() + cm;
-    for (unsigned int i = 0; i < cLength; i++)
+    for (int i = cLength - 1; i >= 0; i--)  // i must be signed
     {
-        unsigned int bin = static_cast<unsigned int>(static_cast<uint64_t >(input) >> (cLength - i - 1)) & 0x1u;
+        unsigned int bin = static_cast<unsigned int>(static_cast<uint64_t >(input) >> i) & 0x1u;
         m_binaryArithmeticEncoder.encodeBin(bin, &*(scan++));
     }
 }
@@ -229,13 +229,17 @@ void Writer::writeAsTUcabac(
 
     std::vector<ContextModel>::iterator scan = m_contextModels.begin() + cm;
 
-    for (int64_t i = 0; i < input; i++)
-    {
-        m_binaryArithmeticEncoder.encodeBin(1, &*(scan++));
+    if (input == cMax) {
+        for (; input > 0; input--)
+        {
+            m_binaryArithmeticEncoder.encodeBin(1, &*(scan++));
+        }
     }
-
-    if (input != cMax)
-    {
+    else {
+        for (; input > 0; input--)
+        {
+            m_binaryArithmeticEncoder.encodeBin(1, &*(scan++));
+        }
         m_binaryArithmeticEncoder.encodeBin(0, &*scan);
     }
 }
@@ -265,23 +269,19 @@ void Writer::writeAsEGcabac(
     unsigned int cm = ContextSelector::getContextForEg(offset, i);
     std::vector<ContextModel>::iterator scan = m_contextModels.begin() + cm;
     unsigned int length = ((bitLength(static_cast<uint64_t>(input)) - 1) << 1u) + 1;
-    unsigned int suffixSizeMinus1 = length >> 1u;
 
-    for (; i < suffixSizeMinus1; i++)
+    for (i = length >> 1; i > 0; i--)
     {
         m_binaryArithmeticEncoder.encodeBin(0, &*(scan++));
     }
+    m_binaryArithmeticEncoder.encodeBin(1, &*scan);
 
-    if (i < length)
+    length -= ((length >> 1) + 1);
+    if (length != 0)
     {
-        m_binaryArithmeticEncoder.encodeBin(1, &*scan);
-        length -= (i + 1);
-        if (length != 0)
-        {
-            input -= (1u << length);
-            assert(input <= std::numeric_limits<unsigned>::max());
-            m_binaryArithmeticEncoder.encodeBinsEP(static_cast<unsigned>(input), length);
-        }
+        input -= (1u << length);
+        assert(input <= std::numeric_limits<unsigned>::max());
+        m_binaryArithmeticEncoder.encodeBinsEP(static_cast<unsigned>(input), length);
     }
 }
 
