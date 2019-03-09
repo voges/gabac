@@ -107,35 +107,89 @@ int decode(
     unsigned int previousSymbol = 0;
     unsigned int previousPreviousSymbol = 0;
 
-    for (size_t i = 0; i < symbolsSize; i++)
+    if (contextSelectionId == ContextSelectionId::bypass)
     {
-        if (contextSelectionId == ContextSelectionId::bypass)
+        int64_t (Reader::*func)(unsigned int);
+        switch (binarizationId)
         {
-            symbol = reader.readBypassValue(
-                    binarizationId,
-                    binarizationParameters
+            case BinarizationId::BI:
+                func = &Reader::readAsBIbypass;
+                break;
+            case BinarizationId::TU:
+                func = &Reader::readAsTUbypass;
+                break;
+            case BinarizationId::EG:
+                func = &Reader::readAsEGbypass;
+                break;
+            case BinarizationId::SEG:
+                func = &Reader::readAsSEGbypass;
+                break;
+            case BinarizationId::TEG:
+                func = &Reader::readAsTEGbypass;
+                break;
+            case BinarizationId::STEG:
+                func = &Reader::readAsSTEGbypass;
+                break;
+            default:
+                assert(0);
+        }
+        for (size_t i = 0; i < symbolsSize; i++)
+        {
+            symbol = (reader.*func)(
+                    binarizationParameters[0]
             );
             (*symbols)[i] = symbol;
         }
-        else if (contextSelectionId
-                 == ContextSelectionId::adaptive_coding_order_0)
+
+        reader.reset();
+        return GABAC_SUCCESS;
+    }
+
+    int64_t (Reader::*func)(unsigned int, unsigned int);
+    switch (binarizationId)
+    {
+        case BinarizationId::BI:
+            func = &Reader::readAsBIcabac;
+            break;
+        case BinarizationId::TU:
+            func = &Reader::readAsTUcabac;
+            break;
+        case BinarizationId::EG:
+            func = &Reader::readAsEGcabac;
+            break;
+        case BinarizationId::SEG:
+            func = &Reader::readAsSEGcabac;
+            break;
+        case BinarizationId::TEG:
+            func = &Reader::readAsTEGcabac;
+            break;
+        case BinarizationId::STEG:
+            func = &Reader::readAsSTEGcabac;
+            break;
+        default:
+            assert(0);
+    }
+
+    if (contextSelectionId
+             == ContextSelectionId::adaptive_coding_order_0)
+    {
+        for (size_t i = 0; i < symbolsSize; i++)
         {
-            symbol = reader.readAdaptiveCabacValue(
-                    binarizationId,
-                    binarizationParameters,
-                    0,
+            symbol = (reader.*func)(
+                    binarizationParameters[0],
                     0
             );
             (*symbols)[i] = symbol;
         }
-        else if (contextSelectionId
-                 == ContextSelectionId::adaptive_coding_order_1)
+    }
+    else if (contextSelectionId
+             == ContextSelectionId::adaptive_coding_order_1)
+    {
+        for (size_t i = 0; i < symbolsSize; i++)
         {
-            symbol = reader.readAdaptiveCabacValue(
-                    binarizationId,
-                    binarizationParameters,
-                    previousSymbol,
-                    0
+            symbol = (reader.*func)(
+                    binarizationParameters[0],
+                    previousSymbol << 2u
             );
             (*symbols)[i] = symbol;
             if (symbol < 0)
@@ -152,14 +206,15 @@ int decode(
                 previousSymbol = static_cast<unsigned int>(symbol);
             }
         }
-        else if (contextSelectionId
-                 == ContextSelectionId::adaptive_coding_order_2)
+    }
+    else if (contextSelectionId
+             == ContextSelectionId::adaptive_coding_order_2)
+    {
+        for (size_t i = 0; i < symbolsSize; i++)
         {
-            symbol = reader.readAdaptiveCabacValue(
-                    binarizationId,
-                    binarizationParameters,
-                    previousSymbol,
-                    previousPreviousSymbol
+            symbol = (reader.*func)(
+                    binarizationParameters[0],
+                    (previousSymbol << 2u) + previousPreviousSymbol
             );
             (*symbols)[i] = symbol;
             previousPreviousSymbol = previousSymbol;
@@ -177,14 +232,13 @@ int decode(
                 previousSymbol = static_cast<unsigned int>(symbol);
             }
         }
-        else
-        {
-            return GABAC_FAILURE;
-        }
+    }
+    else
+    {
+        return GABAC_FAILURE;
     }
 
     reader.reset();
-
     return GABAC_SUCCESS;
 }
 

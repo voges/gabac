@@ -30,20 +30,6 @@ class Writer
 
     void reset();
 
-    void writeBypassValue(
-            int64_t symbol,
-            const BinarizationId& binarizationId,
-            const std::vector<unsigned int>& binarizationParameters
-    );
-
-    void writeCabacAdaptiveValue(
-            int64_t symbol,
-            const BinarizationId& binarizationId,
-            const std::vector<unsigned int>& binarizationParameters,
-            unsigned int prevValue,
-            unsigned int prevPrevValue
-    );
-
     void writeAsBIbypass(
             int64_t input,
             unsigned int cLength
@@ -67,20 +53,24 @@ class Writer
     );
 
     void writeAsEGbypass(
-            int64_t input
+            int64_t input,
+            unsigned int dummy
     );
 
     void writeAsEGcabac(
             int64_t input,
+            unsigned int dummy,
             unsigned int offset
     );
 
     void writeAsSEGbypass(
-            int64_t input
+            int64_t input,
+            unsigned int dummy
     );
 
     void writeAsSEGcabac(
             int64_t input,
+            unsigned int dummy,
             unsigned int offset
     );
 

@@ -26,53 +26,47 @@ class Reader
 
     size_t readNumSymbols();
 
-    int64_t readBypassValue(
-            const BinarizationId& binarizationId,
-            const std::vector<unsigned int>& binarizationParameters
-    );
-
-    int64_t readAdaptiveCabacValue(
-            const BinarizationId& binarizationId,
-            const std::vector<unsigned int>& binarizationParameters,
-            unsigned int prevValue,
-            unsigned int prevPrevValue
-    );
-
-    uint64_t readAsBIbypass(
+    int64_t readAsBIbypass(
             unsigned int cLength
     );
 
-    uint64_t readAsBIcabac(
+    int64_t readAsBIcabac(
             unsigned int cLength,
             unsigned int offset
     );
 
-    uint64_t readAsTUbypass(
+    int64_t readAsTUbypass(
             unsigned int cMax
     );
 
-    uint64_t readAsTUcabac(
+    int64_t readAsTUcabac(
             unsigned int cMax,
             unsigned int offset
     );
 
-    uint64_t readAsEGbypass();
+    int64_t readAsEGbypass(
+            unsigned int dummy
+    );
 
-    uint64_t readAsEGcabac(
+    int64_t readAsEGcabac(
+            unsigned int dummy,
             unsigned int offset
     );
 
-    int64_t readAsSEGbypass();
+    int64_t readAsSEGbypass(
+            unsigned int dummy
+    );
 
     int64_t readAsSEGcabac(
+            unsigned int dummy,
             unsigned int offset
     );
 
-    uint64_t readAsTEGbypass(
+    int64_t readAsTEGbypass(
             unsigned int treshold
     );
 
-    uint64_t readAsTEGcabac(
+    int64_t readAsTEGcabac(
             unsigned int treshold,
             unsigned int offset
     );

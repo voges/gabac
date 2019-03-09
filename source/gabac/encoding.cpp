@@ -105,34 +105,88 @@ int encode(
     unsigned int previousSymbol = 0;
     unsigned int previousPreviousSymbol = 0;
 
-    for (int64_t symbol : symbols)
+    if (contextSelectionId == ContextSelectionId::bypass)
     {
-        if (contextSelectionId == ContextSelectionId::bypass)
+        void (Writer::*func)(int64_t, unsigned int);
+        switch (binarizationId)
         {
-            writer.writeBypassValue(
+            case BinarizationId::BI:
+                func = &Writer::writeAsBIbypass;
+                break;
+            case BinarizationId::TU:
+                func = &Writer::writeAsTUbypass;
+                break;
+            case BinarizationId::EG:
+                func = &Writer::writeAsEGbypass;
+                break;
+            case BinarizationId::SEG:
+                func = &Writer::writeAsSEGbypass;
+                break;
+            case BinarizationId::TEG:
+                func = &Writer::writeAsTEGbypass;
+                break;
+            case BinarizationId::STEG:
+                func = &Writer::writeAsSTEGbypass;
+                break;
+            default:
+                assert(0);
+        }
+        for (int64_t symbol : symbols)
+        {
+            (writer.*func)(
                     symbol,
-                    binarizationId,
-                    binarizationParameters
+                    binarizationParameters[0]
             );
         }
-        else if (contextSelectionId == ContextSelectionId::adaptive_coding_order_0)
+
+        writer.reset();
+        return GABAC_SUCCESS;
+    }
+
+    void (Writer::*func)(int64_t, unsigned int, unsigned int);
+    switch (binarizationId)
+    {
+        case BinarizationId::BI:
+            func = &Writer::writeAsBIcabac;
+            break;
+        case BinarizationId::TU:
+            func = &Writer::writeAsTUcabac;
+            break;
+        case BinarizationId::EG:
+            func = &Writer::writeAsEGcabac;
+            break;
+        case BinarizationId::SEG:
+            func = &Writer::writeAsSEGcabac;
+            break;
+        case BinarizationId::TEG:
+            func = &Writer::writeAsTEGcabac;
+            break;
+        case BinarizationId::STEG:
+            func = &Writer::writeAsSTEGcabac;
+            break;
+        default:
+            assert(0);
+    }
+
+    if (contextSelectionId == ContextSelectionId::adaptive_coding_order_0)
+    {
+        for (int64_t symbol : symbols)
         {
-            writer.writeCabacAdaptiveValue(
+            (writer.*func)(
                     symbol,
-                    binarizationId,
-                    binarizationParameters,
-                    0,
+                    binarizationParameters[0],
                     0
             );
         }
-        else if (contextSelectionId == ContextSelectionId::adaptive_coding_order_1)
+    }
+    else if (contextSelectionId == ContextSelectionId::adaptive_coding_order_1)
+    {
+        for (int64_t symbol : symbols)
         {
-            writer.writeCabacAdaptiveValue(
+            (writer.*func)(
                     symbol,
-                    binarizationId,
-                    binarizationParameters,
-                    previousSymbol,
-                    0
+                    binarizationParameters[0],
+                    previousSymbol << 2u
             );
             if (symbol < 0)
             {
@@ -148,14 +202,15 @@ int encode(
                 previousSymbol = static_cast<unsigned int>(symbol);
             }
         }
-        else if (contextSelectionId == ContextSelectionId::adaptive_coding_order_2)
+    }
+    else if (contextSelectionId == ContextSelectionId::adaptive_coding_order_2)
+    {
+        for (int64_t symbol : symbols)
         {
-            writer.writeCabacAdaptiveValue(
+            (writer.*func)(
                     symbol,
-                    binarizationId,
-                    binarizationParameters,
-                    previousSymbol,
-                    previousPreviousSymbol
+                    binarizationParameters[0],
+                    (previousSymbol << 2u) + previousPreviousSymbol
             );
             previousPreviousSymbol = previousSymbol;
             if (symbol < 0)
@@ -172,14 +227,13 @@ int encode(
                 previousSymbol = static_cast<unsigned int>(symbol);
             }
         }
-        else
-        {
-            return GABAC_FAILURE;
-        }
+    }
+    else
+    {
+        return GABAC_FAILURE;
     }
 
     writer.reset();
-
     return GABAC_SUCCESS;
 }
 

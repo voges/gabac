@@ -30,92 +30,14 @@ Reader::Reader(
 Reader::~Reader() = default;
 
 
-int64_t Reader::readBypassValue(
-        const BinarizationId& binarizationId,
-        const std::vector<unsigned int>& binarizationParameters
-){
-    uint64_t ureturn = 0;
-    switch (binarizationId)
-    {
-        case BinarizationId::BI:
-            ureturn = readAsBIbypass(binarizationParameters[0]);
-            assert(ureturn <= std::numeric_limits<int64_t>::max());
-            return static_cast<int64_t>(ureturn);
-        case BinarizationId::TU:
-            ureturn = readAsTUbypass(binarizationParameters[0]);
-            assert(ureturn <= std::numeric_limits<int64_t>::max());
-            return static_cast<int64_t>(ureturn);
-        case BinarizationId::EG:
-            ureturn = readAsEGbypass();
-            assert(ureturn <= std::numeric_limits<int64_t>::max());
-            return static_cast<int64_t>(ureturn);
-        case BinarizationId::SEG:
-            return readAsSEGbypass();
-        case BinarizationId::TEG:
-            ureturn = readAsTEGbypass(binarizationParameters[0]);
-            assert(ureturn <= std::numeric_limits<int64_t>::max());
-            return static_cast<int64_t>(ureturn);
-        case BinarizationId::STEG:
-            return readAsSTEGbypass(binarizationParameters[0]);
-        default:
-            // TODO(Jan): handle default case
-            break;
-    }
-    assert(false);  // We should not get here
-    return ureturn;
-}
-
-
-int64_t Reader::readAdaptiveCabacValue(
-        const BinarizationId& binarizationId,
-        const std::vector<unsigned int>& binarizationParameters,
-        unsigned int prevValue,
-        unsigned int prevPrevValue
-){
-    unsigned int offset = (prevValue << 2u) + prevPrevValue;
-    switch (binarizationId)
-    {
-        case BinarizationId::BI:
-            return readAsBIcabac(
-                    binarizationParameters[0],
-                    offset
-            );
-        case BinarizationId::TU:
-            return readAsTUcabac(
-                    binarizationParameters[0],
-                    offset
-            );
-        case BinarizationId::EG:
-            return readAsEGcabac(offset);
-        case BinarizationId::SEG:
-            return readAsSEGcabac(offset);
-        case BinarizationId::TEG:
-            return readAsTEGcabac(
-                    binarizationParameters[0],
-                    offset
-            );
-        case BinarizationId::STEG:
-            return readAsSTEGcabac(
-                    binarizationParameters[0],
-                    offset
-            );
-        default:
-            // TODO(Jan): handle default case
-            break;
-    }
-    assert(false);  // We should not get here
-    return 0;
-}
-
-
-uint64_t Reader::readAsBIbypass(
+int64_t Reader::readAsBIbypass(
         unsigned int cLength
 ){
     return m_decBinCabac.decodeBinsEP(cLength);
 }
 
 
-uint64_t Reader::readAsBIcabac(
+int64_t Reader::readAsBIcabac(
         unsigned int cLength,
         unsigned int offset
 ){
@@ -126,11 +48,11 @@ uint64_t Reader::readAsBIcabac(
     {
         bins = (bins << 1u) | m_decBinCabac.decodeBin(&*(scan++));
     }
-    return bins;
+    return static_cast<int>(bins);
 }
 
 
-uint64_t Reader::readAsTUbypass(
+int64_t Reader::readAsTUbypass(
         unsigned int cMax
 ){
     unsigned int i = 0;
@@ -142,11 +64,11 @@ uint64_t Reader::readAsTUbypass(
             break;
         }
     }
-    return i;
+    return static_cast<int>(i);
 }
 
 
-uint64_t Reader::readAsTUcabac(
+int64_t Reader::readAsTUcabac(
         unsigned int cMax,
         unsigned int offset
 ){
@@ -165,11 +87,13 @@ uint64_t Reader::readAsTUcabac(
             scan++;
         }
     }
-    return i;
+    return static_cast<int>(i);
 }
 
 
-uint64_t Reader::readAsEGbypass(){
+int64_t Reader::readAsEGbypass(
+        unsigned int dummy
+){
     unsigned int bins = 0;
     unsigned int i = 0;
     while (readAsBIbypass(1) == 0)
@@ -184,11 +108,12 @@ uint64_t Reader::readAsEGbypass(){
     {
         return 0;
     }
-    return (bins - 1);
+    return static_cast<int>(bins - 1);
 }
 
 
-uint64_t Reader::readAsEGcabac(
+int64_t Reader::readAsEGcabac(
+        unsigned int dummy,
         unsigned int offset
 ){
     unsigned int cm = ContextSelector::getContextForEg(offset, 0);
@@ -208,12 +133,14 @@ uint64_t Reader::readAsEGcabac(
     {
         return 0;
     }
-    return (bins - 1);
+    return static_cast<int>(bins - 1);
 }
 
 
-int64_t Reader::readAsSEGbypass(){
-    int64_t tmp = readAsEGbypass();
+int64_t Reader::readAsSEGbypass(
+        unsigned int dummy
+){
+    int64_t tmp = readAsEGbypass(0);
     // Save, only last bit
     if ((static_cast<uint64_t> (tmp) & 0x1u) == 0)
     {
@@ -234,9 +161,10 @@ int64_t Reader::readAsSEGbypass(){
 
 
 int64_t Reader::readAsSEGcabac(
+        unsigned int dummy,
         unsigned int offset
 ){
-    int64_t tmp = readAsEGcabac(offset);
+    int64_t tmp = readAsEGcabac(0, offset);
     if ((static_cast<uint64_t>(tmp) & 0x1u) == 0)
     {
         if (tmp == 0)
@@ -255,26 +183,26 @@ int64_t Reader::readAsSEGcabac(
 }
 
 
-uint64_t Reader::readAsTEGbypass(
+int64_t Reader::readAsTEGbypass(
         unsigned int treshold
 ){
-    uint64_t value = readAsTUbypass(treshold);
-    if (value == treshold)
+    int64_t value = readAsTUbypass(treshold);
+    if (static_cast<unsigned int>(value) == treshold)
     {
-        value += readAsEGbypass();
+        value += readAsEGbypass(0);
     }
     return value;
 }
 
 
-uint64_t Reader::readAsTEGcabac(
+int64_t Reader::readAsTEGcabac(
         unsigned int treshold,
         unsigned int offset
 ){
-    uint64_t value = readAsTUcabac(treshold, offset);
-    if (value == treshold)
+    int64_t value = readAsTUcabac(treshold, offset);
+    if (static_cast<unsigned int>(value) == treshold)
     {
-        value += readAsEGcabac(offset);
+        value += readAsEGcabac(0, offset);
     }
     return value;
 }
