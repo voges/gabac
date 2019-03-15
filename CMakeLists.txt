@@ -264,6 +264,54 @@ else()
     target_link_libraries(${gabacify} Boost::program_options)
 endif()
 
+
+#==============================================================================
+# transformify
+#==============================================================================
+
+# Set the paths
+set(transformify "transformify")
+set(transformify_source_dir ${CMAKE_SOURCE_DIR}/source/transformify)
+set(transformify_header_dir ${CMAKE_SOURCE_DIR}/source/transformify)
+set(transformify_include_dir ${CMAKE_SOURCE_DIR}/source)
+
+# List all source files (alphabetically)
+set(transformify_source_files ${transformify_source_files} ${transformify_source_dir}/exceptions.cpp)
+set(transformify_source_files ${transformify_source_files} ${transformify_source_dir}/file.cpp)
+set(transformify_source_files ${transformify_source_files} ${transformify_source_dir}/helpers.cpp)
+set(transformify_source_files ${transformify_source_files} ${transformify_source_dir}/input_file.cpp)
+set(transformify_source_files ${transformify_source_files} ${transformify_source_dir}/log.cpp)
+set(transformify_source_files ${transformify_source_files} ${transformify_source_dir}/main.cpp)
+set(transformify_source_files ${transformify_source_files} ${transformify_source_dir}/output_file.cpp)
+set(transformify_source_files ${transformify_source_files} ${transformify_source_dir}/program_options.cpp)
+
+# List all header files (alphabetically)
+set(transformify_header_files ${transformify_header_files} ${transformify_header_dir}/exceptions.h)
+set(transformify_header_files ${transformify_header_files} ${transformify_header_dir}/file.h)
+set(transformify_header_files ${transformify_header_files} ${transformify_header_dir}/helpers.h)
+set(transformify_header_files ${transformify_header_files} ${transformify_header_dir}/input_file.h)
+set(transformify_header_files ${transformify_header_files} ${transformify_header_dir}/log.h)
+set(transformify_header_files ${transformify_header_files} ${transformify_header_dir}/output_file.h)
+set(transformify_header_files ${transformify_header_files} ${transformify_header_dir}/program_options.h)
+
+# Group the source and header files
+source_group("transformify Source Files" FILES ${transformify_source_files})
+source_group("transformify Header Files" FILES ${transformify_header_files})
+
+# Set up the target
+add_executable(${transformify} EXCLUDE_FROM_ALL ${transformify_source_files} ${transformify_header_files})
+target_include_directories(${transformify} PRIVATE ${transformify_include_dir})
+target_include_directories(${transformify} PRIVATE ${gabac_include_dir})
+target_link_libraries(${transformify} ${gabac})
+if(${GABAC_USE_NO_SYSTEM_BOOST})
+    add_dependencies(${transformify} Boost)
+    target_include_directories(${transformify} PRIVATE ${boost_include_dir})
+    target_link_libraries(${transformify} ${boost_libs})
+else()
+    target_link_libraries(${transformify} Boost::program_options)
+endif()
+
+
 #==============================================================================
 # tests
 #==============================================================================
