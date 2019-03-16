@@ -89,7 +89,7 @@ void transformDiffCoding(
     // Do the diff coding
     uint64_t previousSymbol = 0;
     BlockStepper r = transformedSymbols->getReader();
-    while(r.isValid()) {
+    while (r.isValid()) {
         uint64_t symbol = r.get();
         uint64_t diff = symbol - previousSymbol;
         r.set(diff);
@@ -107,7 +107,7 @@ void inverseTransformDiffCoding(
     // Re-compute the symbols from the differences
     uint64_t previousSymbol = 0;
     BlockStepper r = symbols->getReader();
-    while(r.isValid()) {
+    while (r.isValid()) {
         uint64_t symbol = r.get();
         r.set(previousSymbol + symbol);
         previousSymbol = previousSymbol + symbol;

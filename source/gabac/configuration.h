@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <ostream>
+#include <istream>
 
 #include "gabac/constants.h"
 
@@ -47,9 +48,6 @@ class EncodingConfiguration
     std::vector<TransformedSequenceConfiguration> transformedSequenceConfigurations;
 };
 
-class InputStream;
-class OutputStream;
-
 class NullBuffer : public std::streambuf
 {
  public:
@@ -68,12 +66,13 @@ class NullStream : public std::ostream
     NullBuffer m_sb;
 };
 
-struct IOConfiguration {
-    InputStream* inputStream;
-    OutputStream* outputStream;
+struct IOConfiguration
+{
+    std::istream *inputStream;
+    std::ostream *outputStream;
     size_t blocksize;
 
-    std::ostream *outStream;
+    std::ostream *logStream;
 
     enum class LogLevel
     {
@@ -89,13 +88,13 @@ struct IOConfiguration {
 
     std::ostream& log(const LogLevel& l) const{
         static NullStream nullstr;
-        if (static_cast<int>(l) >= static_cast<int>(level)){
-            return *outStream;
+        if (static_cast<int>(l) >= static_cast<int>(level)) {
+            return *logStream;
         }
         return nullstr;
     }
 
-    void validate () const;
+    void validate() const;
 };
 
 struct AnalysisConfiguration

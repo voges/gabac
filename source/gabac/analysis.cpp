@@ -18,11 +18,9 @@
 #include "gabac/encoding.h"
 
 #include "gabac/configuration.h"
-#include "gabacify/encode.h"
+#include "gabacify/code.h"
 #include "gabac/exceptions.h"
-#include "gabac/input_stream.h"
-#include "gabacify/output_file.h"
-#include "gabacify/input_file.h"
+#include "gabac/stream_handler.h"
 
 #include <stack>
 
@@ -61,12 +59,14 @@ void getOptimumOfBinarizationParameter(const AnalysisConfiguration& aconf,
     for (const auto& transID : aconf.candidateContextSelectionIds) {
         info->currConfig.transformedSequenceConfigurations[info->currStreamIndex].contextSelectionId = transID;
         info->stack.push(info->stack.top());
-        size_t maxSize = std::min(info->bestSequenceSize - info->currSequenceSize, info->bestTotalSize - info->currTotalSize) - sizeof(uint32_t);
+        size_t maxSize =
+                std::min(info->bestSequenceSize - info->currSequenceSize, info->bestTotalSize - info->currTotalSize) -
+                sizeof(uint32_t);
         gabac::encode_cabac(
                 info->currConfig.transformedSequenceConfigurations[info->currStreamIndex].binarizationId,
                 info->currConfig.transformedSequenceConfigurations[info->currStreamIndex].binarizationParameters,
                 info->currConfig.transformedSequenceConfigurations[info->currStreamIndex].contextSelectionId,
-                &(info->stack.top().streams.front()) , maxSize
+                &(info->stack.top().streams.front()), maxSize
         );
         info->currSequenceSize += sizeof(uint32_t) + info->stack.top().streams.front().size();
         if (info->bestSequenceSize > info->currSequenceSize) {
@@ -200,7 +200,8 @@ void getOptimumOfLutEnabled(const AnalysisConfiguration& aconf,
                     info->currConfig.transformedSequenceConfigurations[info->currStreamIndex].lutOrder,
                     &info->stack.top().streams
             );
-        } catch (...) {
+        }
+        catch (...) {
             continue;
         }
 
@@ -308,9 +309,9 @@ void getOptimumOfSequenceTransform(const AnalysisConfiguration& aconf,
             }
 
             info->currTotalSize += info->bestSequenceSize;
-            if(info->currTotalSize >= info->bestTotalSize) {
+            if (info->currTotalSize >= info->bestTotalSize) {
                 info->ioconf->log(gabac::IOConfiguration::LogLevel::TRACE)
-                    << "Skipping. Bitstream already larger than permitted." << std::endl;
+                        << "Skipping. Bitstream already larger than permitted." << std::endl;
                 info->stack.pop();
                 break;
             }
@@ -337,7 +338,11 @@ void getOptimumOfSymbolSequence(const AnalysisConfiguration& aconf,
                                 TraversalInfo *info
 ){
     for (const auto& transID : aconf.candidateSequenceTransformationIds) {
-        info->ioconf->log(gabac::IOConfiguration::LogLevel::INFO) << "Transformation " << unsigned(transID) << "..." << std::endl;
+        info->ioconf->log(gabac::IOConfiguration::LogLevel::INFO)
+                << "Transformation "
+                << unsigned(transID)
+                << "..."
+                << std::endl;
         info->currConfig.sequenceTransformationId = transID;
         info->currConfig
                 .transformedSequenceConfigurations
@@ -351,20 +356,24 @@ void getOptimumOfSymbolSequence(const AnalysisConfiguration& aconf,
 }
 
 
-size_t analyze(const IOConfiguration& ioconf, const AnalysisConfiguration& aconf, EncodingConfiguration *econf){
+size_t analyze(const IOConfiguration& ioconf, const AnalysisConfiguration& aconf){
     ioconf.validate();
     TraversalInfo info;
     info.ioconf = &ioconf;
     info.stack.emplace();
-    info.stack.top().streams.emplace_back(ioconf.inputStream->getTotalSize(), 1);
+    info.stack.top().streams.emplace_back(ioconf.blocksize, 1);
     info.bestTotalSize = std::numeric_limits<size_t>::max();
-    ioconf.inputStream->readFull(&info.stack.top().streams.front());
+    if (!ioconf.blocksize) {
+        gabac::StreamHandler::readFull(*ioconf.inputStream, &info.stack.top().streams.front());
+    } else {
+        gabac::StreamHandler::readBytes(*ioconf.inputStream, ioconf.blocksize, &info.stack.top().streams.front());
+    }
 
     for (const auto& w : aconf.candidateWordsizes) {
         ioconf.log(gabac::IOConfiguration::LogLevel::INFO) << "Wordsize " << w << "..." << std::endl;
-        if (ioconf.inputStream->getTotalSize() % w != 0) {
+        if (info.stack.top().streams.front().getRawSize() % w != 0) {
             ioconf.log(gabac::IOConfiguration::LogLevel::WARNING) << "Input stream size "
-                                                                  << ioconf.inputStream->getTotalSize()
+                                                                  << info.stack.top().streams.front().getRawSize()
                                                                   << " is not a multiple of word size "
                                                                   << w
                                                                   << "! Skipping word size." << std::endl;
@@ -377,7 +386,9 @@ size_t analyze(const IOConfiguration& ioconf, const AnalysisConfiguration& aconf
         getOptimumOfSymbolSequence(aconf, &info);
     }
 
-    *econf = info.bestConfig;
+    std::string confString = info.bestConfig.toJsonString();
+    DataBlock confBlock(&confString);
+    gabac::StreamHandler::writeBytes(*ioconf.outputStream, &confBlock);
 
     ioconf.log(gabac::IOConfiguration::LogLevel::INFO)
             << "Success! Best configuration will compress down to "

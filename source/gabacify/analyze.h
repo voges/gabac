@@ -6,7 +6,8 @@
 namespace gabacify {
 
 void analyze(const std::string& inputFilePath,
-             const std::string& configurationFilePath
+             const std::string& configurationFilePath,
+             size_t blocksize
 );
 
 }

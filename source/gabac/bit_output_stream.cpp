@@ -49,8 +49,7 @@ void BitOutputStream::write(
 
     // Determine the nextHeldBits
     auto nextHeldBits = static_cast<unsigned char>((bits << (8u - numNextHeldBits)) & static_cast<unsigned char>(0xff));
-    if (numTotalBits < 8)
-    {
+    if (numTotalBits < 8) {
         // Insufficient bits accumulated to write out, append nextHeldBits to
         // current heldBits
         m_heldBits |= nextHeldBits;
@@ -65,26 +64,20 @@ void BitOutputStream::write(
     writeBits |= (bits >> numNextHeldBits);
 
     // Write everything
-    switch (numTotalBits >> 3u)
-    {
-        case 4:
-        {
+    switch (numTotalBits >> 3u) {
+        case 4: {
             writeOut(static_cast<unsigned char> ((writeBits >> 24u) & 0xffu), m_bitstream);
         }  // fall-through
-        case 3:
-        {
+        case 3: {
             writeOut(static_cast<unsigned char> ((writeBits >> 16u) & 0xffu), m_bitstream);
         }  // fall-through
-        case 2:
-        {
+        case 2: {
             writeOut(static_cast<unsigned char> ((writeBits >> 8u) & 0xffu), m_bitstream);
         }  // fall-through
-        case 1:
-        {
+        case 1: {
             writeOut(static_cast<unsigned char> (writeBits & 0xffu), m_bitstream);
         }  // fall-through
-        default:
-        {
+        default: {
             // Nothing to do here
         }  // fall-through
     }
@@ -96,8 +89,7 @@ void BitOutputStream::write(
 
 
 void BitOutputStream::writeAlignZero(){
-    if (m_numHeldBits == 0)
-    {
+    if (m_numHeldBits == 0) {
         return;
     }
 

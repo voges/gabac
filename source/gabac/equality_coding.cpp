@@ -111,7 +111,7 @@ static void transformEqualityCoding0(
 
     BlockStepper r = values->getReader();
     // Treat value as equalityFlags and vice versa
-    while(r.isValid()){
+    while (r.isValid()) {
         uint64_t symbol = r.get();
         if (symbol == previousSymbol) {
             r.set(1);
@@ -142,7 +142,7 @@ static void transformEqualityCoding1(
     BlockStepper r = values->getReader();
     BlockStepper w = values->getReader();
     // Treat value as equalityFlags and vice versa
-    while(r.isValid()){
+    while (r.isValid()) {
         uint64_t symbol = r.get();
         if (symbol == previousSymbol) {
             equalityFlags->push_back(1);
@@ -159,7 +159,7 @@ static void transformEqualityCoding1(
         r.inc();
     }
 
-    values->resize(values->size() - (w.end-w.curr)/w.wordSize);
+    values->resize(values->size() - (w.end - w.curr) / w.wordSize);
 }
 
 void transformEqualityCoding(
@@ -169,7 +169,7 @@ void transformEqualityCoding(
     assert(equalityFlags != nullptr);
     assert(values != nullptr);
 
-    if(values->getWordSize() == 1) {
+    if (values->getWordSize() == 1) {
         transformEqualityCoding0(values, equalityFlags);
     } else {
         transformEqualityCoding1(values, equalityFlags);
@@ -188,7 +188,7 @@ void inverseTransformEqualityCoding(
     DataBlock *outputptr;
 
     // Wordsize 1 allows in place operation in equality flag buffer
-    if(values->getWordSize() == 1) {
+    if (values->getWordSize() == 1) {
         outputptr = equalityFlags;
     } else {
         // Other wordsizes have to use a distinct buffer
@@ -203,8 +203,8 @@ void inverseTransformEqualityCoding(
     BlockStepper rval = values->getReader();
     BlockStepper rwrite = outputptr->getReader();
 
-    while(rflag.isValid()) {
-        if(rflag.get() == 0) {
+    while (rflag.isValid()) {
+        if (rflag.get() == 0) {
             uint64_t val = rval.get();
             rval.inc();
             if (val >= previousSymbol) {
@@ -218,10 +218,10 @@ void inverseTransformEqualityCoding(
         rwrite.inc();
         rflag.inc();
     }
-    outputptr->resize(outputptr->size() - (rwrite.end-rwrite.curr)/rwrite.wordSize);
+    outputptr->resize(outputptr->size() - (rwrite.end - rwrite.curr) / rwrite.wordSize);
 
     // Swap memory to value buffer to meet conventions
-    if(values->getWordSize() == 1) {
+    if (values->getWordSize() == 1) {
         values->swap(equalityFlags);
     } else {
         values->swap(&output);

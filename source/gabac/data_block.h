@@ -19,109 +19,136 @@ class DataBlock
     std::vector<uint8_t> data;
  public:
 
-    BlockStepper getReader () const;
+    BlockStepper getReader() const;
     bool operator==(const DataBlock& d) const;
-    DataBlock& operator=(const std::initializer_list<uint64_t >& il);
+    DataBlock& operator=(const std::initializer_list<uint64_t>& il);
 
     uint64_t get(size_t index) const;
 
     void set(size_t index, uint64_t val);
 
     template<typename T>
-    class ProxyCore {
+    class ProxyCore
+    {
      private:
         T stream;
         size_t position;
      public:
         ProxyCore(T str, size_t pos);
 
-        explicit operator uint64_t () const;
+        explicit operator uint64_t() const;
 
-        ProxyCore& operator= (uint64_t val);
+        ProxyCore& operator=(uint64_t val);
 
     };
 
-    using Proxy = ProxyCore<DataBlock*>;
-    using ConstProxy = ProxyCore<const DataBlock*>;
+    using Proxy = ProxyCore<DataBlock *>;
+    using ConstProxy = ProxyCore<const DataBlock *>;
 
     template<typename T>
-    class IteratorCore {
+    class IteratorCore
+    {
      private:
         T stream;
         size_t position;
      public:
         IteratorCore(T str, size_t pos);
 
-        IteratorCore operator+ (size_t offset) const;
+        IteratorCore operator+(size_t offset) const;
 
-        IteratorCore operator- (size_t offset) const;
+        IteratorCore operator-(size_t offset) const;
 
-        size_t operator- (const IteratorCore& offset) const {
+        size_t operator-(const IteratorCore& offset) const{
             return position - offset.position;
         }
 
-        IteratorCore& operator++ ();
+        IteratorCore& operator++();
 
-        IteratorCore& operator-- ();
+        IteratorCore& operator--();
 
-        const IteratorCore operator++ (int);
+        const IteratorCore operator++(int);
 
-        const IteratorCore operator-- (int);
+        const IteratorCore operator--(int);
         size_t getOffset() const;
         T getStream() const;
-        ProxyCore<T> operator* () const;
-        bool operator== (const IteratorCore& c) const;
+        ProxyCore<T> operator*() const;
+        bool operator==(const IteratorCore& c) const;
 
-        bool operator!= (const IteratorCore& c) const;
+        bool operator!=(const IteratorCore& c) const;
 
         using iterator_category = std::random_access_iterator_tag;
         using reference = ProxyCore<T>;
-        using pointer = ProxyCore<T>*;
+        using pointer = ProxyCore<T> *;
         using value_type = ProxyCore<T>;
         using difference_type = size_t;
     };
 
-    using Iterator = IteratorCore<DataBlock*>;
-    using ConstIterator = IteratorCore<const DataBlock*>;
+    using Iterator = IteratorCore<DataBlock *>;
+    using ConstIterator = IteratorCore<const DataBlock *>;
 
     size_t size() const;
 
-    void reserve (size_t size);
+    void reserve(size_t size);
 
-    void shrink_to_fit ();
+    void shrink_to_fit();
     void clear();
 
     void resize(size_t size);
 
     bool empty() const;
 
-    ConstIterator begin () const;
+    ConstIterator begin() const;
 
-    Iterator begin ();
+    Iterator begin();
 
-    ConstIterator end () const;
+    ConstIterator end() const;
 
-    Iterator end ();
+    Iterator end();
 
-    void push_back (uint64_t val);
+    void push_back(uint64_t val);
 
-    void emplace_back (uint64_t val);
+    void emplace_back(uint64_t val);
 
-    const void* getData() const;
+    const void *getData() const;
 
-    void* getData();
+    void *getData();
 
     size_t getWordSize() const;
 
     void setWordSize(uint8_t size);
 
-    void swap (DataBlock*d);
+    size_t getRawSize() const{
+        return getWordSize() * size();
+    }
+
+    void swap(DataBlock *d);
 
 
     template<typename IT1, typename IT2>
     void insert(const IT1& pos, const IT2& start, const IT2& end);
 
-    explicit DataBlock (size_t size = 0, size_t wsize = 1);
+    explicit DataBlock(size_t size = 0, size_t wsize = 1);
+
+    template<typename T>
+    explicit DataBlock(std::vector<T> *vec) : wordSize(sizeof(T)){
+        size_t size = vec->size() * sizeof(T);
+        this->data.resize(size);
+        this->data.shrink_to_fit();
+        std::memcpy(this->data.data(), vec->data(), size);
+        vec->clear();
+    }
+
+    explicit DataBlock(std::vector<uint8_t> *vec) : wordSize(1){
+        this->data.swap(*vec);
+    }
+
+    explicit DataBlock(std::string *vec) : wordSize(1){
+        size_t size = vec->size() * sizeof(char);
+        this->data.resize(size);
+        this->data.shrink_to_fit();
+        std::memcpy(this->data.data(), vec->data(), size);
+        vec->clear();
+    }
 
 };
 

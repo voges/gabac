@@ -19,7 +19,7 @@ class ContextSelector
     static unsigned int getContextForBi(
             unsigned int contextSetIdx,
             unsigned int binIdx
-    ) {
+    ){
         assert(binIdx < contexttables::CONTEXT_SET_LENGTH);
         // TODO(Tom): add explanation for this assertion
         assert(contextSetIdx < 16);
@@ -33,7 +33,7 @@ class ContextSelector
     static unsigned int getContextForTu(
             unsigned int contextSetIdx,
             unsigned int binIdx
-    ) {
+    ){
         assert(binIdx < contexttables::CONTEXT_SET_LENGTH);
         // TODO(Tom): add explanation for this assertion
         assert(contextSetIdx < 16);
@@ -47,7 +47,7 @@ class ContextSelector
     static unsigned int getContextForEg(
             unsigned int contextSetIdx,
             unsigned int binIdx
-    ) {
+    ){
         assert(binIdx < contexttables::CONTEXT_SET_LENGTH);
         // TODO(Tom): add explanation for this assertion
         assert(contextSetIdx < 16);

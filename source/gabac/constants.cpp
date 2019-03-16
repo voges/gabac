@@ -154,7 +154,7 @@ const std::vector<TransformationProperties> transformationInformation = {
         },
         {
                 "match_coding", // Name
-                {"raw_values", "pointers", "lengths"}, // StreamNames
+                {"raw_values",  "pointers", "lengths"}, // StreamNames
                 {0, 4, 4}, // WordSizes (0: non fixed current stream wordsize)
                 [](uint64_t param,
                    std::vector<DataBlock> *const transformedSequences
@@ -185,7 +185,7 @@ const std::vector<TransformationProperties> transformationInformation = {
         },
         {
                 "rle_coding", // Name
-                {"raw_values", "lengths"}, // StreamNames
+                {"raw_values",  "lengths"}, // StreamNames
                 {0, 1}, // WordSizes (0: non fixed current stream wordsize)
                 [](uint64_t param,
                    std::vector<DataBlock> *const transformedSequences
@@ -213,7 +213,7 @@ const std::vector<TransformationProperties> transformationInformation = {
         },
         {
                 "lut_coding", // Name
-                {"sequence",   "lut0", "lut1"}, // StreamNames
+                {"sequence",    "lut0",     "lut1"}, // StreamNames
                 {0, 0, 0}, // WordSizes (0: non fixed current stream wordsize)
                 [](uint64_t order,
                    std::vector<DataBlock> *const transformedSequences

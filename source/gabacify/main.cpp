@@ -6,11 +6,9 @@
 #include <vector>
 
 #include "gabacify/analyze.h"
-#include "gabacify/decode.h"
-#include "gabacify/encode.h"
+#include "gabacify/code.h"
 #include "gabac/exceptions.h"
 #include "gabacify/program_options.h"
-#include "gabacify/tmp_file.h"
 
 
 static void writeCommandLine(
@@ -35,22 +33,26 @@ static int gabacify_main(
         writeCommandLine(argc, argv);
 
         if (programOptions.task == "encode") {
-            gabacify::encode(
+            gabacify::code(
                     programOptions.inputFilePath,
                     programOptions.configurationFilePath,
                     programOptions.outputFilePath,
-                    programOptions.blocksize
+                    programOptions.blocksize,
+                    false
             );
         } else if (programOptions.task == "decode") {
-            gabacify::decode(
+            gabacify::code(
                     programOptions.inputFilePath,
                     programOptions.configurationFilePath,
-                    programOptions.outputFilePath
+                    programOptions.outputFilePath,
+                    programOptions.blocksize,
+                    true
             );
         } else if (programOptions.task == "analyze") {
             gabacify::analyze(
                     programOptions.inputFilePath,
-                    programOptions.configurationFilePath
+                    programOptions.configurationFilePath,
+                    programOptions.blocksize
             );
         } else {
             GABAC_DIE("Invalid task: " + std::string(programOptions.task));
@@ -58,21 +60,17 @@ static int gabacify_main(
     }
     catch (const gabac::RuntimeException& e) {
         std::cerr << e.message() << std::endl;
-        gabacify::TmpFile::closeAll();
         return -1;
     }
     catch (const std::exception& e) {
         std::cerr << e.what() << std::endl;
-        gabacify::TmpFile::closeAll();
         return -1;
     }
     catch (...) {
         //GABACIFY_LOG_ERROR << "Unkown error occurred";
-        gabacify::TmpFile::closeAll();
         return -1;
     }
 
-    gabacify::TmpFile::closeAll();
     return 0;
 }
 
@@ -82,23 +80,6 @@ extern "C" void handleSignal(
 ){
     std::signal(sig, SIG_IGN);  // Ignore the signal
     //GABACIFY_LOG_WARNING << "Caught signal: " << sig;
-    switch (sig) {
-        case SIGINT:
-        case SIGILL:
-        case SIGABRT:
-        case SIGFPE:
-        case SIGSEGV:
-        case SIGTERM:
-        case SIGHUP:
-        case SIGQUIT:
-        case SIGTRAP:
-        case SIGKILL:
-        case SIGBUS:
-        case SIGSYS:
-        case SIGPIPE:
-            //GABACIFY_LOG_WARNING << "Process killed";
-            gabacify::TmpFile::closeAll();
-    }
     std::signal(sig, SIG_DFL);  // Invoke the default signal action
     std::raise(sig);
 }

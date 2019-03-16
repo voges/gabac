@@ -17,7 +17,7 @@ class BitInputStream
 {
  public:
     explicit BitInputStream(
-            DataBlock* bitstream
+            DataBlock *bitstream
     );
 
     ~BitInputStream();

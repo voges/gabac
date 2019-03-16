@@ -7,88 +7,15 @@
 
 #include "gabac/constants.h"
 #include "gabac/writer.h"
-#include "gabac/output_stream.h"
-#include "gabac/input_stream.h"
+#include "gabac/stream_handler.h"
 #include "configuration.h"
 #include "gabac.h"
-
-
-// ----------------------------------------------------------------------------
-// C wrapper BEGIN
-// ----------------------------------------------------------------------------
-
-/*
-int gabac_encode(
-        int64_t *const symbols,
-        size_t symbolsSize,
-        unsigned int binarizationId,
-        unsigned int *const binarizationParameters,
-        size_t binarizationParametersSize,
-        unsigned int contextSelectionId,
-        unsigned char **const bitstream,
-        size_t *const bitstreamSize
-){
-    if (symbols == nullptr)
-    {
-        return GABAC_FAILURE;
-    }
-    if (binarizationParameters == nullptr)
-    {
-        return GABAC_FAILURE;
-    }
-    if (bitstream == nullptr)
-    {
-        return GABAC_FAILURE;
-    }
-    if (bitstreamSize == nullptr)
-    {
-        return GABAC_FAILURE;
-    }
-
-    // C++-style vectors to receive input data / accumulate output data
-    DataBlock symbolsVector(
-            symbols,
-            (symbols + symbolsSize)
-    );
-    std::vector<unsigned int> binarizationParametersVector(
-            binarizationParameters,
-            (binarizationParameters + binarizationParametersSize)
-    );
-    std::vector<unsigned char> bitstreamVector;
-
-    assert(binarizationId <= static_cast<int>(gabac::BinarizationId::STEG));
-    assert(contextSelectionId <= static_cast<int>(gabac::ContextSelectionId::adaptive_coding_order_2));
-    // Execute
-    int rc = gabac::encode(
-            symbolsVector,
-            static_cast<gabac::BinarizationId>(binarizationId),
-            binarizationParametersVector,
-            static_cast<gabac::ContextSelectionId>(contextSelectionId),
-            &bitstreamVector
-    );
-    if (rc != GABAC_SUCCESS)
-    {
-        return GABAC_FAILURE;
-    }
-
-    // Extract plain C array data from result vectors
-    *bitstreamSize = bitstreamVector.size();
-    *bitstream = (unsigned char *) malloc(sizeof(char) * (*bitstreamSize));
-    std::copy(bitstreamVector.begin(), bitstreamVector.end(), *bitstream);
-
-    return GABAC_SUCCESS;
-}*/
-
-
-// ----------------------------------------------------------------------------
-// C wrapper END
-// ----------------------------------------------------------------------------
 
 
 namespace gabac {
 
 
-int encode_cabac(
+ReturnCode encode_cabac(
         const BinarizationId& binarizationId,
         const std::vector<unsigned int>& binarizationParameters,
         const ContextSelectionId& contextSelectionId,
@@ -112,8 +39,9 @@ int encode_cabac(
 
     if (contextSelectionId == ContextSelectionId::bypass) {
         while (r.isValid()) {
-            if(maxSize <= bitstream.size())
+            if (maxSize <= bitstream.size()) {
                 break;
+            }
             writer.writeBypassValue(
                     r.get(),
                     binarizationId,
@@ -123,8 +51,9 @@ int encode_cabac(
         }
     } else if (contextSelectionId == ContextSelectionId::adaptive_coding_order_0) {
         while (r.isValid()) {
-            if(maxSize <= bitstream.size())
+            if (maxSize <= bitstream.size()) {
                 break;
+            }
             writer.writeCabacAdaptiveValue(
                     r.get(),
                     binarizationId,
@@ -136,8 +65,9 @@ int encode_cabac(
         }
     } else if (contextSelectionId == ContextSelectionId::adaptive_coding_order_1) {
         while (r.isValid()) {
-            if(maxSize <= bitstream.size())
+            if (maxSize <= bitstream.size()) {
                 break;
+            }
             uint64_t symbol = r.get();
             r.inc();
             writer.writeCabacAdaptiveValue(
@@ -159,8 +89,9 @@ int encode_cabac(
         }
     } else if (contextSelectionId == ContextSelectionId::adaptive_coding_order_2) {
         while (r.isValid()) {
-            if(maxSize <= bitstream.size())
+            if (maxSize <= bitstream.size()) {
                 break;
+            }
             uint64_t symbol = r.get();
             r.inc();
             writer.writeCabacAdaptiveValue(
@@ -182,14 +113,14 @@ int encode_cabac(
             }
         }
     } else {
-        return GABAC_FAILURE;
+        return ReturnCode::failure;
     }
 
     writer.reset();
 
     symbols->swap(&bitstream);
 
-    return GABAC_SUCCESS;
+    return ReturnCode::success;
 }
 
 
@@ -225,7 +156,7 @@ void doSequenceTransform(const gabac::SequenceTransformationId& transID,
 
 static void encodeStream(const gabac::TransformedSequenceConfiguration& conf,
                          gabac::DataBlock *const diffAndLutTransformedSequence,
-                         gabac::OutputStream *const out
+                         std::ostream *out
 ){
     // Encoding
     gabac::encode_cabac(
@@ -235,7 +166,7 @@ static void encodeStream(const gabac::TransformedSequenceConfiguration& conf,
             diffAndLutTransformedSequence
     );
 
-    out->writeStream(diffAndLutTransformedSequence);
+    gabac::StreamHandler::writeStream(*out, diffAndLutTransformedSequence);
 }
 
 //------------------------------------------------------------------------------
@@ -243,7 +174,7 @@ static void encodeStream(const gabac::TransformedSequenceConfiguration& conf,
 void doLutTransform(unsigned int order,
                     std::vector<gabac::DataBlock> *const lutSequences,
                     unsigned *bits0,
-                    gabac::OutputStream *out
+                    std::ostream *out
 ){
     //GABACIFY_LOG_TRACE << "LUT transform *en*abled";
     const unsigned LUT_INDEX = 4;
@@ -301,7 +232,7 @@ void doDiffTransform(std::vector<gabac::DataBlock> *const sequence
 
 static void encodeSingleSequence(const gabac::TransformedSequenceConfiguration& configuration,
                                  gabac::DataBlock *const seq,
-                                 gabac::OutputStream *const out
+                                 std::ostream *out
 ){
     std::vector<gabac::DataBlock> lutTransformedSequences;
 
@@ -338,14 +269,15 @@ void encode(
         const EncodingConfiguration& enConf
 ){
     conf.validate();
-    while (conf.inputStream->isValid()) {
-        gabac::DataBlock sequence(0, 1);
-        size_t readLength = std::min(conf.blocksize, conf.inputStream->getRemainingSize());
-        if (!conf.blocksize) {
-            readLength = conf.inputStream->getRemainingSize();
-        }
-        conf.inputStream->readBytes(readLength, &sequence);
-        sequence.setWordSize(static_cast<uint8_t>(enConf.wordSize));
+    gabac::DataBlock sequence(0, 1);
+    sequence.setWordSize(static_cast<uint8_t>(enConf.wordSize));
+    size_t size = 0;
+    if (!conf.blocksize) {
+        size = gabac::StreamHandler::readFull(*conf.inputStream, &sequence);
+    } else {
+        size = gabac::StreamHandler::readBlock(*conf.inputStream, conf.blocksize, &sequence);
+    }
+    while (size) {
         // Insert sequence into vector
         std::vector<gabac::DataBlock> transformedSequences;
         transformedSequences.resize(1);
@@ -366,6 +298,11 @@ void encode(
                     &(transformedSequences[i]),
                     conf.outputStream
             );
+        }
+        if (conf.blocksize) {
+            size = gabac::StreamHandler::readBlock(*conf.inputStream, conf.blocksize, &sequence);
+        } else {
+            size = 0;
         }
     }
 

@@ -119,8 +119,7 @@ void transformRleCoding(
         r.inc();
         if (tmp == cur) {
             ++lengthValue;
-        }
-        else {
+        } else {
             w.set(cur);
             w.inc();
             cur = tmp;

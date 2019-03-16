@@ -12,14 +12,12 @@ namespace gabac {
 ContextModel::ContextModel(
         unsigned char state
 )
-        : m_state(state)
-{
+        : m_state(state){
     // Nothing to do here
 }
 
 
 ContextModel::~ContextModel() = default;
-
 
 
 }  // namespace gabac

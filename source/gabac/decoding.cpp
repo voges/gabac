@@ -9,8 +9,7 @@
 #include "gabac/configuration.h"
 #include "gabac/reader.h"
 #include "gabac/diff_coding.h"
-#include "input_stream.h"
-#include "output_stream.h"
+#include "stream_handler.h"
 
 
 // ----------------------------------------------------------------------------
@@ -89,7 +88,7 @@ int gabac_decode(
 namespace gabac {
 
 
-int decode_cabac(
+ReturnCode decode_cabac(
         const uint8_t wordsize,
         const BinarizationId& binarizationId,
         const std::vector<unsigned int>& binarizationParameters,
@@ -97,9 +96,8 @@ int decode_cabac(
         DataBlock *const bitstream
 ){
     DataBlock symbols(0, wordsize);
-    if (bitstream == nullptr)
-    {
-        return GABAC_FAILURE;
+    if (bitstream == nullptr) {
+        return ReturnCode::failure;
     }
 
     Reader reader(bitstream);
@@ -113,19 +111,15 @@ int decode_cabac(
     unsigned int previousPreviousSymbol = 0;
 
     BlockStepper r = symbols.getReader();
-    while(r.isValid())
-    {
-        if (contextSelectionId == ContextSelectionId::bypass)
-        {
+    while (r.isValid()) {
+        if (contextSelectionId == ContextSelectionId::bypass) {
             symbol = reader.readBypassValue(
                     binarizationId,
                     binarizationParameters
             );
             r.set(symbol);
-        }
-        else if (contextSelectionId
-                 == ContextSelectionId::adaptive_coding_order_0)
-        {
+        } else if (contextSelectionId
+                   == ContextSelectionId::adaptive_coding_order_0) {
             symbol = reader.readAdaptiveCabacValue(
                     binarizationId,
                     binarizationParameters,
@@ -133,10 +127,8 @@ int decode_cabac(
                     0
             );
             r.set(symbol);
-        }
-        else if (contextSelectionId
-                 == ContextSelectionId::adaptive_coding_order_1)
-        {
+        } else if (contextSelectionId
+                   == ContextSelectionId::adaptive_coding_order_1) {
             symbol = reader.readAdaptiveCabacValue(
                     binarizationId,
                     binarizationParameters,
@@ -144,23 +136,17 @@ int decode_cabac(
                     0
             );
             r.set(symbol);
-            if (int64_t (symbol) < 0)
-            {
-                symbol = uint64_t (-int64_t (symbol));
+            if (int64_t(symbol) < 0) {
+                symbol = uint64_t(-int64_t(symbol));
             }
-            if (symbol > 3)
-            {
+            if (symbol > 3) {
                 previousSymbol = 3;
-            }
-            else
-            {
+            } else {
                 assert(symbol <= std::numeric_limits<unsigned int>::max());
                 previousSymbol = static_cast<unsigned int>(symbol);
             }
-        }
-        else if (contextSelectionId
-                 == ContextSelectionId::adaptive_coding_order_2)
-        {
+        } else if (contextSelectionId
+                   == ContextSelectionId::adaptive_coding_order_2) {
             symbol = reader.readAdaptiveCabacValue(
                     binarizationId,
                     binarizationParameters,
@@ -169,23 +155,17 @@ int decode_cabac(
             );
             r.set(symbol);
             previousPreviousSymbol = previousSymbol;
-            if (int64_t (symbol) < 0)
-            {
-                symbol = uint64_t (-int64_t (symbol));
+            if (int64_t(symbol) < 0) {
+                symbol = uint64_t(-int64_t(symbol));
             }
-            if (symbol > 3)
-            {
+            if (symbol > 3) {
                 previousSymbol = 3;
-            }
-            else
-            {
+            } else {
                 assert(symbol <= std::numeric_limits<unsigned int>::max());
                 previousSymbol = static_cast<unsigned int>(symbol);
             }
-        }
-        else
-        {
-            return GABAC_FAILURE;
+        } else {
+            return ReturnCode::failure;
         }
         r.inc();
     }
@@ -194,7 +174,7 @@ int decode_cabac(
 
     symbols.swap(bitstream);
 
-    return GABAC_SUCCESS;
+    return ReturnCode::success;
 }
 
 
@@ -202,11 +182,11 @@ int decode_cabac(
 
 static void decodeInverseLUT(unsigned bits0,
                              unsigned order,
-                             gabac::InputStream* inStream,
+                             std::istream *inStream,
                              gabac::DataBlock *const inverseLut,
                              gabac::DataBlock *const inverseLut1
 ){
-    inStream->readStream(inverseLut);
+    StreamHandler::readStream(*inStream, inverseLut);
 
     size_t lutWordSize = 0;
     if (bits0 <= 8) {
@@ -228,7 +208,7 @@ static void decodeInverseLUT(unsigned bits0,
     );
 
     if (order > 0) {
-        inStream->readStream(inverseLut1);
+        StreamHandler::readStream(*inStream, inverseLut1);
         auto bits1 = unsigned(inverseLut->size());
 
         bits1 = unsigned(std::ceil(std::log2(bits1)));
@@ -291,10 +271,10 @@ static void doLUTCoding(bool enabled,
 
 static void doEntropyCoding(const gabac::TransformedSequenceConfiguration& transformedSequenceConfiguration,
                             uint8_t wordsize,
-                            gabac::InputStream* inStream,
+                            std::istream *inStream,
                             gabac::DataBlock *const diffAndLutTransformedSequence
 ){
-    inStream->readStream(diffAndLutTransformedSequence);
+    StreamHandler::readStream(*inStream, diffAndLutTransformedSequence);
     //GABACIFY_LOG_TRACE << "Bitstream size: " << diffAndLutTransformedSequence->size();
 
     // Decoding
@@ -315,7 +295,7 @@ void decode(
         const EncodingConfiguration& enConf
 ){
 
-    while(ioConf.inputStream->isValid()) {
+    while (ioConf.inputStream->peek() != EOF) {
 
         // Set up for the inverse sequence transformation
         size_t numTransformedSequences =
@@ -373,7 +353,7 @@ void decode(
         );
         //GABACIFY_LOG_TRACE << "Decoded sequence of length: " << transformedSequences[0].size();
 
-        ioConf.outputStream->writeBytes(&transformedSequences[0]);
+        gabac::StreamHandler::writeBytes(*ioConf.outputStream, &transformedSequences[0]);
     }
 }
 

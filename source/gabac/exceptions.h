@@ -13,7 +13,7 @@
 #include <string>
 
 
-namespace gabac{
+namespace gabac {
 
 
 class Exception : public std::exception

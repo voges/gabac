@@ -20,40 +20,6 @@ extern "C" {
 #include <stdlib.h> /* NOLINT */
 #include <stdint.h> /* NOLINT */
 
-/**
- *
- * @param symbols
- * @param symbolsSize
- * @param transformedSymbols
- * @param inverseLUT
- * @param inverseLUTSize
- * @return
- */
-int gabac_transformLutTransform0(
-        const uint64_t *symbols,
-        size_t symbolsSize,
-        uint64_t **transformedSymbols,
-        uint64_t **inverseLUT,
-        size_t *inverseLUTSize
-);
-
-/**
- *
- * @param transformedSymbols
- * @param transformedSymbolsSize
- * @param inverseLUT
- * @param inverseLUTSize
- * @param symbols
- * @return
- */
-int gabac_inverseTransformLutTransform0(
-        const uint64_t *transformedSymbols,
-        size_t transformedSymbolsSize,
-        const uint64_t *inverseLUT,
-        size_t inverseLUTSize,
-        uint64_t **symbols
-);
-
 
 #ifdef __cplusplus
 }  // extern "C"

@@ -36,10 +36,6 @@ class ProgramOptions
     );
 
     void validate();
-
-    static const std::string m_defaultBytestreamFilePathExtension;
-    static const std::string m_defaultConfigurationFilePathExtension;
-    static const std::string m_defaultUncompressedFilePathExtension;
 };
 
 

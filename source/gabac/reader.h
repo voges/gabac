@@ -20,7 +20,7 @@ class Reader
 {
  public:
     explicit Reader(
-            DataBlock* bitstream
+            DataBlock *bitstream
     );
 
     ~Reader();

@@ -11,7 +11,7 @@
 
 #include "exceptions.h"
 
-#include "gabac/input_stream.h"
+#include "gabac/stream_handler.h"
 
 namespace gabac {
 
@@ -28,8 +28,7 @@ EncodingConfiguration::EncodingConfiguration()
 EncodingConfiguration::EncodingConfiguration(
         const std::string& json
 ){
-    try
-    {
+    try {
         // Read the stringstream JSON data to a property tree
         std::stringstream tmp(json);
         boost::property_tree::ptree propertyTree;
@@ -50,14 +49,14 @@ EncodingConfiguration::EncodingConfiguration(
             // Fill the transformed sequence configuration
             transformedSequenceConfiguration.lutTransformationEnabled
                     = static_cast<bool>(child.second.get<unsigned int>("lut_transformation_enabled"));
-            transformedSequenceConfiguration.lutBits = wordSize*8;
+            transformedSequenceConfiguration.lutBits = wordSize * 8;
             transformedSequenceConfiguration.lutOrder = 0;
             if (transformedSequenceConfiguration.lutTransformationEnabled) {
-                if(child.second.count("lut_transformation_bits") > 0) {
+                if (child.second.count("lut_transformation_bits") > 0) {
                     transformedSequenceConfiguration.lutBits
                             = child.second.get<unsigned int>("lut_transformation_bits");
                 }
-                if(child.second.count("lut_transformation_order") > 0) {
+                if (child.second.count("lut_transformation_order") > 0) {
                     transformedSequenceConfiguration.lutOrder
                             = child.second.get<unsigned int>("lut_transformation_order");
                 }
@@ -69,8 +68,7 @@ EncodingConfiguration::EncodingConfiguration(
                     = child.second.get<bool>("diff_coding_enabled");
             transformedSequenceConfiguration.binarizationId
                     = static_cast<gabac::BinarizationId>(child.second.get<unsigned int>("binarization_id"));
-            for (const auto& grandchild : child.second.get_child("binarization_parameters"))
-            {
+            for (const auto& grandchild : child.second.get_child("binarization_parameters")) {
                 transformedSequenceConfiguration.binarizationParameters
                         .push_back(grandchild.second.get_value<unsigned int>());
             }
@@ -82,8 +80,7 @@ EncodingConfiguration::EncodingConfiguration(
             this->transformedSequenceConfigurations.push_back(transformedSequenceConfiguration);
         }
     }
-    catch (const boost::property_tree::ptree_error& e)
-    {
+    catch (const boost::property_tree::ptree_error& e) {
         GABAC_DIE("JSON parsing error: " + std::string(e.what()));
     }
 }
@@ -95,8 +92,7 @@ EncodingConfiguration::~EncodingConfiguration() = default;
 std::string EncodingConfiguration::toJsonString() const{
     std::string jsonString;
 
-    try
-    {
+    try {
         // Set up a property tree
         boost::property_tree::ptree root;
 
@@ -114,8 +110,7 @@ std::string EncodingConfiguration::toJsonString() const{
                 static_cast<int>(this->sequenceTransformationParameter)
         );
         boost::property_tree::ptree transformedSequencesNode;
-        for (const auto& transformedSequenceConfiguration : this->transformedSequenceConfigurations)
-        {
+        for (const auto& transformedSequenceConfiguration : this->transformedSequenceConfigurations) {
             // Declare a property tree for a transformed sequence configuration
             boost::property_tree::ptree transformedSequenceNode;
 
@@ -125,7 +120,7 @@ std::string EncodingConfiguration::toJsonString() const{
                     "lut_transformation_enabled",
                     static_cast<int>(transformedSequenceConfiguration.lutTransformationEnabled)
             );
-            if(transformedSequenceConfiguration.lutTransformationEnabled) {
+            if (transformedSequenceConfiguration.lutTransformationEnabled) {
                 transformedSequenceNode.put(
                         "lut_transformation_bits",
                         static_cast<int>(transformedSequenceConfiguration.lutBits)
@@ -144,8 +139,7 @@ std::string EncodingConfiguration::toJsonString() const{
                     static_cast<int>(transformedSequenceConfiguration.binarizationId)
             );
             boost::property_tree::ptree binarizationParametersNode;
-            for (const auto& binarizationParameter : transformedSequenceConfiguration.binarizationParameters)
-            {
+            for (const auto& binarizationParameter : transformedSequenceConfiguration.binarizationParameters) {
                 boost::property_tree::ptree tmp;
                 tmp.put("", binarizationParameter);
                 binarizationParametersNode.push_back(std::make_pair("", tmp));
@@ -170,8 +164,7 @@ std::string EncodingConfiguration::toJsonString() const{
         boost::property_tree::write_json(s, root);
         jsonString = s.str();
     }
-    catch (const boost::property_tree::ptree_error& e)
-    {
+    catch (const boost::property_tree::ptree_error& e) {
         GABAC_DIE("JSON write error: " + std::string(e.what()));
     }
 
@@ -185,8 +178,7 @@ std::string EncodingConfiguration::toPrintableString() const{
     s << this->wordSize << "  |  ";
     s << static_cast<int>(this->sequenceTransformationId) << "  |  ";
     s << this->sequenceTransformationParameter << "  |  ";
-    for (const auto& transformedSequenceConfiguration : this->transformedSequenceConfigurations)
-    {
+    for (const auto& transformedSequenceConfiguration : this->transformedSequenceConfigurations) {
         s << transformedSequenceConfiguration.toPrintableString();
     }
 
@@ -202,8 +194,7 @@ std::string TransformedSequenceConfiguration::toPrintableString() const{
     s << static_cast<int>(diffCodingEnabled) << "  |  ";
     s << static_cast<int>(binarizationId) << "  |  ";
     s << "[ ";
-    for (const auto& binarizationParameter : binarizationParameters)
-    {
+    for (const auto& binarizationParameter : binarizationParameters) {
         s << binarizationParameter << " ";
     }
     s << "]  |  ";
@@ -213,16 +204,16 @@ std::string TransformedSequenceConfiguration::toPrintableString() const{
 }
 
 void IOConfiguration::validate() const{
-    if(!inputStream){
+    if (!inputStream) {
         GABAC_DIE("Invalid input stream");
     }
-    if(!outputStream){
+    if (!outputStream) {
         GABAC_DIE("Invalid output stream");
     }
-    if(!outputStream) {
+    if (!outputStream) {
         GABAC_DIE("Invalid logging output stream");
     }
-    if(unsigned(level) > unsigned(IOConfiguration::LogLevel::FATAL)){
+    if (unsigned(level) > unsigned(IOConfiguration::LogLevel::FATAL)){
         GABAC_DIE("Invalid logging level");
     }
 }

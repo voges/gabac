@@ -1,8 +1,6 @@
 #ifndef GABAC_CONSTANTS_H_
 #define GABAC_CONSTANTS_H_
 
-#ifdef __cplusplus
-
 #include <cstdint>
 #include <functional>
 #include <vector>
@@ -10,17 +8,15 @@
 
 #include "gabac/data_block.h"
 
-#define GABAC_SUCCESS 0
-
-#define GABAC_FAILURE (-1)
-
 namespace gabac {
 
+enum class ReturnCode
+{
+    success = 0,
+    failure = 1
+};
 
 enum class SequenceTransformationId
-#else
-    enum SequenceTransformationId
-#endif
 {
     no_transform = 0,
     equality_coding = 1,
@@ -28,11 +24,7 @@ enum class SequenceTransformationId
     rle_coding = 3
 };
 
-#ifdef __cplusplus
 enum class BinarizationId
-#else
-    enum BinarizationId
-#endif
 {
     BI = 0,  /** Binary */
     TU = 1,  /** Truncated Unary */
@@ -42,11 +34,7 @@ enum class BinarizationId
     STEG = 5  /** Signed Truncated Exponential Golomb */
 };
 
-#ifdef __cplusplus
 enum class ContextSelectionId
-#else
-    enum ContextSelectionId
-#endif
 {
     bypass = 0,
     adaptive_coding_order_0 = 1,
@@ -54,13 +42,11 @@ enum class ContextSelectionId
     adaptive_coding_order_2 = 3
 };
 
-#ifdef __cplusplus
-
 using SequenceTransform = std::function<void(const uint64_t param,
                                              std::vector<gabac::DataBlock> *const
 )>;
 
-using SignedBinarizationBorder = std::function<uint64_t (uint64_t parameter
+using SignedBinarizationBorder = std::function<uint64_t(uint64_t parameter
 )>;
 
 
@@ -81,9 +67,10 @@ struct BinarizationProperties
     bool isSigned;
     SignedBinarizationBorder min;
     SignedBinarizationBorder max;
-    bool sbCheck (uint64_t minv, uint64_t maxv, uint64_t parameter) const {
-        if(isSigned) {
-            return int64_t (minv) >= int64_t (this->min(parameter)) && int64_t (maxv) <= int64_t (this->max(parameter));
+
+    bool sbCheck(uint64_t minv, uint64_t maxv, uint64_t parameter) const{
+        if (isSigned) {
+            return int64_t(minv) >= int64_t(this->min(parameter)) && int64_t(maxv) <= int64_t(this->max(parameter));
         }
         return minv >= this->min(parameter) && maxv <= this->max(parameter);
     }
@@ -93,10 +80,7 @@ extern const std::vector<TransformationProperties> transformationInformation;
 extern const std::vector<BinarizationProperties> binarizationInformation;
 
 
-
 }  // namespace gabac
-
-#endif
 
 
 #endif  /* GABAC_CONSTANTS_H_ */

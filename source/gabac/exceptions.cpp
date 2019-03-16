@@ -7,8 +7,7 @@ namespace gabac {
 Exception::Exception(
         const std::string& message
 )
-        : m_message(message)
-{
+        : m_message(message){
     // Nothing to do here
 }
 
@@ -16,14 +15,12 @@ Exception::Exception(
 Exception::~Exception() noexcept = default;
 
 
-std::string Exception::message() const
-{
+std::string Exception::message() const{
     return m_message;
 }
 
 
-const char *Exception::what() const noexcept
-{
+const char *Exception::what() const noexcept{
     return m_message.c_str();
 }
 
@@ -49,8 +46,7 @@ RuntimeException::RuntimeException(
 RuntimeException::RuntimeException(
         const gabac::RuntimeException& e
 ) noexcept
-        : Exception(e.what())
-{
+        : Exception(e.what()){
 }
 
 

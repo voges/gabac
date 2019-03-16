@@ -130,7 +130,7 @@ static void inferLut0(
     if (maxValue < CTR_THRESHOLD) {
         std::vector<uint64_t> freq(maxValue + 1);
         BlockStepper r = symbols.getReader();
-        while(r.isValid()){
+        while (r.isValid()) {
             uint64_t symbol = r.get();
             freq[symbol]++;
             r.inc();
@@ -143,7 +143,7 @@ static void inferLut0(
     } else {
         std::unordered_map<uint64_t, uint64_t> freq;
         BlockStepper r = symbols.getReader();
-        while(r.isValid()){
+        while (r.isValid()) {
             uint64_t symbol = r.get();
             freq[symbol]++;
             if (freq.size() >= MAX_LUT_SIZE) {
@@ -253,7 +253,7 @@ static void transformLutTransform_core(
 
 
     BlockStepper r = transformedSymbols->getReader();
-    while(r.isValid()){
+    while (r.isValid()) {
         uint64_t symbol = r.get();
         // Update history
         for (size_t j = ORDER; j > 0; --j) {
@@ -367,7 +367,7 @@ void inferLut(
     std::vector<uint64_t> lastSymbols(ORDER + 1, 0);
 
     BlockStepper r = symbols.getReader();
-    while(r.isValid()){
+    while (r.isValid()) {
         uint64_t symbol = r.get();
         // Update history
         for (size_t j = ORDER; j > 0; --j) {
