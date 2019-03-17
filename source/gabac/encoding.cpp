@@ -96,14 +96,15 @@ int encode(
     const unsigned int paramSize[unsigned(BinarizationId::STEG) + 1u] = {1, 1, 0, 0, 1, 1};
 #endif
     assert(binarizationParameters.size() >= paramSize[static_cast<int>(binarizationId)]);
-
     bitstream->clear();
 
     Writer writer(bitstream);
     writer.start(symbols.size());
 
-    unsigned int previousSymbol = 0;
-    unsigned int previousPreviousSymbol = 0;
+    unsigned int binarizationParameter = 0;
+    if (binarizationParameters.size() > 0) {
+       binarizationParameter = binarizationParameters[0];
+    }
 
     if (contextSelectionId == ContextSelectionId::bypass)
     {
@@ -135,7 +136,7 @@ int encode(
         {
             (writer.*func)(
                     symbol,
-                    binarizationParameters[0]
+                    binarizationParameter
             );
         }
 
@@ -174,18 +175,20 @@ int encode(
         {
             (writer.*func)(
                     symbol,
-                    binarizationParameters[0],
+                    binarizationParameter,
                     0
             );
         }
     }
     else if (contextSelectionId == ContextSelectionId::adaptive_coding_order_1)
     {
+        unsigned int previousSymbol = 0;
+
         for (int64_t symbol : symbols)
         {
             (writer.*func)(
                     symbol,
-                    binarizationParameters[0],
+                    binarizationParameter,
                     previousSymbol << 2u
             );
             if (symbol < 0)
@@ -205,11 +208,14 @@ int encode(
     }
     else if (contextSelectionId == ContextSelectionId::adaptive_coding_order_2)
     {
+        unsigned int previousSymbol = 0;
+        unsigned int previousPreviousSymbol = 0;
+
         for (int64_t symbol : symbols)
         {
             (writer.*func)(
                     symbol,
-                    binarizationParameters[0],
+                    binarizationParameter,
                     (previousSymbol << 2u) + previousPreviousSymbol
             );
             previousPreviousSymbol = previousSymbol;
