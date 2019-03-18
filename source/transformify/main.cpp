@@ -157,7 +157,7 @@ static int transformify_main(int argc, char* argv[])
             rawValuesOutputBuffer.shrink_to_fit();
 
             // Write the lengths bytestream
-            std::string lengthsOutputFilePath = programOptions.inputFilePath + ".rle_coding.raw_values";
+            std::string lengthsOutputFilePath = programOptions.inputFilePath + ".rle_coding.length_values";
             transformify::OutputFile lengthsOutputFile(lengthsOutputFilePath);
             lengthsOutputFile.write(&lengthsOutputBuffer[0], 1, lengthsOutputBuffer.size());
             TRANSFORMIFY_LOG_INFO << "Wrote lengths bytestream of size " << lengthsOutputBuffer.size() << " to: " << lengthsOutputFilePath;
