@@ -103,9 +103,10 @@ int decode(
     // symbols->clear();
     symbols->resize(symbolsSize);
 
-    int64_t symbol = 0;
-    unsigned int previousSymbol = 0;
-    unsigned int previousPreviousSymbol = 0;
+    unsigned int binarizationParameter = 0;
+    if (binarizationParameters.size() > 0) {
+       binarizationParameter = binarizationParameters[0];
+    }
 
     if (contextSelectionId == ContextSelectionId::bypass)
     {
@@ -135,8 +136,8 @@ int decode(
         }
         for (size_t i = 0; i < symbolsSize; i++)
         {
-            symbol = (reader.*func)(
-                    binarizationParameters[0]
+            int64_t symbol = (reader.*func)(
+                    binarizationParameter
             );
             (*symbols)[i] = symbol;
         }
@@ -175,8 +176,8 @@ int decode(
     {
         for (size_t i = 0; i < symbolsSize; i++)
         {
-            symbol = (reader.*func)(
-                    binarizationParameters[0],
+            int64_t symbol = (reader.*func)(
+                    binarizationParameter,
                     0
             );
             (*symbols)[i] = symbol;
@@ -185,10 +186,12 @@ int decode(
     else if (contextSelectionId
              == ContextSelectionId::adaptive_coding_order_1)
     {
+        unsigned int previousSymbol = 0;
+
         for (size_t i = 0; i < symbolsSize; i++)
         {
-            symbol = (reader.*func)(
-                    binarizationParameters[0],
+            int64_t symbol = (reader.*func)(
+                    binarizationParameter,
                     previousSymbol << 2u
             );
             (*symbols)[i] = symbol;
@@ -210,10 +213,13 @@ int decode(
     else if (contextSelectionId
              == ContextSelectionId::adaptive_coding_order_2)
     {
+        unsigned int previousSymbol = 0;
+        unsigned int previousPreviousSymbol = 0;
+
         for (size_t i = 0; i < symbolsSize; i++)
         {
-            symbol = (reader.*func)(
-                    binarizationParameters[0],
+            int64_t symbol = (reader.*func)(
+                    binarizationParameter,
                     (previousSymbol << 2u) + previousPreviousSymbol
             );
             (*symbols)[i] = symbol;
