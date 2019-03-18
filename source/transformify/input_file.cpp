@@ -9,22 +9,14 @@
 namespace transformify {
 
 
-InputFile::InputFile(
-        const std::string& path
-)
-        : File(path, "rb"){
-    // Nothing to do here
-}
+InputFile::InputFile(const std::string& path) : File(path, "rb") {}
 
 
 InputFile::~InputFile() = default;
 
 
-void InputFile::read(
-        void *items,
-        size_t itemSize,
-        size_t numItems
-){
+void InputFile::read(void* items, size_t itemSize, size_t numItems)
+{
     assert(numItems == 0 || items != nullptr);
 
     size_t rc = fread(items, itemSize, numItems, m_fp);

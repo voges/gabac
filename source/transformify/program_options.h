@@ -5,7 +5,6 @@
 #include <boost/program_options.hpp>
 
 #include <string>
-#include <vector>
 
 
 namespace transformify {
@@ -17,19 +16,13 @@ class ProgramOptions
     ProgramOptions(int argc, char* argv[]);
     ~ProgramOptions();
 
- public:
     std::string inputFilePath;
-    std::string outputFilePath;
-    std::string task;
+    size_t inputFileWordSize;
     std::string transformation;
+    uint64_t transformationParameter;
 
  private:
     void processCommandLine(int argc, char *argv[]);
-    void validate();
-
- private:
-    static const std::string m_defaultEncodedFilePathExtension;
-    static const std::string m_defaultDecodedFilePathExtension;
 };
 
 

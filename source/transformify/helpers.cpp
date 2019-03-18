@@ -12,14 +12,6 @@
 namespace transformify {
 
 
-bool fileExists(
-        const std::string& path
-){
-    std::ifstream ifs(path);
-    return ifs.good();
-}
-
-
 void generateByteBuffer(
         const std::vector<uint64_t>& symbols,
         unsigned int wordSize,
@@ -112,7 +104,7 @@ void generateSymbolStream(
     }
     symbols->resize(symbolsSize);
 
-    // Multiplex every wordSize bytes into one symbol
+    // Multiplex every wordSize bytes into one symbol.
     size_t symbolsIdx = 0;
     for (size_t i = 0; i < buffer.size(); i += wordSize)
     {

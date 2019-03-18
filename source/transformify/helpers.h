@@ -2,17 +2,11 @@
 #define TRANSFORMIFY_HELPERS_H_
 
 
-#include <cstdint>
 #include <string>
 #include <vector>
 
 
 namespace transformify {
-
-
-bool fileExists(
-        const std::string& path
-);
 
 
 void generateByteBuffer(

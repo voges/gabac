@@ -12,10 +12,7 @@
 namespace transformify {
 
 
-File::File(
-        const std::string& path,
-        const char *const mode
-)
+File::File(const std::string& path, const char* const mode)
     : m_fp(nullptr)
     , m_path(path)
 {
@@ -26,50 +23,50 @@ File::File(
 }
 
 
-File::~File(){
+File::~File()
+{
     close();
 }
 
 
-void File::advance(
-        off_t offset
-){
+void File::advance(off_t offset)
+{
     seekFromCur(offset);
 }
 
 
-bool File::eof() const{
+bool File::eof() const
+{
     return (feof(m_fp) != 0);
 }
 
 
-FILE *File::handle() const{
+FILE* File::handle() const
+{
     return m_fp;
 }
 
 
-void File::seekFromCur(
-        off_t offset
-){
+void File::seekFromCur(off_t offset)
+{
     seek(offset, SEEK_CUR);
 }
 
 
-void File::seekFromEnd(
-        off_t offset
-){
+void File::seekFromEnd(off_t offset)
+{
     seek(offset, SEEK_END);
 }
 
 
-void File::seekFromSet(
-        off_t offset
-){
+void File::seekFromSet(off_t offset)
+{
     seek(offset, SEEK_SET);
 }
 
 
-size_t File::size(){
+size_t File::size()
+{
     off_t tmp = tell();
     seekFromEnd(0);
     off_t fsize = tell();
@@ -78,7 +75,8 @@ size_t File::size(){
 }
 
 
-off_t File::tell() const{
+off_t File::tell() const
+{
 #ifdef _MSC_VER
     auto offset = static_cast<off_t>(ftell(m_fp));
 #else
@@ -92,7 +90,8 @@ off_t File::tell() const{
 }
 
 
-void File::close(){
+void File::close()
+{
     if (m_fp != nullptr)
     {
         int rc = fclose(m_fp);
@@ -109,10 +108,8 @@ void File::close(){
 }
 
 
-void File::open(
-        const std::string& path,
-        const char *const mode
-){
+void File::open(const std::string& path, const char* const mode)
+{
     assert(!path.empty());
     assert(mode != nullptr);
     assert(m_fp == nullptr);
@@ -156,10 +153,8 @@ void File::open(
 }
 
 
-void File::seek(
-        off_t offset,
-        int whence
-){
+void File::seek(off_t offset, int whence)
+{
 #ifdef _MSC_VER
     int rc = fseek(m_fp, offset, whence);
 #else

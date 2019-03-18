@@ -13,17 +13,10 @@ namespace transformify {
 class InputFile : public File
 {
  public:
-    explicit InputFile(
-            const std::string& path
-    );
-
+    explicit InputFile(const std::string& path);
     ~InputFile() override;
 
-    void read(
-            void *items,
-            size_t itemSize,
-            size_t numItems
-    );
+    void read(void* items, size_t itemSize, size_t numItems);
 };
 
 

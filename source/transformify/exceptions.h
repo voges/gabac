@@ -19,15 +19,10 @@ namespace transformify {
 class Exception : public std::exception
 {
  public:
-    explicit Exception(
-            const std::string& message
-    );
-
+    explicit Exception(const std::string& message);
     ~Exception() noexcept override;
-
     virtual std::string message() const;
-
-    const char *what() const noexcept override;
+    const char* what() const noexcept override;
 
  protected:
     std::string m_message;
@@ -43,11 +38,7 @@ class RuntimeException : public Exception
             int line,
             const std::string& message
     ) noexcept;
-
-    RuntimeException(
-            const RuntimeException& e
-    ) noexcept;
-
+    RuntimeException(const RuntimeException& e) noexcept;
     ~RuntimeException() noexcept override;
 };
 

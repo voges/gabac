@@ -3,11 +3,8 @@
 
 
 #include <string>
-#include <vector>
-#include <iostream>
 
 #include "transformify/file.h"
-#include "transformify/log.h"
 
 
 namespace transformify {
@@ -16,18 +13,12 @@ namespace transformify {
 class OutputFile : public File
 {
  public:
-    explicit OutputFile(
-            const std::string& path
-    );
-
+    explicit OutputFile(const std::string& path);
     ~OutputFile() override;
 
-    void write(
-            void *items,
-            size_t itemSize,
-            size_t numItems
-    );
+    void write(void* items, size_t itemSize, size_t numItems);
 };
+
 
 }  // namespace transformify
 

@@ -16,7 +16,7 @@ std::string Exception::message() const
 }
 
 
-const char *Exception::what() const noexcept
+const char* Exception::what() const noexcept
 {
     return m_message.c_str();
 }
@@ -28,24 +28,15 @@ RuntimeException::RuntimeException(
         int line,
         const std::string& message
 ) noexcept
-        : Exception(
-        // file + ":"
-        // + function + ":"
-        // + std::to_string(line) + ": "
-        /*+ */message
-){
-    // These dummy casts just avoid compiler warnings due to ununsed variables
+    : Exception(/*file + ":" + function + ":" + std::to_string(line) + ": " + */message)
+{
+    // These dummy casts just avoid compiler warnings due to ununsed variables.
     static_cast<void>(file);
     static_cast<void>(function);
     static_cast<void>(line);
 }
 
-RuntimeException::RuntimeException(
-        const transformify::RuntimeException& e
-) noexcept
-        : Exception(e.what())
-{
-}
+RuntimeException::RuntimeException(const transformify::RuntimeException& e) noexcept : Exception(e.what()) {}
 
 
 RuntimeException::~RuntimeException() noexcept = default;
