@@ -31,7 +31,6 @@ void code(const std::string& inputFilePath,
           bool decode
 ){
     std::ifstream inputFile;
-    std::ifstream configurationFile;
     std::ofstream outputFile;
     gabac::NullStream nullstream;
 

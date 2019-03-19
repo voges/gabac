@@ -150,6 +150,13 @@ class DataBlock
         vec->clear();
     }
 
+    explicit DataBlock(uint8_t* d, size_t size, uint8_t word_size) : wordSize(word_size){
+        size_t s = size * word_size;
+        this->data.resize(s);
+        this->data.shrink_to_fit();
+        std::memcpy(this->data.data(), d, s);
+    }
+
 };
 
 inline uint64_t DataBlock::get(size_t index) const{

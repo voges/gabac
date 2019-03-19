@@ -460,7 +460,7 @@ void inferLut(
 }
 // ----------------------------------------------------------------------------
 
-void transformLutTransform0(
+void transformLutTransform(
         unsigned order,
         DataBlock *const transformedSymbols,
         DataBlock *const inverseLUT,
@@ -480,7 +480,7 @@ void transformLutTransform0(
 
 // ----------------------------------------------------------------------------
 
-void inverseTransformLutTransform0(
+void inverseTransformLutTransform(
         unsigned order,
         DataBlock *const symbols,
         DataBlock *const inverseLUT,

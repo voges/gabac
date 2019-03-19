@@ -41,7 +41,7 @@ namespace gabac {
  * @param transformedSymbols
  * @param inverseLUT
  */
-void transformLutTransform0(
+void transformLutTransform(
         unsigned order,
         DataBlock *transformedSymbols,
         DataBlock *inverseLUT,
@@ -54,7 +54,7 @@ void transformLutTransform0(
  * @param inverseLUT
  * @param symbols
  */
-void inverseTransformLutTransform0(
+void inverseTransformLutTransform(
         unsigned order,
         DataBlock *symbols,
         DataBlock *inverseLUT,

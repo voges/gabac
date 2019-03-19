@@ -17,10 +17,10 @@ namespace gabac {
 class EncodingConfiguration;
 
 ReturnCode decode_cabac(
-        uint8_t wordsize,
         const BinarizationId& binarizationId,
         const std::vector<uint32_t>& binarizationParameters,
         const ContextSelectionId& contextSelectionId,
+        uint8_t wordsize,
         DataBlock *bitstream
 );
 

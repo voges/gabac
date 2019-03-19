@@ -173,7 +173,7 @@ void getOptimumOfLutTransformedStream(const AnalysisConfiguration& aconf,
             info->stack.push(info->stack.top());
             const size_t DIFF_INDEX = 5;
             gabac::transformationInformation[DIFF_INDEX].transform(
-                    0,
+                    {0},
                     &info->stack.top().streams
             );
         }
@@ -197,7 +197,7 @@ void getOptimumOfLutEnabled(const AnalysisConfiguration& aconf,
         try {
             const size_t LUT_INDEX = 4;
             gabac::transformationInformation[LUT_INDEX].transform(
-                    info->currConfig.transformedSequenceConfigurations[info->currStreamIndex].lutOrder,
+                    {info->currConfig.transformedSequenceConfigurations[info->currStreamIndex].lutOrder},
                     &info->stack.top().streams
             );
         }
@@ -277,7 +277,7 @@ void getOptimumOfSequenceTransform(const AnalysisConfiguration& aconf,
         info->currConfig.sequenceTransformationParameter = p;
 
         gabac::transformationInformation[unsigned(info->currConfig.sequenceTransformationId)].transform(
-                p,
+                {p},
                 &info->stack.top().streams
         );
 

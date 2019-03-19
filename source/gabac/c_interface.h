@@ -1,6 +1,15 @@
 #ifndef PROJECT_C_INTERFACE_H
 #define PROJECT_C_INTERFACE_H
 
+#include <stdint.h>
+#include <stddef.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* Data block */
+
 struct gabac_data_block
 {
     uint8_t *values;
@@ -8,49 +17,80 @@ struct gabac_data_block
     uint8_t word_size;
 };
 
+int gabac_data_block_init(
+        gabac_data_block *block,
+        size_t size,
+        uint8_t wordsize
+);
+
+int gabac_data_block_release(
+        gabac_data_block *block
+);
+
+int gabac_data_block_resize(
+        gabac_data_block *block,
+        size_t size
+);
+
+uint64_t gabac_data_block_get(
+        const gabac_data_block *block,
+        size_t index
+);
+
+void gabac_data_block_set(
+        const gabac_data_block *block,
+        size_t index,
+        uint64_t val
+);
+
+/* Data block end*/
+
+/* Constants */
+
+enum gabac_return
+{
+    gabac_return_SUCCESS = 0,
+    gabac_return_FAILURE = 1
+};
+
 enum gabac_log_level
 {
-    gabac_log_TRACE = 0,
-    gabac_log_DEBUG = 1,
-    gabac_log_INFO = 2,
-    gabac_log_WARNING = 3,
-    gabac_log_ERROR = 4,
-    gabac_log_FATAL = 5
+    gabac_log_level_TRACE = 0,
+    gabac_log_level_DEBUG = 1,
+    gabac_log_level_INFO = 2,
+    gabac_log_level_WARNING = 3,
+    gabac_log_level_ERROR = 4,
+    gabac_log_level_FATAL = 5
 };
 
 enum gabac_io_mode
 {
-    gabac_file = 0,
-    gabac_buffer = 1,
+    gabac_io_mode_FILE = 0,
+    gabac_io_mode_BUFFER = 1,
 };
 
-struct gabac_io_config
+enum gabac_transform
 {
-    void *input;
-    gabac_io_mode input_mode;
 
-    void *output;
-    gabac_io_mode output_mode;
+    gabac_transform_NONE = 0,
+    gabac_transform_EQUALITY = 1,
+    gabac_transform_MATCH = 2,
+    gabac_transform_RLE = 3,
+    gabac_transform_LUT = 4,
+    gabac_transform_DIFF = 5,
+    gabac_transform_CABAC = 6
 
-    void *log;
-    gabac_io_mode log_mode;
-
-    size_t blocksize;
-    gabac_log_level level;
 };
 
-enum gabac_return_code
-{
-    gabac_return_success = 0,
-    gabac_return_failure = 1
-};
+extern const uint8_t gabac_transform_PARAM_NUM[];
+extern const uint8_t gabac_transform_STREAM_NUM[];
+extern const uint8_t gabac_transform_WORD_SIZES[][3];
 
-enum gabac_sequence_transform
+enum gabac_operation
 {
-    no_transform = 0,
-    equality_coding = 1,
-    match_coding = 2,
-    rle_coding = 3
+    gabac_operation_ENCODE = 0,
+    gabac_operation_DECODE = 1,
+    gabac_operation_ANALYZE = 2
 };
 
 enum gabac_binarization
@@ -63,107 +103,81 @@ enum gabac_binarization
     gabac_binarization_STEG = 5  /** Signed Truncated Exponential Golomb */
 };
 
-enum gabac_context_selection_id
+enum gabac_context_select
 {
-    gabac_context_selection_bypass = 0,
-    gabac_context_selection_adaptive_coding_order_0 = 1,
-    gabac_context_selection_adaptive_coding_order_1 = 2,
-    gabac_context_selection_adaptive_coding_order_2 = 3
+    gabac_context_select_BYPASS = 0,
+    gabac_context_select_ADAPTIVE_ORDER_0 = 1,
+    gabac_context_select_ADAPTIVE_ORDER_1 = 2,
+    gabac_context_select_ADAPTIVE_ORDER_2 = 3
 };
 
+/* Constants end */
 
-int gabac_transformEqualityCoding(
-        gabac_data_block *values,
-        gabac_data_block *eq_flags
+/* Operations */
+
+struct gabac_stream
+{
+    void *data;
+    size_t size;
+    gabac_io_mode input_mode;
+};
+
+int gabac_stream_create_file(
+        gabac_stream *stream,
+        const char *path,
+        bool write
 );
 
-
-int gabac_inverseTransformEqualityCoding(
-        gabac_data_block *values,
-        gabac_data_block *eq_flags
+int gabac_stream_create_buffer(
+        gabac_stream *stream,
+        char *buffer,
+        size_t buffer_size
 );
 
-int gabac_transformMatchCoding(
-        uint32_t windowSize,
-        gabac_data_block *raw_values,
-        gabac_data_block *pointers,
-        gabac_data_block *lengths
+int gabac_stream_release(
+        gabac_stream *stream
 );
 
+struct gabac_io_config
+{
+    gabac_stream input;
+    gabac_stream output;
+    gabac_stream log;
+    gabac_log_level log_level;
 
-int gabac_inverseTransformMatchCoding(
-        gabac_data_block *raw_values,
-        gabac_data_block *pointers,
-        gabac_data_block *lengths
+    size_t blocksize;
+};
+
+/* transform       | param0       | param1    | param2         | param3    | stream0(wordsize) | stream1(wordsize) | stream2(wordsize)   */
+/* ------------------------------------------------------------------------------------------------------------------------------------- */
+/* no_transform    | _            | _         | _              | _         | sequence(I)       | _                 | _                   */
+/* equality_coding | _            | _         | _              | _         | raw_values(I)     | equality_flags(1) | _                   */
+/* match_coding    | window_size  | _         | _              | _         | raw_values(I)     | pointers(4)       | lengths(4)          */
+/* rle_coding      | guard        | _         | _              | _         | raw_values(I)     | run_lengths(4)    | _                   */
+/* lut_transform   | order        | _         | _              | _         | sequence(I)       | order0_table(I)   | high_order_table(I) */
+/* diff_coding     | _            | _         | _              | _         | sequence(I)       | _                 | _                   */
+/* cabac_coding    | binarization | bin_param | context_select | wordsize* | sequence(I)       | _                 | _                   */
+/*  --> I: input data word size; --> *: only needed for decoding;                                                                        */
+
+int gabac_execute_tansform(
+        size_t transformationID,
+        uint64_t *param,
+        bool inverse,
+        gabac_data_block **input
 );
 
-int gabac_transformRleCoding(
-        uint64_t guard,
-        gabac_data_block *raw_values,
-        gabac_data_block *lengths
-);
-
-
-int gabac_inverseTransformRleCoding(
-        uint64_t guard,
-        gabac_data_block *raw_values,
-        gabac_data_block *lengths
-);
-
-int gabac_transformLutTransform(
-        unsigned order,
-        gabac_data_block *transformed_symbols,
-        gabac_data_block *inverse_lut,
-        gabac_data_block *inverse_lut1
-);
-
-int gabac_inverseTransformLutTransform(
-        unsigned order,
-        gabac_data_block *transformed_symbols,
-        gabac_data_block *inverse_lut,
-        gabac_data_block *inverse_lut1
-);
-
-int gabac_transformDiffCoding(
-        gabac_data_block *transformedSymbols
-);
-
-
-int gabac_inverseTransformDiffCoding(
-        gabac_data_block *transformedSymbols
-);
-
-int gabac_cabac_encode(
-        gabac_binarization binarization_id,
-        uint32_t *binarization_parameters,
-        size_t binarization_parameters_size,
-        gabac_context_selection_id context_selection_id,
-        gabac_data_block *symbols
-);
-
-int gabac_cabac_decode(
-        uint8_t wordsize,
-        gabac_binarization binarizationId,
-        uint32_t *binarization_parameters,
-        size_t binarization_parameters_size,
-        gabac_context_selection_id context_selection_id,
-        gabac_data_block *symbols
-);
-
-int gabac_analyze(
+int gabac_run(
+        gabac_operation operation,
         gabac_io_config *io_config,
-        char *analysis_config_json
+        char *config_json,
+        size_t json_length
 );
 
-int gabac_encode(
-        gabac_io_config *io_config
-        char *encoding_config_json
-);
+/* Operations end */
 
-int gabac_decode(
-        gabac_io_config *io_config
-        char *encoding_config_json
-);
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif //PROJECT_C_INTERFACE_H

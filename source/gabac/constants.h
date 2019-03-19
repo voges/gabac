@@ -42,7 +42,7 @@ enum class ContextSelectionId
     adaptive_coding_order_2 = 3
 };
 
-using SequenceTransform = std::function<void(const uint64_t param,
+using SequenceTransform = std::function<void(const std::vector<uint64_t>& param,
                                              std::vector<gabac::DataBlock> *const
 )>;
 

@@ -4,6 +4,33 @@
 
 
 namespace gabac {
+
+    FileBuffer::FileBuffer(FILE* f) : fileptr(f){
+
+    }
+    int FileBuffer::overflow(int c)
+    {
+        return fputc(c, fileptr);
+    }
+
+    std::streamsize FileBuffer::xsputn (const char* s, std::streamsize n) {
+        return fwrite(s, 1, n, fileptr);
+    }
+
+    int FileBuffer::sync () {
+        return fflush(fileptr);
+    }
+
+    std::streamsize FileBuffer::xsgetn (char* s, std::streamsize n) {
+        return fread(s, 1, n, fileptr);
+    }
+
+    int FileBuffer::underflow() {
+        return fgetc(fileptr);
+    }
+
+
+
 size_t StreamHandler::readStream(std::istream& input, DataBlock *buffer){
     uint64_t streamSize = 0;
     input.read(reinterpret_cast<char *>(&streamSize), sizeof(uint64_t));
@@ -16,6 +43,7 @@ size_t StreamHandler::readBytes(std::istream& input, size_t bytes, DataBlock *bu
     }
     buffer->resize(bytes / buffer->getWordSize());
     input.read(static_cast<char *>(buffer->getData()), bytes);
+    return bytes;
 }
 
 size_t StreamHandler::readFull(std::istream& input, DataBlock *buffer){

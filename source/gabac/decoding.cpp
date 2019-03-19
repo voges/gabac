@@ -89,10 +89,10 @@ namespace gabac {
 
 
 ReturnCode decode_cabac(
-        const uint8_t wordsize,
         const BinarizationId& binarizationId,
         const std::vector<unsigned int>& binarizationParameters,
         const ContextSelectionId& contextSelectionId,
+        const uint8_t wordsize,
         DataBlock *const bitstream
 ){
     DataBlock symbols(0, wordsize);
@@ -200,10 +200,10 @@ static void decodeInverseLUT(unsigned bits0,
     }
 
     gabac::decode_cabac(
-            static_cast<uint8_t>(lutWordSize),
             gabac::BinarizationId::BI,
             {bits0},
             gabac::ContextSelectionId::bypass,
+            static_cast<uint8_t>(lutWordSize),
             inverseLut
     );
 
@@ -225,10 +225,10 @@ static void decodeInverseLUT(unsigned bits0,
         }
 
         gabac::decode_cabac(
-                static_cast<uint8_t>(lut1WordSize),
                 gabac::BinarizationId::BI,
                 {bits1},
                 gabac::ContextSelectionId::bypass,
+                static_cast<uint8_t>(lut1WordSize),
                 inverseLut1
         );
     }
@@ -260,7 +260,7 @@ static void doLUTCoding(bool enabled,
 
         // Do the inverse LUT transform
         const unsigned LUT_INDEX = 4;
-        gabac::transformationInformation[LUT_INDEX].inverseTransform(order, lutSequences);
+        gabac::transformationInformation[LUT_INDEX].inverseTransform({order}, lutSequences);
         return;
     }
 
@@ -279,10 +279,10 @@ static void doEntropyCoding(const gabac::TransformedSequenceConfiguration& trans
 
     // Decoding
     gabac::decode_cabac(
-            wordsize,
             transformedSequenceConfiguration.binarizationId,
             transformedSequenceConfiguration.binarizationParameters,
             transformedSequenceConfiguration.contextSelectionId,
+            wordsize,
             diffAndLutTransformedSequence
     );
 
@@ -348,7 +348,7 @@ void decode(
 
 
         gabac::transformationInformation[unsigned(enConf.sequenceTransformationId)].inverseTransform(
-                enConf.sequenceTransformationParameter,
+                {enConf.sequenceTransformationParameter},
                 &transformedSequences
         );
         //GABACIFY_LOG_TRACE << "Decoded sequence of length: " << transformedSequences[0].size();

@@ -144,7 +144,7 @@ void doSequenceTransform(const gabac::SequenceTransformationId& transID,
     auto id = unsigned(transID);
     //GABACIFY_LOG_DEBUG << "Performing sequence transformation " << gabac::transformationInformation[id].name;
 
-    gabac::transformationInformation[id].transform(param, transformedSequences);
+    gabac::transformationInformation[id].transform({param}, transformedSequences);
 
     //GABACIFY_LOG_TRACE << "Got " << transformedSequences->size() << " sequences";
     for (unsigned i = 0; i < transformedSequences->size(); ++i) {
@@ -180,7 +180,7 @@ void doLutTransform(unsigned int order,
     const unsigned LUT_INDEX = 4;
 
     // Put raw sequence in, get transformed sequence and lut tables
-    gabac::transformationInformation[LUT_INDEX].transform(order, lutSequences);
+    gabac::transformationInformation[LUT_INDEX].transform({order}, lutSequences);
 
 
     //GABACIFY_LOG_DEBUG << "Got uncompressed stream after LUT: " << (*lutSequences)[0].size() << " bytes";
@@ -222,7 +222,7 @@ void doDiffTransform(std::vector<gabac::DataBlock> *const sequence
     const unsigned DIFF_INDEX = 5;
 
     // Put raw sequence in, get transformed sequence and lut tables
-    gabac::transformationInformation[DIFF_INDEX].transform(0, sequence);
+    gabac::transformationInformation[DIFF_INDEX].transform({0}, sequence);
 
     //GABACIFY_LOG_TRACE << "Diff coding *dis*abled";
     //GABACIFY_LOG_DEBUG << "Got uncompressed stream after diff: " << diffAndLutTransformedSequence->size() << " bytes";

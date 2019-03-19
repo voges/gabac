@@ -108,10 +108,10 @@ TEST_F(coreTest, roundTrip){
                     &sym
             ));
             EXPECT_NO_THROW(gabac::decode_cabac(
-                    ran.getWordSize(),
                     gabac::BinarizationId(b),
                     binarizationParameters[b],
                     gabac::ContextSelectionId(c),
+                    ran.getWordSize(),
                     &sym
             ));
             EXPECT_EQ(sym, ran);

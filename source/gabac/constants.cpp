@@ -12,6 +12,8 @@
 #include "gabac/lut_transform.h"
 #include "gabac/match_coding.h"
 #include "gabac/rle_coding.h"
+#include "gabac/encoding.h"
+#include "gabac/decoding.h"
 
 namespace gabac {
 
@@ -113,13 +115,13 @@ const std::vector<TransformationProperties> transformationInformation = {
                 "no_transform", // Name
                 {"out"}, // StreamNames
                 {0}, // WordSizes (0: non fixed current stream wordsize)
-                [](uint64_t,
+                [](const std::vector<uint64_t>&,
                    std::vector<DataBlock> *const transformedSequences
                 )
                 {
                     transformedSequences->resize(1);
                 },
-                [](uint64_t,
+                [](const std::vector<uint64_t>&,
                    std::vector<DataBlock> *const transformedSequences
                 )
                 {
@@ -130,7 +132,7 @@ const std::vector<TransformationProperties> transformationInformation = {
                 "equality_coding", // Name
                 {"raw_symbols", "eq_flags"}, // StreamNames
                 {0, 1}, // WordSizes (0: non fixed current stream wordsize)
-                [](uint64_t,
+                [](const std::vector<uint64_t>&,
                    std::vector<DataBlock> *const transformedSequences
                 )
                 {
@@ -141,7 +143,7 @@ const std::vector<TransformationProperties> transformationInformation = {
                             &(*transformedSequences)[1]
                     );
                 },
-                [](uint64_t,
+                [](const std::vector<uint64_t>&,
                    std::vector<DataBlock> *const transformedSequences
                 )
                 {
@@ -156,22 +158,22 @@ const std::vector<TransformationProperties> transformationInformation = {
                 "match_coding", // Name
                 {"raw_values",  "pointers", "lengths"}, // StreamNames
                 {0, 4, 4}, // WordSizes (0: non fixed current stream wordsize)
-                [](uint64_t param,
+                [](const std::vector<uint64_t>& param,
                    std::vector<DataBlock> *const transformedSequences
                 )
                 {
                     transformedSequences->resize(3);
-                    assert(param <= std::numeric_limits<uint32_t>::max());
+                    assert(param[0] <= std::numeric_limits<uint32_t>::max());
                     (*transformedSequences)[1] = gabac::DataBlock(0, 4);
                     (*transformedSequences)[2] = gabac::DataBlock(0, 4);
                     gabac::transformMatchCoding(
-                            static_cast<uint32_t>(param),
+                            static_cast<uint32_t>(param[0]),
                             &(*transformedSequences)[0],
                             &(*transformedSequences)[1],
                             &(*transformedSequences)[2]
                     );
                 },
-                [](uint64_t,
+                [](const std::vector<uint64_t>&,
                    std::vector<DataBlock> *const transformedSequences
                 )
                 {
@@ -187,24 +189,24 @@ const std::vector<TransformationProperties> transformationInformation = {
                 "rle_coding", // Name
                 {"raw_values",  "lengths"}, // StreamNames
                 {0, 1}, // WordSizes (0: non fixed current stream wordsize)
-                [](uint64_t param,
+                [](const std::vector<uint64_t>& param,
                    std::vector<DataBlock> *const transformedSequences
                 )
                 {
                     transformedSequences->resize(2);
                     (*transformedSequences)[1] = gabac::DataBlock(0, 1);
                     gabac::transformRleCoding(
-                            param,
+                            param[0],
                             &(*transformedSequences)[0],
                             &(*transformedSequences)[1]
                     );
                 },
-                [](uint64_t param,
+                [](const std::vector<uint64_t>& param,
                    std::vector<DataBlock> *const transformedSequences
                 )
                 {
                     gabac::inverseTransformRleCoding(
-                            param,
+                            param[0],
                             &(*transformedSequences)[0],
                             &(*transformedSequences)[1]
                     );
@@ -215,26 +217,26 @@ const std::vector<TransformationProperties> transformationInformation = {
                 "lut_coding", // Name
                 {"sequence",    "lut0",     "lut1"}, // StreamNames
                 {0, 0, 0}, // WordSizes (0: non fixed current stream wordsize)
-                [](uint64_t order,
+                [](const std::vector<uint64_t>& order,
                    std::vector<DataBlock> *const transformedSequences
                 )
                 {
                     transformedSequences->resize(3);
                     (*transformedSequences)[1] = gabac::DataBlock(0, (*transformedSequences)[0].getWordSize());
                     (*transformedSequences)[2] = gabac::DataBlock(0, (*transformedSequences)[0].getWordSize());
-                    gabac::transformLutTransform0(
-                            static_cast<unsigned int>(order),
+                    gabac::transformLutTransform(
+                            static_cast<unsigned int>(order[0]),
                             &(*transformedSequences)[0],
                             &(*transformedSequences)[1],
                             &(*transformedSequences)[2]
                     );
                 },
-                [](uint64_t order,
+                [](const std::vector<uint64_t>& order,
                    std::vector<DataBlock> *const transformedSequences
                 )
                 {
-                    gabac::inverseTransformLutTransform0(
-                            static_cast<unsigned int>(order),
+                    gabac::inverseTransformLutTransform(
+                            static_cast<unsigned int>(order[0]),
                             &(*transformedSequences)[0],
                             &(*transformedSequences)[1],
                             &(*transformedSequences)[2]
@@ -246,19 +248,38 @@ const std::vector<TransformationProperties> transformationInformation = {
                 "diff_coding", // Name
                 {"sequence"}, // StreamNames
                 {0}, // WordSizes (0: non fixed current stream wordsize)
-                [](uint64_t,
+                [](const std::vector<uint64_t>&,
                    std::vector<DataBlock> *const transformedSequences
                 )
                 {
                     transformedSequences->resize(1);
                     gabac::transformDiffCoding(&(*transformedSequences)[0]);
                 },
-                [](uint64_t,
+                [](const std::vector<uint64_t>&,
                    std::vector<DataBlock> *const transformedSequences
                 )
                 {
                     transformedSequences->resize(1);
                     gabac::inverseTransformDiffCoding(&(*transformedSequences)[0]);
+                }
+        },
+        {
+                "cabac", // Name
+                {"sequence"}, // StreamNames
+                {0}, // WordSizes (0: non fixed current stream wordsize)
+                [](const std::vector<uint64_t>& param,
+                   std::vector<DataBlock> *const transformedSequences
+                )
+                {
+                    transformedSequences->resize(1);
+                    gabac::encode_cabac(gabac::BinarizationId (param[0]), {static_cast<unsigned>(param[1])}, gabac::ContextSelectionId (param[2]), &(*transformedSequences)[0]);
+                },
+                [](const std::vector<uint64_t>& param,
+                   std::vector<DataBlock> *const transformedSequences
+                )
+                {
+                    transformedSequences->resize(1);
+                    gabac::decode_cabac(gabac::BinarizationId (param[0]), {static_cast<unsigned>(param[1])}, gabac::ContextSelectionId (param[2]), param[3], &(*transformedSequences)[0]);
                 }
         }
 };

@@ -9,6 +9,33 @@ namespace gabac {
 
 class DataBlock;
 
+class FileBuffer : public std::streambuf
+{
+ public:
+    FileBuffer(FILE *f);
+ protected:
+    int overflow(int c) override;
+    std::streamsize xsputn(const char *s, std::streamsize n) override;
+    int sync() override;
+
+    std::streamsize xsgetn(char *s, std::streamsize n) override;
+    int underflow() override;
+ private:
+    FILE *fileptr;
+};
+
+class IFileStream : public FileBuffer, public std::istream
+{
+ public:
+    IFileStream (FILE *f) : FileBuffer(f), std::istream(this) {}
+};
+
+class OFileStream : public FileBuffer, public std::ostream
+{
+ public:
+    OFileStream (FILE *f) : FileBuffer(f), std::ostream(this) {}
+};
+
 class StreamHandler
 {
  public:
