@@ -11,7 +11,6 @@ namespace transformify {
 
 OutputFile::OutputFile(const std::string& path) : File(path, "wb")
 {
-    open(path, "wb");
 }
 
 
