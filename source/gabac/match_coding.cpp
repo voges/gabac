@@ -192,7 +192,7 @@ void transformMatchCoding(
     {
         uint64_t pointer = 0;
         uint64_t length = 0;
-        uint64_t windowStartIdx = i - windowSize;
+        uint64_t windowStartIdx = i > windowSize ? i - windowSize : 0;
         uint64_t windowEndIdx = i;
 
         for (uint64_t w = windowStartIdx; w < windowEndIdx; w++)
