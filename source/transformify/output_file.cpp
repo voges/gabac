@@ -9,9 +9,7 @@
 namespace transformify {
 
 
-OutputFile::OutputFile(const std::string& path) : File(path, "wb")
-{
-}
+OutputFile::OutputFile(const std::string& path) : File(path, "wb") {}
 
 
 OutputFile::~OutputFile() = default;
