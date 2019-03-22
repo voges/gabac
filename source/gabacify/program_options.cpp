@@ -128,14 +128,14 @@ void ProgramOptions::validate(void){
     } else if (this->task == "analyze") {
         // We need a configuration file path - guess one if not provided by
         // the user
-        if (!this->configurationFilePath.empty()) {
+        if (!this->outputFilePath.empty()) {
             if (fileExists(this->configurationFilePath)) {
                 GABAC_DIE("Config file already existing: " + this->outputFilePath);
             }
         }
 
-        if (!this->outputFilePath.empty()) {
-            GABAC_DIE("Analyze does not accept output file paths");
+        if (!this->configurationFilePath.empty()) {
+            GABAC_DIE("Analyze does not accept config file paths");
         }
 
     } else {

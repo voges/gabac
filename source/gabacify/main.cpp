@@ -51,7 +51,7 @@ static int gabacify_main(
         } else if (programOptions.task == "analyze") {
             gabacify::analyze(
                     programOptions.inputFilePath,
-                    programOptions.configurationFilePath,
+                    programOptions.outputFilePath,
                     programOptions.blocksize
             );
         } else {
