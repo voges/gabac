@@ -30,7 +30,7 @@ EncodingConfiguration::EncodingConfiguration(
     using namespace nlohmann;
     try {
         auto jtree = json::parse(jsonstring);
-        this->wordSize = jtree["wordsize"];
+        this->wordSize = jtree["word_size"];
         this->sequenceTransformationId = jtree["sequence_transformation_id"];
         this->sequenceTransformationParameter = jtree["sequence_transformation_parameter"];
 
