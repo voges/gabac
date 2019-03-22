@@ -48,7 +48,7 @@ int64_t Reader::readAsBIcabac(
     {
         bins = (bins << 1u) | m_decBinCabac.decodeBin(&*(scan++));
     }
-    return static_cast<int>(bins);
+    return static_cast<int64_t>(bins);
 }
 
 
@@ -64,7 +64,7 @@ int64_t Reader::readAsTUbypass(
             break;
         }
     }
-    return static_cast<int>(i);
+    return static_cast<int64_t>(i);
 }
 
 
@@ -87,7 +87,7 @@ int64_t Reader::readAsTUcabac(
             scan++;
         }
     }
-    return static_cast<int>(i);
+    return static_cast<int64_t>(i);
 }
 
 
@@ -108,7 +108,7 @@ int64_t Reader::readAsEGbypass(
     {
         return 0;
     }
-    return static_cast<int>(bins - 1);
+    return static_cast<int64_t>(bins - 1);
 }
 
 
@@ -133,7 +133,7 @@ int64_t Reader::readAsEGcabac(
     {
         return 0;
     }
-    return static_cast<int>(bins - 1);
+    return static_cast<int64_t>(bins - 1);
 }
 
 
