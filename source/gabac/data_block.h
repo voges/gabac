@@ -6,6 +6,7 @@
 #include <stdexcept>
 #include <cassert>
 #include <cstring>
+#include <string>
 
 #include "block_stepper.h"
 
