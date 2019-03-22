@@ -113,7 +113,7 @@ class DataBlock
 
     void *getData();
 
-    size_t getWordSize() const;
+    uint8_t getWordSize() const;
 
     void setWordSize(uint8_t size);
 
@@ -241,7 +241,7 @@ inline void *DataBlock::getData(){
     return data.data();
 }
 
-inline size_t DataBlock::getWordSize() const{
+inline uint8_t DataBlock::getWordSize() const{
     return wordSize;
 }
 

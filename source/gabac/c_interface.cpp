@@ -46,18 +46,44 @@ const uint8_t gabac_sequence_transform_word_sizes[][3] ={
         {0, 255, 255}
 };
 
+int gabac_data_block_swap(
+        gabac_data_block* stream1,
+        gabac_data_block* stream2
+) {
+    gabac_data_block tmp;
+    memcpy(&tmp, stream1, sizeof(gabac_data_block));
+    memcpy(stream1, stream2, sizeof(gabac_data_block));
+    memcpy(stream2, &tmp, sizeof(gabac_data_block));
+    return gabac_return_SUCCESS;
+}
 
-int gabac_data_block_init(gabac_data_block* block, size_t size, uint8_t wordsize) {
+int gabac_data_block_copy(
+        gabac_data_block* drain,
+        gabac_data_block* source
+) {
+    drain->word_size = source->word_size;
+    if(gabac_data_block_resize(drain, source->values_size))
+        return gabac_return_FAILURE;
+    memcpy(drain->values, source->values, source->word_size * source->values_size);
+    return gabac_return_SUCCESS;
+}
+
+
+int gabac_data_block_init(gabac_data_block* block, const void* data, size_t size, uint8_t wordsize) {
     if(wordsize != 1 && wordsize != 2 && wordsize != 4 && wordsize != 8) {
         goto ERROR;
     }
 
-    block->values = static_cast<uint8_t*>(malloc(wordsize * size * sizeof(uint8_t)));
+    block->values = static_cast<uint8_t*>(calloc(wordsize * size * sizeof(uint8_t), 1));
     if(!block->values) {
         goto ERROR;
     }
     block->values_size = size;
     block->word_size = wordsize;
+    if(data) {
+        memcpy(block->values, data, size * wordsize);
+    }
+
     return gabac_return_SUCCESS;
 
     ERROR:
@@ -77,10 +103,10 @@ int gabac_data_block_release(gabac_data_block* block) {
 
 int gabac_data_block_resize(gabac_data_block* block, size_t size) {
     block->values_size = size * block->word_size;
-    block->values = static_cast<uint8_t*>(realloc(block->values, size * block->values_size));
+    block->values = static_cast<uint8_t*>(realloc(block->values, size * block->word_size));
     if(!block->values) {
         block->values_size = 0;
-        block->word_size = 0;
+        block->word_size = 1;
         return gabac_return_FAILURE;
     }
     return gabac_return_SUCCESS;
@@ -121,51 +147,105 @@ void gabac_data_block_set(const gabac_data_block* block, size_t index, uint64_t 
 }
 
 
-int gabac_stream_create_file(gabac_stream* stream, const char* path, bool write){
-    const char* mode = "rb";
-    if(write) {
-        mode = "wb";
+const char* gabac_stream_create_file_STDOUT = "@STDOUT@";
+const char* gabac_stream_create_file_STDERR = "@STDERR@";
+const char* gabac_stream_create_file_STDIN =  "@STDIN@";
+const char* gabac_stream_create_file_TMP =    "@TMP@";
+
+int gabac_stream_create_file(
+        gabac_stream *stream,
+        const char* filename,
+        size_t filename_size,
+        int write
+) {
+    const char* mode = write ? "wb" : "rb";
+    filename_size = std::max(strlen(gabac_stream_create_file_STDOUT), filename_size);
+    if(!strncmp(filename, gabac_stream_create_file_STDOUT, filename_size)) {
+        stream->data = stdout;
+    } else if(!strncmp(filename, gabac_stream_create_file_STDERR, filename_size)) {
+        stream->data = stderr;
+    } else if(!strncmp(filename, gabac_stream_create_file_STDIN, filename_size)) {
+        stream->data = stdin;
+    } else if(!strncmp(filename, gabac_stream_create_file_TMP, filename_size)) {
+        stream->data = tmpfile();
+    } else {
+        stream->data = fopen(filename, mode);
     }
-    stream->data = fopen(path, mode);
     if(!stream->data) {
         return gabac_return_FAILURE;
     }
-    stream->size = 0;
-    stream->input_mode = gabac_io_mode_FILE;
+    stream->input_mode = gabac_stream_mode_FILE;
     return gabac_return_SUCCESS;
 }
 
-int gabac_stream_create_buffer(gabac_stream* stream, char* buffer, size_t buffer_size){
-    stream->data = buffer;
-    stream->size = buffer_size;
-    stream->input_mode = gabac_io_mode_BUFFER;
+int gabac_stream_create_file(gabac_stream* stream, FILE* file){
+    stream->data = file;
+    stream->input_mode = gabac_stream_mode_FILE;
+    return gabac_return_SUCCESS;
+}
+
+int gabac_stream_create_buffer(gabac_stream* stream, gabac_data_block* block){
+    stream->data = calloc(1, sizeof(gabac_data_block));
+    static_cast<gabac_data_block*>(stream->data)->word_size = 1;
+    if(block) {
+        if(gabac_data_block_swap(static_cast<gabac_data_block*>(stream->data), block)) {
+            return gabac_return_FAILURE;
+        }
+    }
+    stream->input_mode = gabac_stream_mode_BUFFER;
+    return gabac_return_SUCCESS;
+}
+
+int gabac_stream_swap_block(
+        gabac_stream* stream,
+        gabac_data_block* block
+) {
+    if (stream->input_mode != gabac_stream_mode_BUFFER) {
+        return gabac_return_FAILURE;
+    }
+    gabac_data_block* cblock = static_cast<gabac_data_block*>(stream->data);
+    return gabac_data_block_swap(block, cblock);
+}
+
+int gabac_stream_swap_file(
+        gabac_stream* stream,
+        FILE** file
+) {
+    if (stream->input_mode != gabac_stream_mode_FILE) {
+        return gabac_return_FAILURE;
+    }
+    FILE* tmp = *file;
+    *file = static_cast<FILE*>(stream->data);
+    stream->data = tmp;
     return gabac_return_SUCCESS;
 }
 
 int gabac_stream_release(gabac_stream* stream){
-    if(stream->input_mode == gabac_io_mode_BUFFER) {
+    if(stream->input_mode == gabac_stream_mode_BUFFER) {
+        gabac_data_block_release(static_cast<gabac_data_block*>(stream->data));
         free(stream->data);
-        stream->size = 0;
-    } else {
-        if(stream->data != stdout && stream->data != stderr && stream->data != stdin) {
-            fclose(static_cast<FILE *>(stream->data));
+    } else if (stream->data) {
+        if(stream->data != stdin && stream->data != stdout && stream->data != stderr) {
+            fclose((FILE*)stream->data);
         }
     }
+    stream->data = nullptr;
     return gabac_return_SUCCESS;
 }
 
-int gabac_executeTransform(
-        size_t transformationID,
-        uint64_t *param,
-        bool inverse,
-        gabac_data_block** input
+int gabac_execute_transform(
+        uint8_t transformationID,
+        const uint64_t *param,
+        int inverse,
+        gabac_data_block* input
 ){
     try {
+
         std::vector<gabac::DataBlock> blocks(gabac::transformationInformation[transformationID].wordsizes.size());
         std::vector<uint64_t> params_vec(gabac_sequence_transform_params[transformationID]);
         for (size_t i = 0; i < blocks.size(); ++i) {
-            blocks[i] = gabac::DataBlock(input[i]->values, input[i]->values_size, input[i]->word_size);
-            if (gabac_data_block_release(input[i])) {
+            blocks[i] = gabac::DataBlock(input[i].values, input[i].values_size, input[i].word_size);
+            if (gabac_data_block_release(&input[i])) {
                 GABAC_THROW_RUNTIME_EXCEPTION("C interface error");
             }
         }
@@ -180,11 +260,10 @@ int gabac_executeTransform(
             gabac::transformationInformation[transformationID].transform(params_vec, &blocks);
         }
 
-        for (size_t i = 0; i < gabac::transformationInformation[transformationID].wordsizes.size(); ++i) {
-            if (gabac_data_block_init(input[i], blocks[i].size(), blocks[i].getWordSize())) {
+        for (size_t i = 0; i < blocks.size(); ++i) {
+            if (gabac_data_block_init(&input[i], blocks[i].getData(), blocks[i].size(), blocks[i].getWordSize())) {
                 GABAC_THROW_RUNTIME_EXCEPTION("C interface error");
             }
-            memcpy(input[i]->values, blocks[i].getData(), blocks[i].getRawSize());
             blocks[i].clear();
             blocks[i].shrink_to_fit();
         }
@@ -198,7 +277,7 @@ int gabac_executeTransform(
 int gabac_run(
         gabac_operation operation,
         gabac_io_config *io_config,
-        char *config_json,
+        const char *config_json,
         size_t json_length
 ) {
     try {
@@ -209,33 +288,40 @@ int gabac_run(
         std::unique_ptr<std::ostream> log;
         std::string config(config_json, json_length);
 
-        if (io_config->output.input_mode == gabac_io_mode_FILE) {
+        if (io_config->output.input_mode == gabac_stream_mode_FILE) {
             output.reset(new gabac::OFileStream(static_cast<FILE *>(io_config->output.data)));
         } else {
-            output.reset(new std::ostringstream());
+            gabac_data_block* ptr = static_cast<gabac_data_block*>(io_config->output.data);
+            gabac::DataBlock tmp(0, ptr->word_size);
+            output.reset(new gabac::OBufferStream(&tmp));
         }
         ioconf_cpp.outputStream = output.get();
 
-        if (io_config->log.input_mode == gabac_io_mode_FILE) {
+
+        if (io_config->log.input_mode == gabac_stream_mode_FILE) {
             log.reset(new gabac::OFileStream(static_cast<FILE *>(io_config->log.data)));
         } else {
-            log.reset(new std::ostringstream());
+            gabac_data_block* ptr = static_cast<gabac_data_block*>(io_config->log.data);
+            gabac::DataBlock tmp(0, ptr->word_size);
+            log.reset(new gabac::OBufferStream(&tmp));
         }
         ioconf_cpp.logStream = log.get();
 
+
         {
             std::unique_ptr<std::istream> input;
-            if (io_config->input.input_mode == gabac_io_mode_FILE) {
+            if (io_config->input.input_mode == gabac_stream_mode_FILE) {
                 input.reset(new gabac::IFileStream(static_cast<FILE *>(io_config->input.data)));
             } else {
-                input.reset(
-                        new std::istringstream(
-                                std::string(
-                                        static_cast<const char *>(io_config->input.data),
-                                        io_config->input.size
-                                )));
+                gabac_data_block* cblock = static_cast<gabac_data_block*>(io_config->input.data);
+                gabac::DataBlock tmp(cblock->values, cblock->values_size, cblock->word_size);
+                if(gabac_data_block_resize(cblock, 0)) {
+                    GABAC_THROW_RUNTIME_EXCEPTION("Resize failed");
+                }
+                input.reset(new gabac::IBufferStream(&tmp));
             }
             ioconf_cpp.inputStream = input.get();
+
             gabac::EncodingConfiguration enConf;
             gabac::AnalysisConfiguration analyseConfig;
             switch (operation) {
@@ -254,23 +340,29 @@ int gabac_run(
             }
         }
 
-        if (io_config->log.input_mode == gabac_io_mode_BUFFER) {
-            std::ostringstream *strstr = static_cast<std::ostringstream *> (log.get());
-            io_config->log.size = strstr->str().size();
-            io_config->log.data = realloc(io_config->log.data, io_config->log.size);
-            memcpy(io_config->log.data, strstr->str().data(), io_config->log.size);
-            strstr->str("");
+        if (io_config->output.input_mode == gabac_stream_mode_BUFFER) {
+            gabac::DataBlock b(0,1);
+            gabac_data_block* cblock = static_cast<gabac_data_block*>(io_config->output.data);
+            static_cast<gabac::OBufferStream *> (output.get())->flush(&b);
+            cblock->word_size = b.getWordSize();
+            if(gabac_data_block_resize(cblock, b.size())) {
+                GABAC_THROW_RUNTIME_EXCEPTION("Resize failed");
+            }
+            memcpy(cblock->values, b.getData(), b.getRawSize());
         }
 
-        if (io_config->output.input_mode == gabac_io_mode_BUFFER) {
-            std::ostringstream *strstr = static_cast<std::ostringstream *> (output.get());
-            io_config->output.size = strstr->str().size();
-            io_config->output.data = realloc(io_config->output.data, io_config->output.size);
-            memcpy(io_config->output.data, strstr->str().data(), io_config->output.size);
-            strstr->str("");
+        if (io_config->log.input_mode == gabac_stream_mode_BUFFER) {
+            gabac::DataBlock b(0,1);
+            gabac_data_block* cblock = static_cast<gabac_data_block*>(io_config->log.data);
+            static_cast<gabac::OBufferStream *> (log.get())->flush(&b);
+            cblock->word_size = b.getWordSize();
+            if(gabac_data_block_resize(cblock, b.size())) {
+                GABAC_THROW_RUNTIME_EXCEPTION("Resize failed");
+            }
+            memcpy(cblock->values, b.getData(), b.getRawSize());
         }
         return gabac_return_SUCCESS;
-    }catch(...) {
+    }catch(gabac::Exception &e) {
         return gabac_return_FAILURE;
     }
 }
