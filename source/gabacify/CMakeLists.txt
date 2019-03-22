@@ -62,7 +62,7 @@ message(STATUS "Selected build type: ${CMAKE_BUILD_TYPE}")
 # Boost
 #==============================================================================
 
-find_package(Boost 1.54.0 REQUIRED COMPONENTS regex program_options)
+find_package(Boost 1.54.0 REQUIRED COMPONENTS program_options)
 
 #==============================================================================
 # gabacify
