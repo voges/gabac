@@ -8,7 +8,7 @@
 namespace gabac {
 
 
-static unsigned char readIn(
+inline static unsigned char readIn(
         gabac::BlockStepper *reader
 ){
     if (!reader->isValid()) {
@@ -79,13 +79,13 @@ unsigned int BitInputStream::read(
     else if (numBytesToLoad == 3) goto L3;
     else if (numBytesToLoad != 4) goto L0;
 
-    alignedWord |= (readIn(m_bitstream, &m_bitstreamIndex) << 24u);
+    alignedWord |= (readIn(&m_reader) << 24u);
    L3:
-    alignedWord |= (readIn(m_bitstream, &m_bitstreamIndex) << 16u);
+    alignedWord |= (readIn(&m_reader) << 16u);
    L2:
-    alignedWord |= (readIn(m_bitstream, &m_bitstreamIndex) << 8u);
+    alignedWord |= (readIn(&m_reader) << 8u);
    L1:
-    alignedWord |= (readIn(m_bitstream, &m_bitstreamIndex));
+    alignedWord |= (readIn(&m_reader));
    L0:
 
     // Append requested bits and hold the remaining read bits
