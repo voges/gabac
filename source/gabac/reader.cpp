@@ -214,7 +214,7 @@ uint64_t Reader::readAsSTEGcabac(
 }
 
 
-uint64_t Reader::readNumSymbols(){
+size_t Reader::readNumSymbols(){
     auto result = readAsBIbypass(32);
     return static_cast<size_t>(result);
 }
