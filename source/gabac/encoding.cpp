@@ -32,50 +32,111 @@ ReturnCode encode_cabac(
     Writer writer(&bitstream);
     writer.start(symbols->size());
 
-    unsigned int previousSymbol = 0;
-    unsigned int previousPreviousSymbol = 0;
+    unsigned int binarizationParameter = 0;
+    if (binarizationParameters.size() > 0) {
+        binarizationParameter = binarizationParameters[0];
+    }
 
     BlockStepper r = symbols->getReader();
 
-    if (contextSelectionId == ContextSelectionId::bypass) {
-        while (r.isValid()) {
+    if (contextSelectionId == ContextSelectionId::bypass)
+    {
+        void (Writer::*func)(uint64_t, unsigned int);
+        switch (binarizationId)
+        {
+            case BinarizationId::BI:
+                func = &Writer::writeAsBIbypass;
+                break;
+            case BinarizationId::TU:
+                func = &Writer::writeAsTUbypass;
+                break;
+            case BinarizationId::EG:
+                func = &Writer::writeAsEGbypass;
+                break;
+            case BinarizationId::SEG:
+                func = &Writer::writeAsSEGbypass;
+                break;
+            case BinarizationId::TEG:
+                func = &Writer::writeAsTEGbypass;
+                break;
+            case BinarizationId::STEG:
+                func = &Writer::writeAsSTEGbypass;
+                break;
+            default:
+                GABAC_THROW_RUNTIME_EXCEPTION("Invalid binarization");
+        }
+        while (r.isValid())
+        {
             if (maxSize <= bitstream.size()) {
                 break;
             }
-            writer.writeBypassValue(
+            (writer.*func)(
                     r.get(),
-                    binarizationId,
-                    binarizationParameters
+                    binarizationParameter
             );
             r.inc();
         }
-    } else if (contextSelectionId == ContextSelectionId::adaptive_coding_order_0) {
-        while (r.isValid()) {
+
+        writer.reset();
+
+        symbols->swap(&bitstream);
+
+        return ReturnCode::success;
+    }
+
+    void (Writer::*func)(uint64_t, unsigned int, unsigned int);
+    switch (binarizationId)
+    {
+        case BinarizationId::BI:
+            func = &Writer::writeAsBIcabac;
+            break;
+        case BinarizationId::TU:
+            func = &Writer::writeAsTUcabac;
+            break;
+        case BinarizationId::EG:
+            func = &Writer::writeAsEGcabac;
+            break;
+        case BinarizationId::SEG:
+            func = &Writer::writeAsSEGcabac;
+            break;
+        case BinarizationId::TEG:
+            func = &Writer::writeAsTEGcabac;
+            break;
+        case BinarizationId::STEG:
+            func = &Writer::writeAsSTEGcabac;
+            break;
+        default:
+            GABAC_THROW_RUNTIME_EXCEPTION("Invalid binarization");
+    }
+
+    if (contextSelectionId == ContextSelectionId::adaptive_coding_order_0)
+    {
+        while (r.isValid())
+        {
             if (maxSize <= bitstream.size()) {
                 break;
             }
-            writer.writeCabacAdaptiveValue(
+            (writer.*func)(
                     r.get(),
-                    binarizationId,
-                    binarizationParameters,
-                    0,
+                    binarizationParameter,
                     0
             );
             r.inc();
         }
-    } else if (contextSelectionId == ContextSelectionId::adaptive_coding_order_1) {
-        while (r.isValid()) {
+    }
+    else if (contextSelectionId == ContextSelectionId::adaptive_coding_order_1)
+    {
+        unsigned int previousSymbol = 0;
+        while (r.isValid())
+        {
             if (maxSize <= bitstream.size()) {
                 break;
             }
             uint64_t symbol = r.get();
-            r.inc();
-            writer.writeCabacAdaptiveValue(
-                    symbol,
-                    binarizationId,
-                    binarizationParameters,
-                    previousSymbol,
-                    0
+            (writer.*func)(
+                    r.get(),
+                    binarizationParameter,
+                    previousSymbol << 2u
             );
             if (int64_t(symbol) < 0) {
                 symbol = uint64_t(-int64_t(symbol));
@@ -86,20 +147,23 @@ ReturnCode encode_cabac(
                 assert(symbol <= std::numeric_limits<unsigned int>::max());
                 previousSymbol = static_cast<unsigned int>(symbol);
             }
+            r.inc();
         }
-    } else if (contextSelectionId == ContextSelectionId::adaptive_coding_order_2) {
-        while (r.isValid()) {
+    }
+    else if (contextSelectionId == ContextSelectionId::adaptive_coding_order_2)
+    {
+        unsigned int previousSymbol = 0;
+        unsigned int previousPreviousSymbol = 0;
+        while (r.isValid())
+        {
             if (maxSize <= bitstream.size()) {
                 break;
             }
             uint64_t symbol = r.get();
-            r.inc();
-            writer.writeCabacAdaptiveValue(
+            (writer.*func)(
                     symbol,
-                    binarizationId,
-                    binarizationParameters,
-                    previousSymbol,
-                    previousPreviousSymbol
+                    binarizationParameter,
+                    (previousSymbol << 2u) + previousPreviousSymbol
             );
             previousPreviousSymbol = previousSymbol;
             if (int64_t(symbol) < 0) {
@@ -111,8 +175,11 @@ ReturnCode encode_cabac(
                 assert(symbol <= std::numeric_limits<unsigned int>::max());
                 previousSymbol = static_cast<unsigned int>(symbol);
             }
+            r.inc();
         }
-    } else {
+    }
+    else
+    {
         return ReturnCode::failure;
     }
 

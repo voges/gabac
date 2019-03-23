@@ -31,20 +31,6 @@ class Writer
 
     void reset();
 
-    void writeBypassValue(
-            uint64_t symbol,
-            const BinarizationId& binarizationId,
-            const std::vector<unsigned int>& binarizationParameters
-    );
-
-    void writeCabacAdaptiveValue(
-            uint64_t symbol,
-            const BinarizationId& binarizationId,
-            const std::vector<unsigned int>& binarizationParameters,
-            unsigned int prevValue,
-            unsigned int prevPrevValue
-    );
-
     void writeAsBIbypass(
             uint64_t input,
             unsigned int cLength
@@ -68,20 +54,24 @@ class Writer
     );
 
     void writeAsEGbypass(
-            uint64_t input
+            uint64_t input,
+            unsigned int dummy
     );
 
     void writeAsEGcabac(
             uint64_t input,
+            unsigned int dummy,
             unsigned int offset
     );
 
     void writeAsSEGbypass(
-            int64_t input
+            uint64_t input,
+            unsigned int dummy
     );
 
     void writeAsSEGcabac(
-            int64_t input,
+            uint64_t input,
+            unsigned int dummy,
             unsigned int offset
     );
 
@@ -97,12 +87,12 @@ class Writer
     );
 
     void writeAsSTEGbypass(
-            int64_t input,
+            uint64_t input,
             unsigned int cSignedTruncExpGolParam
     );
 
     void writeAsSTEGcabac(
-            int64_t input,
+            uint64_t input,
             unsigned int cSignedTruncExpGolParam,
             unsigned int offset
     );

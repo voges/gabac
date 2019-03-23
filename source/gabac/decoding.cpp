@@ -106,34 +106,102 @@ ReturnCode decode_cabac(
     // symbols->clear();
     symbols.resize(symbolsSize);
 
-    uint64_t symbol = 0;
-    unsigned int previousSymbol = 0;
-    unsigned int previousPreviousSymbol = 0;
+    unsigned int binarizationParameter = 0;
+    if (binarizationParameters.size() > 0) {
+        binarizationParameter = binarizationParameters[0];
+    }
 
     BlockStepper r = symbols.getReader();
-    while (r.isValid()) {
-        if (contextSelectionId == ContextSelectionId::bypass) {
-            symbol = reader.readBypassValue(
-                    binarizationId,
-                    binarizationParameters
+
+    if (contextSelectionId == ContextSelectionId::bypass)
+    {
+        uint64_t (Reader::*func)(unsigned int);
+        switch (binarizationId)
+        {
+            case BinarizationId::BI:
+                func = &Reader::readAsBIbypass;
+                break;
+            case BinarizationId::TU:
+                func = &Reader::readAsTUbypass;
+                break;
+            case BinarizationId::EG:
+                func = &Reader::readAsEGbypass;
+                break;
+            case BinarizationId::SEG:
+                func = &Reader::readAsSEGbypass;
+                break;
+            case BinarizationId::TEG:
+                func = &Reader::readAsTEGbypass;
+                break;
+            case BinarizationId::STEG:
+                func = &Reader::readAsSTEGbypass;
+                break;
+            default:
+                GABAC_THROW_RUNTIME_EXCEPTION("Invalid binarization");
+        }
+        while(r.isValid())
+        {
+            uint64_t symbol = (reader.*func)(
+                    binarizationParameter
             );
             r.set(symbol);
-        } else if (contextSelectionId
-                   == ContextSelectionId::adaptive_coding_order_0) {
-            symbol = reader.readAdaptiveCabacValue(
-                    binarizationId,
-                    binarizationParameters,
-                    0,
+            r.inc();
+        }
+
+        reader.reset();
+
+        symbols.swap(bitstream);
+
+        return ReturnCode::success;
+    }
+
+    uint64_t (Reader::*func)(unsigned int, unsigned int);
+    switch (binarizationId)
+    {
+        case BinarizationId::BI:
+            func = &Reader::readAsBIcabac;
+            break;
+        case BinarizationId::TU:
+            func = &Reader::readAsTUcabac;
+            break;
+        case BinarizationId::EG:
+            func = &Reader::readAsEGcabac;
+            break;
+        case BinarizationId::SEG:
+            func = &Reader::readAsSEGcabac;
+            break;
+        case BinarizationId::TEG:
+            func = &Reader::readAsTEGcabac;
+            break;
+        case BinarizationId::STEG:
+            func = &Reader::readAsSTEGcabac;
+            break;
+        default:
+            GABAC_THROW_RUNTIME_EXCEPTION("Invalid binarization");
+    }
+
+    if (contextSelectionId
+        == ContextSelectionId::adaptive_coding_order_0)
+    {
+        while(r.isValid())
+        {
+            uint64_t symbol = (reader.*func)(
+                    binarizationParameter,
                     0
             );
             r.set(symbol);
-        } else if (contextSelectionId
-                   == ContextSelectionId::adaptive_coding_order_1) {
-            symbol = reader.readAdaptiveCabacValue(
-                    binarizationId,
-                    binarizationParameters,
-                    previousSymbol,
-                    0
+            r.inc();
+        }
+    }
+    else if (contextSelectionId
+             == ContextSelectionId::adaptive_coding_order_1)
+    {
+        unsigned int previousSymbol = 0;
+        while(r.isValid())
+        {
+            uint64_t symbol = (reader.*func)(
+                    binarizationParameter,
+                    previousSymbol << 2u
             );
             r.set(symbol);
             if (int64_t(symbol) < 0) {
@@ -145,13 +213,20 @@ ReturnCode decode_cabac(
                 assert(symbol <= std::numeric_limits<unsigned int>::max());
                 previousSymbol = static_cast<unsigned int>(symbol);
             }
-        } else if (contextSelectionId
-                   == ContextSelectionId::adaptive_coding_order_2) {
-            symbol = reader.readAdaptiveCabacValue(
-                    binarizationId,
-                    binarizationParameters,
-                    previousSymbol,
-                    previousPreviousSymbol
+            r.inc();
+        }
+    }
+    else if (contextSelectionId
+             == ContextSelectionId::adaptive_coding_order_2)
+    {
+        unsigned int previousSymbol = 0;
+        unsigned int previousPreviousSymbol = 0;
+
+        while(r.isValid())
+        {
+            uint64_t symbol = (reader.*func)(
+                    binarizationParameter,
+                    (previousSymbol << 2u) + previousPreviousSymbol
             );
             r.set(symbol);
             previousPreviousSymbol = previousSymbol;
@@ -164,10 +239,12 @@ ReturnCode decode_cabac(
                 assert(symbol <= std::numeric_limits<unsigned int>::max());
                 previousSymbol = static_cast<unsigned int>(symbol);
             }
-        } else {
-            return ReturnCode::failure;
+            r.inc();
         }
-        r.inc();
+    }
+    else
+    {
+        return ReturnCode::failure;
     }
 
     reader.reset();
