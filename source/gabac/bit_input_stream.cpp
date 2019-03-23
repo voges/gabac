@@ -74,23 +74,19 @@ unsigned int BitInputStream::read(
     // Read in more bytes to satisfy the request
     unsigned int numBytesToLoad = ((numBits - 1u) >> 3u) + 1;
     unsigned int alignedWord = 0;
-    switch (numBytesToLoad) {
-        case 4: {
-            alignedWord |= (readIn(&m_reader) << 24u);
-        }  // fall-through
-        case 3: {
-            alignedWord |= (readIn(&m_reader) << 16u);
-        }  // fall-through
-        case 2: {
-            alignedWord |= (readIn(&m_reader) << 8u);
-        }  // fall-through
-        case 1: {
-            alignedWord |= (readIn(&m_reader));
-        }  // fall-through
-        default: {
-            // Nothing to do here
-        }  // fall-through
-    }
+    if (numBytesToLoad == 1) goto L1;
+    else if (numBytesToLoad == 2) goto L2;
+    else if (numBytesToLoad == 3) goto L3;
+    else if (numBytesToLoad != 4) goto L0;
+
+    alignedWord |= (readIn(m_bitstream, &m_bitstreamIndex) << 24u);
+   L3:
+    alignedWord |= (readIn(m_bitstream, &m_bitstreamIndex) << 16u);
+   L2:
+    alignedWord |= (readIn(m_bitstream, &m_bitstreamIndex) << 8u);
+   L1:
+    alignedWord |= (readIn(m_bitstream, &m_bitstreamIndex));
+   L0:
 
     // Append requested bits and hold the remaining read bits
     unsigned int numNextHeldBits = (32 - numBits) % 8;

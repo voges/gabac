@@ -7,7 +7,7 @@
 namespace gabac {
 
 
-static void writeOut(
+inline static void writeOut(
         unsigned char byte,
         DataBlock *const bitstream
 ){
@@ -64,23 +64,20 @@ void BitOutputStream::write(
     writeBits |= (bits >> numNextHeldBits);
 
     // Write everything
-    switch (numTotalBits >> 3u) {
-        case 4: {
-            writeOut(static_cast<unsigned char> ((writeBits >> 24u) & 0xffu), m_bitstream);
-        }  // fall-through
-        case 3: {
-            writeOut(static_cast<unsigned char> ((writeBits >> 16u) & 0xffu), m_bitstream);
-        }  // fall-through
-        case 2: {
-            writeOut(static_cast<unsigned char> ((writeBits >> 8u) & 0xffu), m_bitstream);
-        }  // fall-through
-        case 1: {
-            writeOut(static_cast<unsigned char> (writeBits & 0xffu), m_bitstream);
-        }  // fall-through
-        default: {
-            // Nothing to do here
-        }  // fall-through
-    }
+    // 1 byte / L1 is the most common case, check for it first
+    if ((numTotalBits >> 3u) == 1) goto L1;
+    else if ((numTotalBits >> 3u) == 2) goto L2;
+    else if ((numTotalBits >> 3u) == 3) goto L3;
+    else if ((numTotalBits >> 3u) != 4) goto L0;
+
+    writeOut(static_cast<unsigned char> ((writeBits >> 24u) & 0xffu), m_bitstream);
+   L3:
+    writeOut(static_cast<unsigned char> ((writeBits >> 16u) & 0xffu), m_bitstream);
+   L2:
+    writeOut(static_cast<unsigned char> ((writeBits >> 8u) & 0xffu), m_bitstream);
+   L1:
+    writeOut(static_cast<unsigned char> (writeBits & 0xffu), m_bitstream);
+   L0:
 
     // Update output bitstream state
     m_heldBits = nextHeldBits;
