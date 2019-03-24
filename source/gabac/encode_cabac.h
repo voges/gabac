@@ -1,6 +1,7 @@
 #ifndef GABAC_ENCODE_CABAC_H_
 #define GABAC_ENCODE_CABAC_H_
 
+#include <cstddef>
 #include <cstdint>
 #include <limits>
 #include <vector>
