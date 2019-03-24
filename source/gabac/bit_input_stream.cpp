@@ -1,4 +1,6 @@
 #include "gabac/bit_input_stream.h"
+#include "gabac/data_block.h"
+#include "gabac/exceptions.h"
 
 #include <cassert>
 #include <limits>
@@ -12,7 +14,7 @@ inline static unsigned char readIn(
         gabac::BlockStepper *reader
 ){
     if (!reader->isValid()) {
-        throw std::runtime_error("Index out of bounds");
+       GABAC_DIE("Index out of bounds");
     }
     auto byte = static_cast<unsigned char>(reader->get());
     reader->inc();
@@ -23,9 +25,8 @@ inline static unsigned char readIn(
 BitInputStream::BitInputStream(
         DataBlock *const bitstream
 )
-        : m_heldBits(0), m_numHeldBits(0){
-    m_bitstream.swap(bitstream);
-    m_reader = m_bitstream.getReader();
+        :  m_bitstream(bitstream), m_heldBits(0), m_numHeldBits(0){
+    m_reader = m_bitstream->getReader();
     reset();
 }
 
@@ -48,7 +49,7 @@ unsigned char BitInputStream::readByte(){
 void BitInputStream::reset(){
     m_heldBits = 0;
     m_numHeldBits = 0;
-    m_reader = m_bitstream.getReader();
+    m_reader = m_bitstream->getReader();
 }
 
 

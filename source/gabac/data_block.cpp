@@ -1,4 +1,6 @@
-#include "data_block.h"
+#include "gabac/data_block.h"
+
+#include "gabac/block_stepper.h"
 
 namespace gabac {
 
@@ -53,6 +55,26 @@ void DataBlock::swap(DataBlock *const d){
 
 
 DataBlock::DataBlock(size_t size, size_t wsize) : wordSize(static_cast<uint8_t>(wsize)), data(size * wsize){
+}
+
+
+DataBlock::DataBlock(std::vector<uint8_t> *vec) : wordSize(1){
+    this->data.swap(*vec);
+}
+
+DataBlock::DataBlock(std::string *vec) : wordSize(1){
+    size_t size = vec->size() * sizeof(char);
+    this->data.resize(size);
+    this->data.shrink_to_fit();
+    std::memcpy(this->data.data(), vec->data(), size);
+    vec->clear();
+}
+
+DataBlock::DataBlock(uint8_t *d, size_t size, uint8_t word_size) : wordSize(word_size){
+    size_t s = size * word_size;
+    this->data.resize(s);
+    this->data.shrink_to_fit();
+    std::memcpy(this->data.data(), d, s);
 }
 
 }

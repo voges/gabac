@@ -10,7 +10,9 @@
 
 #include "exceptions.h"
 
+#include "gabac/constants.h"
 #include "gabac/stream_handler.h"
+#include "gabac/streams.h"
 
 namespace gabac {
 
@@ -157,6 +159,14 @@ void IOConfiguration::validate() const{
     if (unsigned(level) > unsigned(IOConfiguration::LogLevel::FATAL)){
         GABAC_DIE("Invalid logging level");
     }
+}
+
+std::ostream& IOConfiguration::log(const LogLevel& l) const{
+    static NullStream nullstr;
+    if (static_cast<int>(l) >= static_cast<int>(level)) {
+        return *logStream;
+    }
+    return nullstr;
 }
 
 

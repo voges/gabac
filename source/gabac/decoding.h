@@ -6,23 +6,10 @@
 #ifndef GABAC_DECODING_H_
 #define GABAC_DECODING_H_
 
-
-#include "gabac/constants.h"
-#include "gabac/data_block.h"
-#include "gabac/configuration.h"
-
-
 namespace gabac {
 
 class EncodingConfiguration;
-
-ReturnCode decode_cabac(
-        const BinarizationId& binarizationId,
-        const std::vector<uint32_t>& binarizationParameters,
-        const ContextSelectionId& contextSelectionId,
-        uint8_t wordsize,
-        DataBlock *bitstream
-);
+class IOConfiguration;
 
 void decode(
         const IOConfiguration& ioConf,

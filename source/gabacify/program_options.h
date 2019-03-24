@@ -1,11 +1,7 @@
 #ifndef GABACIFY_PROGRAM_OPTIONS_H_
 #define GABACIFY_PROGRAM_OPTIONS_H_
 
-
-#include <boost/program_options.hpp>
-
 #include <string>
-#include <vector>
 
 
 namespace gabacify {

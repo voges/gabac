@@ -3,6 +3,7 @@
 #include <cassert>
 #include <vector>
 
+#include "gabac/data_block.h"
 
 namespace gabac {
 

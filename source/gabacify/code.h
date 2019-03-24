@@ -1,10 +1,8 @@
 #ifndef GABACIFY_ENCODE_H_
 #define GABACIFY_ENCODE_H_
 
-#include <functional>
+#include <cstddef>
 #include <string>
-#include <vector>
-#include <gabac/constants.h>
 
 namespace gabacify {
 

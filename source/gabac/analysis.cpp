@@ -14,8 +14,10 @@
 #include <string>
 #include <vector>
 
+#include "gabac/block_stepper.h"
 #include "gabac/constants.h"
-#include "gabac/encoding.h"
+#include "gabac/data_block.h"
+#include "gabac/encode_cabac.h"
 
 #include "gabac/configuration.h"
 #include "gabacify/code.h"
@@ -50,6 +52,64 @@ struct TraversalInfo
     std::stack<Snapshot> stack;
 
 };
+
+
+const AnalysisConfiguration& getCandidateConfig(){
+    static const AnalysisConfiguration config = {
+            { // Wordsizes
+                    1,
+                       2,
+                          4,
+                             8
+            },
+            { // Sequence Transformations
+                    gabac::SequenceTransformationId::no_transform,
+                       gabac::SequenceTransformationId::equality_coding,
+                          gabac::SequenceTransformationId::match_coding,
+                             gabac::SequenceTransformationId::rle_coding
+            },
+            { // Match coding window sizes
+                    32,
+                       256
+            },
+            { // RLE Guard
+                    255
+            },
+            { // LUT transform
+                    false,
+                       true
+            },
+            { // Diff transform
+                    false,
+                       true
+            },
+            { // Binarizations (unsigned)
+                    gabac::BinarizationId::BI,
+                       gabac::BinarizationId::TU,
+                          gabac::BinarizationId::EG,
+                             gabac::BinarizationId::TEG
+            },
+            { // Binarizations (signed)
+                    gabac::BinarizationId::SEG,
+                       gabac::BinarizationId::STEG
+            },
+            { // Binarization parameters (TEG and STEG only)
+                    1, 2, 3, 5, 7, 9,
+                    15, 30, 255
+            },
+            { // Context modes
+                    gabac::ContextSelectionId::bypass,
+                       gabac::ContextSelectionId::adaptive_coding_order_0,
+                          gabac::ContextSelectionId::adaptive_coding_order_1,
+                             gabac::ContextSelectionId::adaptive_coding_order_2
+            },
+            { // LUT order
+                    0,
+                       1
+            }
+    };
+    return config;
+}
 
 //------------------------------------------------------------------------------
 
@@ -116,18 +176,15 @@ void getOptimumOfBinarization(const AnalysisConfiguration& aconf,
                                                            {0},
                                                            aconf.candidateBinarizationParameters,
                                                            aconf.candidateBinarizationParameters};
-    auto id = unsigned(
-            info->currConfig
-                    .transformedSequenceConfigurations[info->currStreamIndex].binarizationId
-    );
+    auto id = info->currConfig.transformedSequenceConfigurations[info->currStreamIndex].binarizationId;
 
-    for (const auto& transID : candidates[id]) {
-        if (!binarizationInformation[id].isSigned) {
-            if (!binarizationInformation[id].sbCheck(min, max, 0)) {
+    for (const auto& transID : candidates[unsigned(id)]) {
+        if (!getBinarization(id).isSigned) {
+            if (!getBinarization(id).sbCheck(min, max, 0)) {
                 continue;
             }
         } else {
-            if (!binarizationInformation[id].sbCheck(uint64_t(smin), uint64_t(smax), 0)) {
+            if (!getBinarization(id).sbCheck(uint64_t(smin), uint64_t(smax), 0)) {
                 continue;
             }
         }
@@ -171,8 +228,7 @@ void getOptimumOfLutTransformedStream(const AnalysisConfiguration& aconf,
         info->currConfig.transformedSequenceConfigurations[info->currStreamIndex].diffCodingEnabled = transID;
         if (transID) {
             info->stack.push(info->stack.top());
-            const size_t DIFF_INDEX = 5;
-            gabac::transformationInformation[DIFF_INDEX].transform(
+            gabac::getTransformation(gabac::SequenceTransformationId::diff_coding).transform(
                     {0},
                     &info->stack.top().streams
             );
@@ -195,8 +251,7 @@ void getOptimumOfLutEnabled(const AnalysisConfiguration& aconf,
         info->stack.push(info->stack.top());
 
         try {
-            const size_t LUT_INDEX = 4;
-            gabac::transformationInformation[LUT_INDEX].transform(
+            getTransformation(SequenceTransformationId::lut_transform).transform(
                     {info->currConfig.transformedSequenceConfigurations[info->currStreamIndex].lutOrder},
                     &info->stack.top().streams
             );
@@ -276,7 +331,7 @@ void getOptimumOfSequenceTransform(const AnalysisConfiguration& aconf,
 
         info->currConfig.sequenceTransformationParameter = p;
 
-        gabac::transformationInformation[unsigned(info->currConfig.sequenceTransformationId)].transform(
+        gabac::getTransformation(info->currConfig.sequenceTransformationId).transform(
                 {p},
                 &info->stack.top().streams
         );
@@ -346,7 +401,7 @@ void getOptimumOfSymbolSequence(const AnalysisConfiguration& aconf,
         info->currConfig.sequenceTransformationId = transID;
         info->currConfig
                 .transformedSequenceConfigurations
-                .resize(transformationInformation[unsigned(transID)].wordsizes.size());
+                .resize(gabac::getTransformation(transID).wordsizes.size());
         // Core of analysis
         getOptimumOfSequenceTransform(
                 aconf,
@@ -356,7 +411,7 @@ void getOptimumOfSymbolSequence(const AnalysisConfiguration& aconf,
 }
 
 
-size_t analyze(const IOConfiguration& ioconf, const AnalysisConfiguration& aconf){
+void analyze(const IOConfiguration& ioconf, const AnalysisConfiguration& aconf){
     ioconf.validate();
     TraversalInfo info;
     info.ioconf = &ioconf;
@@ -395,8 +450,6 @@ size_t analyze(const IOConfiguration& ioconf, const AnalysisConfiguration& aconf
             << info.bestTotalSize
             << " bytes."
             << std::endl;
-
-    return 0;
 }
 
 //------------------------------------------------------------------------------

@@ -1,15 +1,13 @@
 #ifndef GABAC_EQUALITY_CODING_H_
 #define GABAC_EQUALITY_CODING_H_
 
-#include "gabac/data_block.h"
-
-
 namespace gabac {
 
+class DataBlock;
 
 void transformEqualityCoding(
-        gabac::DataBlock *values,
-        gabac::DataBlock *equalityFlags
+        DataBlock *values,
+        DataBlock *equalityFlags
 );
 
 

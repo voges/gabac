@@ -1,15 +1,11 @@
 #ifndef GABACIFY_EXCEPTIONS_H_
 #define GABACIFY_EXCEPTIONS_H_
 
-
-#define GABAC_DIE(message) GABAC_THROW_RUNTIME_EXCEPTION(message)
-
-#define GABAC_THROW_RUNTIME_EXCEPTION(message) \
+#define GABAC_DIE(message) \
     throw gabac::RuntimeException(__FILE__, __FUNCTION__, __LINE__, message)
 
 
 #include <exception>
-#include <iostream>
 #include <string>
 
 

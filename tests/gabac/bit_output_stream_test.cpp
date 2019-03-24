@@ -1,6 +1,7 @@
 #include <vector>
 
 #include "gabac/bit_output_stream.h"
+#include "gabac/data_block.h"
 
 #include "gtest/gtest.h"
 

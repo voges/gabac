@@ -3,6 +3,7 @@
 #include "gabac/binary_arithmetic_decoder.cpp"
 #include "gabac/context_tables.h"
 #include "gabac/context_selector.h"
+#include "gabac/data_block.h"
 #include "gtest/gtest.h"
 
 

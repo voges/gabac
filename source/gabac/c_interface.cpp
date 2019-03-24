@@ -1,10 +1,6 @@
 #include "gabac/c_interface.h"
 
-#include <cstdlib>
-#include <cstdio>
-
 #include <memory>
-#include <sstream>
 
 #include "gabac/analysis.h"
 #include "gabac/configuration.h"
@@ -12,9 +8,8 @@
 #include "gabac/data_block.h"
 #include "gabac/decoding.h"
 #include "gabac/encoding.h"
-#include "gabac/equality_coding.h"
 #include "gabac/exceptions.h"
-#include "gabac/stream_handler.h"
+#include "gabac/streams.h"
 
 
 const uint8_t gabac_sequence_transform_params[] = {
@@ -240,13 +235,13 @@ int gabac_execute_transform(
         gabac_data_block* input
 ){
     try {
-
-        std::vector<gabac::DataBlock> blocks(gabac::transformationInformation[transformationID].wordsizes.size());
+        auto transID = gabac::SequenceTransformationId (transformationID);
+        std::vector<gabac::DataBlock> blocks(gabac::getTransformation(transID).wordsizes.size());
         std::vector<uint64_t> params_vec(gabac_sequence_transform_params[transformationID]);
         for (size_t i = 0; i < blocks.size(); ++i) {
             blocks[i] = gabac::DataBlock(input[i].values, input[i].values_size, input[i].word_size);
             if (gabac_data_block_release(&input[i])) {
-                GABAC_THROW_RUNTIME_EXCEPTION("C interface error");
+                GABAC_DIE("C interface error");
             }
         }
 
@@ -255,14 +250,14 @@ int gabac_execute_transform(
         }
 
         if(inverse) {
-            gabac::transformationInformation[transformationID].inverseTransform(params_vec, &blocks);
+            gabac::getTransformation(transID).inverseTransform(params_vec, &blocks);
         } else {
-            gabac::transformationInformation[transformationID].transform(params_vec, &blocks);
+            gabac::getTransformation(transID).transform(params_vec, &blocks);
         }
 
         for (size_t i = 0; i < blocks.size(); ++i) {
             if (gabac_data_block_init(&input[i], blocks[i].getData(), blocks[i].size(), blocks[i].getWordSize())) {
-                GABAC_THROW_RUNTIME_EXCEPTION("C interface error");
+                GABAC_DIE("C interface error");
             }
             blocks[i].clear();
             blocks[i].shrink_to_fit();
@@ -316,7 +311,7 @@ int gabac_run(
                 gabac_data_block* cblock = static_cast<gabac_data_block*>(io_config->input.data);
                 gabac::DataBlock tmp(cblock->values, cblock->values_size, cblock->word_size);
                 if(gabac_data_block_resize(cblock, 0)) {
-                    GABAC_THROW_RUNTIME_EXCEPTION("Resize failed");
+                    GABAC_DIE("Resize failed");
                 }
                 input.reset(new gabac::IBufferStream(&tmp));
             }
@@ -346,7 +341,7 @@ int gabac_run(
             static_cast<gabac::OBufferStream *> (output.get())->flush(&b);
             cblock->word_size = b.getWordSize();
             if(gabac_data_block_resize(cblock, b.size())) {
-                GABAC_THROW_RUNTIME_EXCEPTION("Resize failed");
+                GABAC_DIE("Resize failed");
             }
             memcpy(cblock->values, b.getData(), b.getRawSize());
         }
@@ -357,7 +352,7 @@ int gabac_run(
             static_cast<gabac::OBufferStream *> (log.get())->flush(&b);
             cblock->word_size = b.getWordSize();
             if(gabac_data_block_resize(cblock, b.size())) {
-                GABAC_THROW_RUNTIME_EXCEPTION("Resize failed");
+                GABAC_DIE("Resize failed");
             }
             memcpy(cblock->values, b.getData(), b.getRawSize());
         }

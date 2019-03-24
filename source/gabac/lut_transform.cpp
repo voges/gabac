@@ -1,5 +1,7 @@
 #include "gabac/lut_transform.h"
 
+#include "gabac/block_stepper.h"
+#include "gabac/data_block.h"
 #include "gabac/exceptions.h"
 
 #include <algorithm>
@@ -8,76 +10,7 @@
 #include <limits>
 #include <unordered_map>
 #include <utility>
-
-
-// ----------------------------------------------------------------------------
-// C wrapper BEGIN
-// ----------------------------------------------------------------------------
-
-/*int gabac_transformLutTransform0(
-        const uint64_t *const symbols,
-        const size_t symbolsSize,
-        uint64_t **const transformedSymbols,
-        uint64_t **const inverseLUT,
-        size_t *const inverseLUTSize
-){
-    if (symbols == nullptr ||
-        transformedSymbols == nullptr ||
-        inverseLUT == nullptr ||
-        inverseLUTSize == nullptr)
-    {
-        return GABAC_FAILURE;
-    }
-
-    DataBlock symbolsVecCpp(symbols, symbols + symbolsSize);
-    DataBlock transformedVec;
-    DataBlock invLutVec;
-
-    gabac::transformLutTransform0(symbolsVecCpp, &transformedVec, &invLutVec);
-
-    (*transformedSymbols) = static_cast<uint64_t *>(malloc(sizeof(uint64_t) * transformedVec.size()));
-    (*inverseLUT) = static_cast<uint64_t *>(malloc(sizeof(uint64_t) * invLutVec.size()));
-
-    std::copy(transformedVec.begin(), transformedVec.end(), *transformedSymbols);
-    std::copy(invLutVec.begin(), invLutVec.end(), *inverseLUT);
-
-    *inverseLUTSize = invLutVec.size();
-
-    return GABAC_SUCCESS;
-}
-
-// ----------------------------------------------------------------------------
-
-int gabac_inverseTransformLutTransform0(
-        const uint64_t *transformedSymbols,
-        size_t transformedSymbolsSize,
-        const uint64_t *inverseLUT,
-        size_t inverseLUTSize,
-        uint64_t **symbols
-){
-    if (transformedSymbols == nullptr ||
-        inverseLUT == nullptr ||
-        symbols == nullptr)
-    {
-        return GABAC_FAILURE;
-    }
-
-    DataBlock transSymVec(transformedSymbols, transformedSymbols + transformedSymbolsSize);
-    DataBlock invLutVec(inverseLUT, inverseLUT + inverseLUTSize);
-    DataBlock symVec;
-
-    gabac::inverseTransformLutTransform0(transSymVec, invLutVec, &symVec);
-
-    (*symbols) = static_cast<uint64_t *>(malloc(sizeof(uint64_t) * symVec.size()));
-
-    std::copy(symVec.begin(), symVec.end(), *symbols);
-
-    return GABAC_SUCCESS;
-}*/
-
-// ----------------------------------------------------------------------------
-// C wrapper END
-// ----------------------------------------------------------------------------
+#include <vector>
 
 namespace gabac {
 

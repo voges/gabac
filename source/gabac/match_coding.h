@@ -2,12 +2,10 @@
 #define GABAC_MATCH_CODING_H_
 
 #include <cstdint>
-#include <vector>
-
-#include "gabac/data_block.h"
 
 namespace gabac {
 
+class DataBlock;
 
 void transformMatchCoding(
         uint32_t windowSize,

@@ -1,17 +1,11 @@
 #ifndef GABAC_BIT_INPUT_STREAM_H_
 #define GABAC_BIT_INPUT_STREAM_H_
 
-
-#include <cstdlib>
-#include <cstddef>
-#include <vector>
-
-#include "gabac/data_block.h"
 #include "gabac/block_stepper.h"
-
 
 namespace gabac {
 
+class DataBlock;
 
 class BitInputStream
 {
@@ -33,7 +27,7 @@ class BitInputStream
             unsigned int numBits
     );
 
-    gabac::DataBlock m_bitstream;
+    gabac::DataBlock* m_bitstream;
 
     gabac::BlockStepper m_reader;
 

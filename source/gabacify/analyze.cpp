@@ -1,10 +1,12 @@
 #include <fstream>
+#include <iostream>
 
 #include <gabac/gabac.h>
 #include "analyze.h"
 
 #include "gabac/analysis.h"
 #include "gabac/exceptions.h"
+#include "gabac/streams.h"
 
 namespace gabacify {
 void analyze(const std::string& inputFilePath,
@@ -22,14 +24,14 @@ void analyze(const std::string& inputFilePath,
     if (!inputFilePath.empty()) {
         inputFile = std::ifstream(inputFilePath, std::ios::binary);
         if (!inputFile) {
-            GABAC_THROW_RUNTIME_EXCEPTION("Could not open input file");
+            GABAC_DIE("Could not open input file");
         }
         istream = &inputFile;
     }
     if (!configurationFilePath.empty()) {
         configurationFile = std::ofstream(configurationFilePath, std::ios::binary);
         if (!configurationFile) {
-            GABAC_THROW_RUNTIME_EXCEPTION("Could not open output file");
+            GABAC_DIE("Could not open output file");
         }
         ostream = &configurationFile;
     } else {

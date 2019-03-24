@@ -7,179 +7,13 @@
 
 #include "gabac/constants.h"
 #include "gabac/configuration.h"
+#include "gabac/data_block.h"
+#include "gabac/decode_cabac.h"
+#include "gabac/exceptions.h"
 #include "gabac/reader.h"
-#include "gabac/diff_coding.h"
-#include "stream_handler.h"
+#include "gabac/stream_handler.h"
 
 namespace gabac {
-
-
-ReturnCode decode_cabac(
-        const BinarizationId& binarizationId,
-        const std::vector<unsigned int>& binarizationParameters,
-        const ContextSelectionId& contextSelectionId,
-        const uint8_t wordsize,
-        DataBlock *const bitstream
-){
-    DataBlock symbols(0, wordsize);
-    if (bitstream == nullptr) {
-        return ReturnCode::failure;
-    }
-
-    Reader reader(bitstream);
-    size_t symbolsSize = reader.start();
-
-    // symbols->clear();
-    symbols.resize(symbolsSize);
-
-    unsigned int binarizationParameter = 0;
-    if (binarizationParameters.size() > 0) {
-        binarizationParameter = binarizationParameters[0];
-    }
-
-    BlockStepper r = symbols.getReader();
-
-    if (contextSelectionId == ContextSelectionId::bypass)
-    {
-        uint64_t (Reader::*func)(unsigned int);
-        switch (binarizationId)
-        {
-            case BinarizationId::BI:
-                func = &Reader::readAsBIbypass;
-                break;
-            case BinarizationId::TU:
-                func = &Reader::readAsTUbypass;
-                break;
-            case BinarizationId::EG:
-                func = &Reader::readAsEGbypass;
-                break;
-            case BinarizationId::SEG:
-                func = &Reader::readAsSEGbypass;
-                break;
-            case BinarizationId::TEG:
-                func = &Reader::readAsTEGbypass;
-                break;
-            case BinarizationId::STEG:
-                func = &Reader::readAsSTEGbypass;
-                break;
-            default:
-                GABAC_THROW_RUNTIME_EXCEPTION("Invalid binarization");
-        }
-        while(r.isValid())
-        {
-            uint64_t symbol = (reader.*func)(
-                    binarizationParameter
-            );
-            r.set(symbol);
-            r.inc();
-        }
-
-        reader.reset();
-
-        symbols.swap(bitstream);
-
-        return ReturnCode::success;
-    }
-
-    uint64_t (Reader::*func)(unsigned int, unsigned int);
-    switch (binarizationId)
-    {
-        case BinarizationId::BI:
-            func = &Reader::readAsBIcabac;
-            break;
-        case BinarizationId::TU:
-            func = &Reader::readAsTUcabac;
-            break;
-        case BinarizationId::EG:
-            func = &Reader::readAsEGcabac;
-            break;
-        case BinarizationId::SEG:
-            func = &Reader::readAsSEGcabac;
-            break;
-        case BinarizationId::TEG:
-            func = &Reader::readAsTEGcabac;
-            break;
-        case BinarizationId::STEG:
-            func = &Reader::readAsSTEGcabac;
-            break;
-        default:
-            GABAC_THROW_RUNTIME_EXCEPTION("Invalid binarization");
-    }
-
-    if (contextSelectionId
-        == ContextSelectionId::adaptive_coding_order_0)
-    {
-        while(r.isValid())
-        {
-            uint64_t symbol = (reader.*func)(
-                    binarizationParameter,
-                    0
-            );
-            r.set(symbol);
-            r.inc();
-        }
-    }
-    else if (contextSelectionId
-             == ContextSelectionId::adaptive_coding_order_1)
-    {
-        unsigned int previousSymbol = 0;
-        while(r.isValid())
-        {
-            uint64_t symbol = (reader.*func)(
-                    binarizationParameter,
-                    previousSymbol << 2u
-            );
-            r.set(symbol);
-            if (int64_t(symbol) < 0) {
-                symbol = uint64_t(-int64_t(symbol));
-            }
-            if (symbol > 3) {
-                previousSymbol = 3;
-            } else {
-                assert(symbol <= std::numeric_limits<unsigned int>::max());
-                previousSymbol = static_cast<unsigned int>(symbol);
-            }
-            r.inc();
-        }
-    }
-    else if (contextSelectionId
-             == ContextSelectionId::adaptive_coding_order_2)
-    {
-        unsigned int previousSymbol = 0;
-        unsigned int previousPreviousSymbol = 0;
-
-        while(r.isValid())
-        {
-            uint64_t symbol = (reader.*func)(
-                    binarizationParameter,
-                    (previousSymbol << 2u) + previousPreviousSymbol
-            );
-            r.set(symbol);
-            previousPreviousSymbol = previousSymbol;
-            if (int64_t(symbol) < 0) {
-                symbol = uint64_t(-int64_t(symbol));
-            }
-            if (symbol > 3) {
-                previousSymbol = 3;
-            } else {
-                assert(symbol <= std::numeric_limits<unsigned int>::max());
-                previousSymbol = static_cast<unsigned int>(symbol);
-            }
-            r.inc();
-        }
-    }
-    else
-    {
-        return ReturnCode::failure;
-    }
-
-    reader.reset();
-
-    symbols.swap(bitstream);
-
-    return ReturnCode::success;
-}
-
 
 //------------------------------------------------------------------------------
 
@@ -245,7 +79,10 @@ static void doDiffCoding(bool enabled,
     // Diff coding
     if (enabled) {
         //GABACIFY_LOG_TRACE << "Diff coding *en*abled";
-        gabac::inverseTransformDiffCoding(lutTransformedSequence);
+        std::vector<gabac::DataBlock> vec(1);
+        vec[0].swap(lutTransformedSequence);
+        gabac::getTransformation(gabac::SequenceTransformationId::diff_coding).inverseTransform({}, &vec);
+        vec[0].swap(lutTransformedSequence);
         return;
     }
 
@@ -262,8 +99,7 @@ static void doLUTCoding(bool enabled,
         //GABACIFY_LOG_TRACE << "LUT transform *en*abled";
 
         // Do the inverse LUT transform
-        const unsigned LUT_INDEX = 4;
-        gabac::transformationInformation[LUT_INDEX].inverseTransform({order}, lutSequences);
+        gabac::getTransformation(gabac::SequenceTransformationId::lut_transform).inverseTransform({order}, lutSequences);
         return;
     }
 
@@ -301,8 +137,7 @@ void decode(
     while (ioConf.inputStream->peek() != EOF) {
 
         // Set up for the inverse sequence transformation
-        size_t numTransformedSequences =
-                gabac::transformationInformation[unsigned(enConf.sequenceTransformationId)].wordsizes.size();
+        size_t numTransformedSequences = gabac::getTransformation(enConf.sequenceTransformationId).wordsizes.size();
 
         // Loop through the transformed sequences
         std::vector<gabac::DataBlock> transformedSequences;
@@ -321,8 +156,7 @@ void decode(
                 );
             }
 
-            uint8_t wsize =
-                    gabac::transformationInformation[unsigned(enConf.sequenceTransformationId)].wordsizes[i];
+            uint8_t wsize = getTransformation(enConf.sequenceTransformationId).wordsizes[i];
             if (wsize == 0) {
                 wsize = static_cast<uint8_t>(enConf.wordSize);
             }
@@ -336,7 +170,7 @@ void decode(
 
             doDiffCoding(
                     enConf.transformedSequenceConfigurations[i].diffCodingEnabled,
-                    &(lutTransformedSequences[0])
+                    &lutTransformedSequences[0]
             );
 
             doLUTCoding(
@@ -350,7 +184,7 @@ void decode(
         }
 
 
-        gabac::transformationInformation[unsigned(enConf.sequenceTransformationId)].inverseTransform(
+        getTransformation(enConf.sequenceTransformationId).inverseTransform(
                 {enConf.sequenceTransformationParameter},
                 &transformedSequences
         );

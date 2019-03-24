@@ -6,6 +6,7 @@
 #include <limits>
 
 #include "gabac/constants.h"
+#include "gabac/context_selector.h"
 #include "gabac/context_tables.h"
 
 //
@@ -83,7 +84,7 @@ void Writer::writeAsBIbypass(
         uint64_t input,
         unsigned int cLength
 ){
-    assert(binarizationInformation[unsigned(BinarizationId::BI)].sbCheck(input, input, cLength));
+    assert(getBinarization(BinarizationId::BI).sbCheck(input, input, cLength));
     m_binaryArithmeticEncoder.encodeBinsEP(static_cast<unsigned int>(input), cLength);
 }
 
@@ -93,7 +94,7 @@ void Writer::writeAsBIcabac(
         unsigned int cLength,
         unsigned int offset
 ){
-    assert(binarizationInformation[unsigned(BinarizationId::BI)].sbCheck(input, input, cLength));
+    assert(getBinarization(BinarizationId::BI).sbCheck(input, input, cLength));
 
     unsigned int cm = ContextSelector::getContextForBi(offset, 0);
     std::vector<ContextModel>::iterator scan = m_contextModels.begin() + cm;
@@ -109,7 +110,7 @@ void Writer::writeAsTUbypass(
         uint64_t input,
         unsigned int cMax
 ){
-    assert(binarizationInformation[unsigned(BinarizationId::TU)].sbCheck(input, input, cMax));
+    assert(getBinarization(BinarizationId::TU).sbCheck(input, input, cMax));
 
     for (uint64_t i = 0; i < input; i++) {
         m_binaryArithmeticEncoder.encodeBinEP(1);
@@ -125,7 +126,7 @@ void Writer::writeAsTUcabac(
         unsigned int cMax,
         unsigned int offset
 ){
-    assert(binarizationInformation[unsigned(BinarizationId::TU)].sbCheck(input, input, cMax));
+    assert(getBinarization(BinarizationId::TU).sbCheck(input, input, cMax));
 
     unsigned int cm = ContextSelector::getContextForTu(offset, 0);
 
@@ -151,7 +152,7 @@ void Writer::writeAsEGbypass(
         uint64_t input,
         unsigned int
 ){
-    assert(binarizationInformation[unsigned(BinarizationId::EG)].sbCheck(input, input, 0));
+    assert(getBinarization(BinarizationId::EG).sbCheck(input, input, 0));
 
     input++;
     unsigned int length = ((bitLength(static_cast<uint64_t>(input)) - 1) << 1u) + 1;
@@ -165,7 +166,7 @@ void Writer::writeAsEGcabac(
         unsigned int,
         unsigned int offset
 ){
-    assert(binarizationInformation[unsigned(BinarizationId::EG)].sbCheck(input, input, 0));
+    assert(getBinarization(BinarizationId::EG).sbCheck(input, input, 0));
 
     input++;
     unsigned int i = 0;
@@ -194,7 +195,7 @@ void Writer::writeAsSEGbypass(
         uint64_t input,
         unsigned int
 ){
-    assert(binarizationInformation[unsigned(BinarizationId::SEG)].sbCheck(input, input, 0));
+    assert(getBinarization(BinarizationId::SEG).sbCheck(input, input, 0));
     if (int64_t (input) <= 0)
     {
         writeAsEGbypass(static_cast<unsigned int>(-int64_t (input)) << 1u, 0);
@@ -211,7 +212,7 @@ void Writer::writeAsSEGcabac(
         unsigned int,
         unsigned int offset
 ){
-    assert(binarizationInformation[unsigned(BinarizationId::SEG)].sbCheck(uint64_t(input), uint64_t(input), 0));
+    assert(getBinarization(BinarizationId::SEG).sbCheck(uint64_t(input), uint64_t(input), 0));
 
     if (int64_t(input) <= 0)
     {
@@ -228,7 +229,7 @@ void Writer::writeAsTEGbypass(
         uint64_t input,
         unsigned int cTruncExpGolParam
 ){
-    assert(binarizationInformation[unsigned(BinarizationId::TEG)].sbCheck(input, input, cTruncExpGolParam));
+    assert(getBinarization(BinarizationId::TEG).sbCheck(input, input, cTruncExpGolParam));
 
     if (input < cTruncExpGolParam) {
         writeAsTUbypass(input, cTruncExpGolParam);
@@ -244,7 +245,7 @@ void Writer::writeAsTEGcabac(
         unsigned int cTruncExpGolParam,
         unsigned int offset
 ){
-    assert(binarizationInformation[unsigned(BinarizationId::TEG)].sbCheck(input, input, cTruncExpGolParam));
+    assert(getBinarization(BinarizationId::TEG).sbCheck(input, input, cTruncExpGolParam));
 
     if (input < cTruncExpGolParam) {
         writeAsTUcabac(input, cTruncExpGolParam, offset);
@@ -259,7 +260,7 @@ void Writer::writeAsSTEGbypass(
         uint64_t input,
         unsigned int cSignedTruncExpGolParam
 ){
-    assert(binarizationInformation[unsigned(BinarizationId::STEG)].sbCheck(
+    assert(getBinarization(BinarizationId::STEG).sbCheck(
             uint64_t(input),
             uint64_t(input),
             cSignedTruncExpGolParam
@@ -282,7 +283,7 @@ void Writer::writeAsSTEGcabac(
         unsigned int cSignedTruncExpGolParam,
         unsigned int offset
 ){
-    assert(binarizationInformation[unsigned(BinarizationId::STEG)].sbCheck(
+    assert(getBinarization(BinarizationId::STEG).sbCheck(
             uint64_t(input),
             uint64_t(input),
             cSignedTruncExpGolParam

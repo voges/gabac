@@ -11,7 +11,9 @@
 // separately, so that we may call inlined member functions of class
 // BinaryArithmeticDecoder in this file.
 //
-#include "binary_arithmetic_decoder.cpp"
+#include "gabac/binary_arithmetic_decoder.cpp"
+
+#include "gabac/context_selector.h"
 
 namespace gabac {
 

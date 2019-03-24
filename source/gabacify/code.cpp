@@ -5,19 +5,13 @@
 #include <cmath>
 #include <functional>
 #include <iomanip>
+#include <iostream>
 #include <limits>
 #include <utility>
 #include <vector>
 #include <fstream>
 
-#include "gabac/constants.h"
-#include "gabac/encoding.h"
-#include "gabac/decoding.h"
-#include "gabac/diff_coding.h"
-
-#include "gabac/analysis.h"
-#include "gabac/configuration.h"
-#include "gabac/exceptions.h"
+#include "gabac/gabac.h"
 
 
 namespace gabacify {
@@ -43,7 +37,7 @@ void code(const std::string& inputFilePath,
         // Read in the entire input file
         inputFile = std::ifstream(inputFilePath, std::ios::binary);
         if (!inputFile) {
-            GABAC_THROW_RUNTIME_EXCEPTION("Could not open input file");
+            GABAC_DIE("Could not open input file");
         }
         istream = &inputFile;
     }
@@ -52,7 +46,7 @@ void code(const std::string& inputFilePath,
         // Write the bytestream
         outputFile = std::ofstream(outputFilePath, std::ios::binary);
         if (!outputFile) {
-            GABAC_THROW_RUNTIME_EXCEPTION("Could not open output file");
+            GABAC_DIE("Could not open output file");
         }
         ostream = &outputFile;
     } else {
@@ -74,7 +68,7 @@ void code(const std::string& inputFilePath,
         if (!configurationFilePath.empty()) {
             configurationFile = std::ifstream(configurationFilePath, std::ios::binary);
             if (!configurationFile) {
-                GABAC_THROW_RUNTIME_EXCEPTION("Could not open configuration file");
+                GABAC_DIE("Could not open configuration file");
             }
             confstream = &configurationFile;
         }

@@ -1,17 +1,17 @@
 #ifndef GABACIFY_CONFIGURATION_H_
 #define GABACIFY_CONFIGURATION_H_
 
-
+#include <istream>
+#include <ostream>
 #include <string>
 #include <vector>
-#include <ostream>
-#include <istream>
-
-#include "gabac/constants.h"
 
 
 namespace gabac {
 
+enum class BinarizationId;
+enum class ContextSelectionId;
+enum class SequenceTransformationId;
 
 struct TransformedSequenceConfiguration
 {
@@ -48,24 +48,6 @@ class EncodingConfiguration
     std::vector<TransformedSequenceConfiguration> transformedSequenceConfigurations;
 };
 
-class NullBuffer : public std::streambuf
-{
- public:
-    int overflow(int c) override{
-        return c;
-    }
-};
-
-class NullStream : public std::ostream
-{
- public:
-    NullStream() : std::ostream(&m_sb){
-    }
-
- private:
-    NullBuffer m_sb;
-};
-
 struct IOConfiguration
 {
     std::istream *inputStream;
@@ -86,13 +68,7 @@ struct IOConfiguration
 
     LogLevel level;
 
-    std::ostream& log(const LogLevel& l) const{
-        static NullStream nullstr;
-        if (static_cast<int>(l) >= static_cast<int>(level)) {
-            return *logStream;
-        }
-        return nullstr;
-    }
+    std::ostream& log(const LogLevel& l) const;
 
     void validate() const;
 };

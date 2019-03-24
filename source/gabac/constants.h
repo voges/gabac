@@ -1,14 +1,12 @@
 #ifndef GABAC_CONSTANTS_H_
 #define GABAC_CONSTANTS_H_
 
-#include <cstdint>
 #include <functional>
 #include <vector>
-#include <string>
-
-#include "gabac/data_block.h"
 
 namespace gabac {
+
+class DataBlock;
 
 enum class ReturnCode
 {
@@ -21,7 +19,10 @@ enum class SequenceTransformationId
     no_transform = 0,
     equality_coding = 1,
     match_coding = 2,
-    rle_coding = 3
+    rle_coding = 3,
+    lut_transform = 4,
+    diff_coding = 5,
+    cabac_coding = 6
 };
 
 enum class BinarizationId
@@ -53,6 +54,7 @@ using SignedBinarizationBorder = std::function<uint64_t(uint64_t parameter
 struct TransformationProperties
 {
     std::string name;
+    std::vector<std::string> paramNames;
     std::vector<std::string> streamNames;
     std::vector<uint8_t> wordsizes; // Wordsizes of output streams
     SequenceTransform transform; // Function for transformation
@@ -68,16 +70,11 @@ struct BinarizationProperties
     SignedBinarizationBorder min;
     SignedBinarizationBorder max;
 
-    bool sbCheck(uint64_t minv, uint64_t maxv, uint64_t parameter) const{
-        if (isSigned) {
-            return int64_t(minv) >= int64_t(this->min(parameter)) && int64_t(maxv) <= int64_t(this->max(parameter));
-        }
-        return minv >= this->min(parameter) && maxv <= this->max(parameter);
-    }
+    bool sbCheck(uint64_t minv, uint64_t maxv, uint64_t parameter) const;
 };
 
-extern const std::vector<TransformationProperties> transformationInformation;
-extern const std::vector<BinarizationProperties> binarizationInformation;
+const TransformationProperties& getTransformation (const gabac::SequenceTransformationId& id);
+const BinarizationProperties& getBinarization (const gabac::BinarizationId& id);
 
 
 }  // namespace gabac

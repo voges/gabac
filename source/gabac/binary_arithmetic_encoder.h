@@ -1,13 +1,11 @@
 #ifndef GABAC_BINARY_ARITHMETIC_ENCODER_H_
 #define GABAC_BINARY_ARITHMETIC_ENCODER_H_
 
-
 #include "gabac/bit_output_stream.h"
-#include "gabac/context_model.h"
-
 
 namespace gabac {
 
+class ContextModel;
 
 class BinaryArithmeticEncoder
 {

@@ -1,16 +1,15 @@
 #ifndef GABAC_DATASTREAM_HPP
 #define GABAC_DATASTREAM_HPP
 
-#include <vector>
-#include <cstdint>
-#include <stdexcept>
-#include <cassert>
+#include "gabac/exceptions.h"
+
 #include <cstring>
 #include <string>
-
-#include "block_stepper.h"
+#include <vector>
 
 namespace gabac {
+
+struct BlockStepper;
 
 class DataBlock
 {
@@ -131,34 +130,15 @@ class DataBlock
     explicit DataBlock(size_t size = 0, size_t wsize = 1);
 
     template<typename T>
-    explicit DataBlock(std::vector<T> *vec) : wordSize(sizeof(T)){
-        size_t size = vec->size() * sizeof(T);
-        this->data.resize(size);
-        this->data.shrink_to_fit();
-        std::memcpy(this->data.data(), vec->data(), size);
-        vec->clear();
-    }
+    explicit DataBlock(std::vector<T> *vec);
 
-    explicit DataBlock(std::vector<uint8_t> *vec) : wordSize(1){
-        this->data.swap(*vec);
-    }
+    explicit DataBlock(std::vector<uint8_t> *vec);
+    explicit DataBlock(std::string *vec);
 
-    explicit DataBlock(std::string *vec) : wordSize(1){
-        size_t size = vec->size() * sizeof(char);
-        this->data.resize(size);
-        this->data.shrink_to_fit();
-        std::memcpy(this->data.data(), vec->data(), size);
-        vec->clear();
-    }
-
-    explicit DataBlock(uint8_t* d, size_t size, uint8_t word_size) : wordSize(word_size){
-        size_t s = size * word_size;
-        this->data.resize(s);
-        this->data.shrink_to_fit();
-        std::memcpy(this->data.data(), d, s);
-    }
+    explicit DataBlock(uint8_t *d, size_t size, uint8_t word_size);
 
 };
+
 
 inline uint64_t DataBlock::get(size_t index) const{
     switch (wordSize) {
@@ -193,6 +173,7 @@ inline void DataBlock::set(size_t index, uint64_t val){
             return;
     }
 }
+
 
 inline DataBlock::ConstIterator DataBlock::begin() const{
     return {this, 0};
@@ -249,7 +230,7 @@ inline uint8_t DataBlock::getWordSize() const{
 inline void DataBlock::setWordSize(uint8_t size){
     wordSize = size;
     if (data.size() % size) {
-        throw std::runtime_error("Could not resize");
+        GABAC_DIE("Could not resize");
     }
 }
 
@@ -343,6 +324,15 @@ void DataBlock::insert(const IT1& pos, const IT2& start, const IT2& end){
             data.begin() + pos.getOffset(),
             start.getStream()->data.begin() + start.getOffset(),
             end.getStream()->data.begin() + end.getOffset());
+}
+
+template<typename T>
+DataBlock::DataBlock(std::vector<T> *vec) : wordSize(sizeof(T)){
+    size_t size = vec->size() * sizeof(T);
+    this->data.resize(size);
+    this->data.shrink_to_fit();
+    std::memcpy(this->data.data(), vec->data(), size);
+    vec->clear();
 }
 
 }

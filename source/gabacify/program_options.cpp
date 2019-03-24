@@ -3,7 +3,8 @@
 #include <cassert>
 #include <fstream>
 
-#include "gabac/exceptions.h"
+#include <boost/program_options.hpp>
+#include <gabac/gabac.h>
 
 
 namespace gabacify {

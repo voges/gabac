@@ -4,6 +4,9 @@
 #include <algorithm>
 #include <iostream>
 
+#include "gabac/block_stepper.h"
+#include "gabac/data_block.h"
+
 namespace gabac {
 
 void transformMatchCoding(

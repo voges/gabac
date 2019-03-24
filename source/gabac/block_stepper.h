@@ -1,6 +1,8 @@
 #ifndef PROJECT_STREAMSTEPPER_H
 #define PROJECT_STREAMSTEPPER_H
 
+#include <cstdint>
+
 namespace gabac {
 struct BlockStepper
 {

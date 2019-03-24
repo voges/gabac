@@ -7,8 +7,9 @@
 #include <random>
 
 #include "gabac/constants.h"
-#include "gabac/decoding.h"
-#include "gabac/encoding.h"
+#include "gabac/data_block.h"
+#include "gabac/decode_cabac.h"
+#include "gabac/encode_cabac.h"
 
 #include "./test_common.h"
 

@@ -5,16 +5,12 @@
 #include <cstdint>
 #include <vector>
 
-#include "gabac/bit_output_stream.h"
-#include "gabac/constants.h"
-#include "gabac/context_model.h"
-#include "gabac/context_selector.h"
-#include "gabac/data_block.h"
 #include "gabac/binary_arithmetic_encoder.h"
-
-using std::size_t;
+#include "gabac/bit_output_stream.h"
 
 namespace gabac {
+
+class DataBlock;
 
 class Writer
 {

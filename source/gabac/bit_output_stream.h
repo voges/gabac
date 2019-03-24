@@ -1,12 +1,9 @@
 #ifndef GABAC_BIT_OUTPUT_STREAM_H_
 #define GABAC_BIT_OUTPUT_STREAM_H_
 
-
-#include <vector>
-#include "gabac/data_block.h"
-
 namespace gabac {
 
+class DataBlock;
 
 class BitOutputStream
 {

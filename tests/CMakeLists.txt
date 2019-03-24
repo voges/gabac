@@ -125,6 +125,7 @@ set(tests_source_files ${tests_source_files} ${tests_source_dir}/gabac/equality_
 set(tests_source_files ${tests_source_files} ${tests_source_dir}/gabac/lut_transform_test.cpp)
 set(tests_source_files ${tests_source_files} ${tests_source_dir}/gabac/match_coding_test.cpp)
 set(tests_source_files ${tests_source_files} ${tests_source_dir}/gabac/rle_coding_test.cpp)
+set(tests_source_files ${tests_source_files} ${tests_source_dir}/gabac/test_common.cpp)
 
 # List all header files (alphabetically)
 set(tests_header_files ${tests_header_files} ${tests_header_dir}/gabac/test_common.h)
