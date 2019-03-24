@@ -1,13 +1,11 @@
-#include "encode_cabac.h"
+#include "gabac/encode_cabac.h"
+
+#include <cassert>
 
 #include "gabac/block_stepper.h"
 #include "gabac/constants.h"
 #include "gabac/data_block.h"
-#include "gabac/exceptions.h"
 #include "gabac/writer.h"
-
-#include <cassert>
-#include <limits>
 
 namespace gabac {
 
@@ -29,7 +27,7 @@ ReturnCode encode_cabac(
     writer.start(symbols->size());
 
     unsigned int binarizationParameter = 0;
-    if (binarizationParameters.size() > 0) {
+    if (!binarizationParameters.empty()) {
         binarizationParameter = binarizationParameters[0];
     }
 
@@ -57,7 +55,7 @@ ReturnCode encode_cabac(
                 func = &Writer::writeAsSTEGbypass;
                 break;
             default:
-                GABAC_DIE("Invalid binarization");
+                GABAC_DIE("Unknown Binarization");
         }
         while (r.isValid()) {
             if (maxSize <= bitstream.size()) {
@@ -98,7 +96,7 @@ ReturnCode encode_cabac(
             func = &Writer::writeAsSTEGcabac;
             break;
         default:
-            GABAC_DIE("Invalid binarization");
+            GABAC_DIE("Unknown Binarization");
     }
 
     if (contextSelectionId == ContextSelectionId::adaptive_coding_order_0) {
@@ -172,4 +170,4 @@ ReturnCode encode_cabac(
     return ReturnCode::success;
 }
 
-}
+}  // namespace gabac

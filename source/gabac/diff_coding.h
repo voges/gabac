@@ -18,4 +18,4 @@ void inverseTransformDiffCoding(
 }  // namespace gabac
 
 
-#endif  /* GABAC_DIFF_CODING_H_ */
+#endif  // GABAC_DIFF_CODING_H_

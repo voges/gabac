@@ -9,6 +9,7 @@
 namespace gabac {
 
 class EncodingConfiguration;
+
 class IOConfiguration;
 
 void decode(
@@ -19,4 +20,4 @@ void decode(
 
 }  // namespace gabac
 
-#endif  /* GABAC_DECODING_H_ */
+#endif  // GABAC_DECODING_H_

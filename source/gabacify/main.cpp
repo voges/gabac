@@ -20,7 +20,7 @@ static void writeCommandLine(
     for (const auto& arg : args) {
         commandLine << arg << " ";
     }
-    //GABACIFY_LOG_DEBUG << "Command line: " << commandLine.str();
+    // GABACIFY_LOG_DEBUG << "Command line: " << commandLine.str();
 }
 
 
@@ -67,7 +67,7 @@ static int gabacify_main(
         return -1;
     }
     catch (...) {
-        //GABACIFY_LOG_ERROR << "Unkown error occurred";
+        // GABACIFY_LOG_ERROR << "Unkown error occurred";
         return -1;
     }
 
@@ -79,7 +79,7 @@ extern "C" void handleSignal(
         int sig
 ){
     std::signal(sig, SIG_IGN);  // Ignore the signal
-    //GABACIFY_LOG_WARNING << "Caught signal: " << sig;
+    // GABACIFY_LOG_WARNING << "Caught signal: " << sig;
     std::signal(sig, SIG_DFL);  // Invoke the default signal action
     std::raise(sig);
 }
@@ -107,7 +107,7 @@ int main(
     // Fire up main method
     int rc = gabacify_main(argc, argv);
     if (rc != 0) {
-        //GABACIFY_LOG_FATAL << "Failed to run";
+        // GABACIFY_LOG_FATAL << "Failed to run";
     }
 
     // The C standard makes no guarantees as to when output to stdout or

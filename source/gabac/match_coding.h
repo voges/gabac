@@ -24,4 +24,4 @@ void inverseTransformMatchCoding(
 
 }  // namespace gabac
 
-#endif  /* GABAC_MATCH_CODING_H_ */
+#endif  // GABAC_MATCH_CODING_H_

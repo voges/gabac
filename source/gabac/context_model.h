@@ -40,7 +40,6 @@ class ContextModel
 };
 
 
-
 inline unsigned char ContextModel::getState() const{
     return m_state >> 1u;
 }

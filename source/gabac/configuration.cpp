@@ -1,16 +1,12 @@
-#include "configuration.h"
+#include "gabac/configuration.h"
 
-#include <cassert>
 #include <iostream>
 #include <sstream>
-#include <string>
-#include <vector>
 
 #include <nlohmann/json.hpp>
 
-#include "exceptions.h"
-
 #include "gabac/constants.h"
+#include "gabac/exceptions.h"
 #include "gabac/stream_handler.h"
 #include "gabac/streams.h"
 
@@ -25,11 +21,10 @@ EncodingConfiguration::EncodingConfiguration()
     // Nothing to do here
 }
 
-
 EncodingConfiguration::EncodingConfiguration(
         const std::string& jsonstring
 ){
-    using namespace nlohmann;
+    using nlohmann::json;
     try {
         auto jtree = json::parse(jsonstring);
         this->wordSize = jtree["word_size"];
@@ -66,7 +61,8 @@ EncodingConfiguration::EncodingConfiguration(
             // list of transformed sequence configurations
             this->transformedSequenceConfigurations.push_back(transformedSequenceConfiguration);
         }
-    } catch (json::exception &e) {
+    }
+    catch (json::exception& e) {
         GABAC_DIE("JSON parsing error: " + std::string(e.what()));
     }
 }
@@ -76,7 +72,7 @@ EncodingConfiguration::~EncodingConfiguration() = default;
 
 
 std::string EncodingConfiguration::toJsonString() const{
-    using namespace nlohmann;
+    using nlohmann::json;
     try {
         json root;
         root["word_size"] = this->wordSize;
@@ -106,14 +102,13 @@ std::string EncodingConfiguration::toJsonString() const{
 
             sequenceList.push_back(curSequence);
         }
-        root["transformed_sequences"]  = sequenceList;
+        root["transformed_sequences"] = sequenceList;
         return root.dump(4);
-
-    } catch (json::exception &e) {
+    }
+    catch (json::exception& e) {
         GABAC_DIE("JSON parsing error: " + std::string(e.what()));
     }
 }
-
 
 std::string EncodingConfiguration::toPrintableString() const{
     std::stringstream s;
@@ -153,10 +148,10 @@ void IOConfiguration::validate() const{
     if (!outputStream) {
         GABAC_DIE("Invalid output stream");
     }
-    if (!outputStream) {
+    if (!logStream) {
         GABAC_DIE("Invalid logging output stream");
     }
-    if (unsigned(level) > unsigned(IOConfiguration::LogLevel::FATAL)){
+    if (unsigned(this->level) > unsigned(IOConfiguration::LogLevel::FATAL)){
         GABAC_DIE("Invalid logging level");
     }
 }

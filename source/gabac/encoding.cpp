@@ -1,18 +1,16 @@
 #include "gabac/encoding.h"
 
 #include <algorithm>
-#include <cassert>
-#include <limits>
 #include <cmath>
+#include <vector>
 
 #include "gabac/block_stepper.h"
+#include "gabac/configuration.h"
 #include "gabac/constants.h"
 #include "gabac/data_block.h"
 #include "gabac/encode_cabac.h"
-
-#include "gabac/writer.h"
 #include "gabac/stream_handler.h"
-#include "configuration.h"
+#include "gabac/writer.h"
 
 
 namespace gabac {
@@ -32,15 +30,15 @@ void doSequenceTransform(const gabac::SequenceTransformationId& transID,
                          uint64_t param,
                          std::vector<gabac::DataBlock> *const transformedSequences
 ){
-    //GABACIFY_LOG_TRACE << "Encoding sequence of length: " << (*transformedSequences)[0].size();
+    // GABACIFY_LOG_TRACE << "Encoding sequence of length: " << (*transformedSequences)[0].size();
 
-    //GABACIFY_LOG_DEBUG << "Performing sequence transformation " << gabac::transformationInformation[id].name;
+    // GABACIFY_LOG_DEBUG << "Performing sequence transformation " << gabac::transformationInformation[id].name;
 
     getTransformation(transID).transform({param}, transformedSequences);
 
-    //GABACIFY_LOG_TRACE << "Got " << transformedSequences->size() << " sequences";
+    // GABACIFY_LOG_TRACE << "Got " << transformedSequences->size() << " sequences";
     for (unsigned i = 0; i < transformedSequences->size(); ++i) {
-        //GABACIFY_LOG_TRACE << i << ": " << (*transformedSequences)[i].size() << " bytes";
+        // GABACIFY_LOG_TRACE << i << ": " << (*transformedSequences)[i].size() << " bytes";
     }
 }
 
@@ -68,15 +66,15 @@ void doLutTransform(unsigned int order,
                     unsigned *bits0,
                     std::ostream *out
 ){
-    //GABACIFY_LOG_TRACE << "LUT transform *en*abled";
+    // GABACIFY_LOG_TRACE << "LUT transform *en*abled";
 
     // Put raw sequence in, get transformed sequence and lut tables
     getTransformation(SequenceTransformationId::lut_transform).transform({order}, lutSequences);
 
 
-    //GABACIFY_LOG_DEBUG << "Got uncompressed stream after LUT: " << (*lutSequences)[0].size() << " bytes";
-    //GABACIFY_LOG_DEBUG << "Got table0 after LUT: " << (*lutSequences)[1].size() << " bytes";
-    //GABACIFY_LOG_DEBUG << "Got table1 after LUT: " << (*lutSequences)[2].size() << " bytes";
+    // GABACIFY_LOG_DEBUG << "Got uncompressed stream after LUT: " << (*lutSequences)[0].size() << " bytes";
+    // GABACIFY_LOG_DEBUG << "Got table0 after LUT: " << (*lutSequences)[1].size() << " bytes";
+    // GABACIFY_LOG_DEBUG << "Got table1 after LUT: " << (*lutSequences)[2].size() << " bytes";
 
     // Calculate bit size for order 0 table
     if (*bits0 == 0) {
@@ -102,20 +100,20 @@ void doLutTransform(unsigned int order,
                 out
         );
     }
-
 }
 
 //------------------------------------------------------------------------------
 
 void doDiffTransform(std::vector<gabac::DataBlock> *const sequence
 ){
-    //GABACIFY_LOG_TRACE << "LUT transform *en*abled";
+    // GABACIFY_LOG_TRACE << "LUT transform *en*abled";
 
     // Put raw sequence in, get transformed sequence and lut tables
     getTransformation(SequenceTransformationId::diff_coding).transform({0}, sequence);
 
-    //GABACIFY_LOG_TRACE << "Diff coding *dis*abled";
-    //GABACIFY_LOG_DEBUG << "Got uncompressed stream after diff: " << diffAndLutTransformedSequence->size() << " bytes";
+    // GABACIFY_LOG_TRACE << "Diff coding *dis*abled";
+    // GABACIFY_LOG_DEBUG << "Got uncompressed stream after diff: "
+    // << diffAndLutTransformedSequence->size() << " bytes";
 }
 
 //------------------------------------------------------------------------------
@@ -195,7 +193,6 @@ void encode(
             size = 0;
         }
     }
-
 }
 
 }  // namespace gabac

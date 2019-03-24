@@ -1,5 +1,5 @@
-#ifndef GABACIFY_EXCEPTIONS_H_
-#define GABACIFY_EXCEPTIONS_H_
+#ifndef GABAC_EXCEPTIONS_H_
+#define GABAC_EXCEPTIONS_H_
 
 #define GABAC_DIE(message) \
     throw gabac::RuntimeException(__FILE__, __FUNCTION__, __LINE__, message)
@@ -48,7 +48,7 @@ class RuntimeException : public Exception
 };
 
 
-}  // namespace gabacify
+}  // namespace gabac
 
 
-#endif  // GABACIFY_EXCEPTIONS_H_
+#endif  // GABAC_EXCEPTIONS_H_

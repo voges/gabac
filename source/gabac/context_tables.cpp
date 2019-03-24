@@ -1,8 +1,5 @@
 #include "gabac/context_tables.h"
 
-#include <cassert>
-#include <vector>
-
 
 namespace gabac {
 namespace contexttables {

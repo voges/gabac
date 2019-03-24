@@ -1,10 +1,5 @@
 #include "gabac/context_model.h"
 
-#include <cassert>
-#include <limits>
-
-#include "gabac/cabac_tables.h"
-
 
 namespace gabac {
 

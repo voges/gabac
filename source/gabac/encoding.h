@@ -4,13 +4,14 @@
 namespace gabac {
 
 class IOConfiguration;
+
 class EncodingConfiguration;
 
 void encode(
-        const IOConfiguration& ioConf,
+        const IOConfiguration& conf,
         const EncodingConfiguration& enConf
 );
 
 }  // namespace gabac
 
-#endif  /* GABAC_ENCODING_H_ */
+#endif  // GABAC_ENCODING_H_

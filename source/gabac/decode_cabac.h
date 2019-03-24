@@ -1,5 +1,5 @@
-#ifndef PROJECT_DECODE_CABAC_H
-#define PROJECT_DECODE_CABAC_H
+#ifndef GABAC_DECODE_CABAC_H_
+#define GABAC_DECODE_CABAC_H_
 
 #include <cstdint>
 #include <vector>
@@ -9,6 +9,7 @@ namespace gabac {
 enum class ReturnCode;
 enum class BinarizationId;
 enum class ContextSelectionId;
+
 class DataBlock;
 
 
@@ -20,6 +21,6 @@ ReturnCode decode_cabac(
         DataBlock *bitstream
 );
 
-}
+}  // namespace gabac
 
-#endif //PROJECT_DECODE_CABAC_H
+#endif  // GABAC_DECODE_CABAC_H_

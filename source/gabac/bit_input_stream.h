@@ -27,7 +27,7 @@ class BitInputStream
             unsigned int numBits
     );
 
-    gabac::DataBlock* m_bitstream;
+    gabac::DataBlock *m_bitstream;
 
     gabac::BlockStepper m_reader;
 

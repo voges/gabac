@@ -1,12 +1,9 @@
-#include <fstream>
-#include <iostream>
+#include "gabacify/analyze.h"
 
 #include <gabac/gabac.h>
-#include "analyze.h"
 
-#include "gabac/analysis.h"
-#include "gabac/exceptions.h"
-#include "gabac/streams.h"
+#include <fstream>
+#include <iostream>
 
 namespace gabacify {
 void analyze(const std::string& inputFilePath,
@@ -47,14 +44,14 @@ void analyze(const std::string& inputFilePath,
 
 
     gabac::analyze(ioConf, gabac::getCandidateConfig());
-    /*GABACIFY_LOG_INFO << "Wrote smallest bytestream of size "
+    /* GABACIFY_LOG_INFO << "Wrote smallest bytestream of size "
                       << bestByteStream.size()
                       << " to: "
                       << outputFilePath;*/
 
     // Write the best configuration as JSON
-    /*GABACIFY_LOG_DEBUG << "with configuration: \n"
+    /* GABACIFY_LOG_DEBUG << "with configuration: \n"
                        << bestConfig.toPrintableString();
-    //GABACIFY_LOG_INFO << "Wrote best configuration to: " << configurationFilePath;*/
+    // GABACIFY_LOG_INFO << "Wrote best configuration to: " << configurationFilePath;*/
 }
-}
+}  // namespace gabacify

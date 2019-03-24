@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <cassert>
-#include <limits>
 
 #include "gabac/block_stepper.h"
 #include "gabac/data_block.h"

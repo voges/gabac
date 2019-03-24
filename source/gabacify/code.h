@@ -1,5 +1,5 @@
-#ifndef GABACIFY_ENCODE_H_
-#define GABACIFY_ENCODE_H_
+#ifndef GABACIFY_CODE_H_
+#define GABACIFY_CODE_H_
 
 #include <cstddef>
 #include <string>
@@ -18,4 +18,4 @@ void code(const std::string& inputFilePath,
 }  // namespace gabacify
 
 
-#endif  // GABACIFY_ENCODE_H_
+#endif  // GABACIFY_CODE_H_

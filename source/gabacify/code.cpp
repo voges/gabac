@@ -82,11 +82,10 @@ void code(const std::string& inputFilePath,
         gabac::encode(ioconf, configuration);
     }
 
-    /*GABACIFY_LOG_INFO << "Wrote buffer of size "
+    /* GABACIFY_LOG_INFO << "Wrote buffer of size "
                       << outStream.bytesWritten()
                       << " to: "
                       << outputFilePath;*/
-
 }
 
 //------------------------------------------------------------------------------

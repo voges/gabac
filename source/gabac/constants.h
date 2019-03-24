@@ -2,6 +2,7 @@
 #define GABAC_CONSTANTS_H_
 
 #include <functional>
+#include <string>
 #include <vector>
 
 namespace gabac {
@@ -56,9 +57,9 @@ struct TransformationProperties
     std::string name;
     std::vector<std::string> paramNames;
     std::vector<std::string> streamNames;
-    std::vector<uint8_t> wordsizes; // Wordsizes of output streams
-    SequenceTransform transform; // Function for transformation
-    SequenceTransform inverseTransform; // Function for inversetransformation
+    std::vector<uint8_t> wordsizes;  // Wordsizes of output streams
+    SequenceTransform transform;  // Function for transformation
+    SequenceTransform inverseTransform;  // Function for inversetransformation
 };
 
 struct BinarizationProperties
@@ -73,11 +74,11 @@ struct BinarizationProperties
     bool sbCheck(uint64_t minv, uint64_t maxv, uint64_t parameter) const;
 };
 
-const TransformationProperties& getTransformation (const gabac::SequenceTransformationId& id);
-const BinarizationProperties& getBinarization (const gabac::BinarizationId& id);
+const TransformationProperties& getTransformation(const gabac::SequenceTransformationId& id);
+const BinarizationProperties& getBinarization(const gabac::BinarizationId& id);
 
 
 }  // namespace gabac
 
 
-#endif  /* GABAC_CONSTANTS_H_ */
+#endif  // GABAC_CONSTANTS_H_

@@ -1,15 +1,13 @@
 #include "gabac/decoding.h"
 
 #include <algorithm>
-#include <cassert>
-#include <limits>
 #include <cmath>
+#include <vector>
 
 #include "gabac/constants.h"
 #include "gabac/configuration.h"
 #include "gabac/data_block.h"
 #include "gabac/decode_cabac.h"
-#include "gabac/exceptions.h"
 #include "gabac/reader.h"
 #include "gabac/stream_handler.h"
 
@@ -78,7 +76,7 @@ static void doDiffCoding(bool enabled,
 ){
     // Diff coding
     if (enabled) {
-        //GABACIFY_LOG_TRACE << "Diff coding *en*abled";
+        // GABACIFY_LOG_TRACE << "Diff coding *en*abled";
         std::vector<gabac::DataBlock> vec(1);
         vec[0].swap(lutTransformedSequence);
         gabac::getTransformation(gabac::SequenceTransformationId::diff_coding).inverseTransform({}, &vec);
@@ -86,7 +84,7 @@ static void doDiffCoding(bool enabled,
         return;
     }
 
-    //GABACIFY_LOG_TRACE << "Diff coding *dis*abled";
+    // GABACIFY_LOG_TRACE << "Diff coding *dis*abled";
 }
 
 //------------------------------------------------------------------------------
@@ -96,14 +94,17 @@ static void doLUTCoding(bool enabled,
                         std::vector<gabac::DataBlock> *const lutSequences
 ){
     if (enabled) {
-        //GABACIFY_LOG_TRACE << "LUT transform *en*abled";
+        // GABACIFY_LOG_TRACE << "LUT transform *en*abled";
 
         // Do the inverse LUT transform
-        gabac::getTransformation(gabac::SequenceTransformationId::lut_transform).inverseTransform({order}, lutSequences);
+        gabac::getTransformation(gabac::SequenceTransformationId::lut_transform).inverseTransform(
+                {order},
+                lutSequences
+        );
         return;
     }
 
-    //GABACIFY_LOG_TRACE << "LUT transform *dis*abled";
+    // GABACIFY_LOG_TRACE << "LUT transform *dis*abled";
 }
 
 //------------------------------------------------------------------------------
@@ -114,7 +115,7 @@ static void doEntropyCoding(const gabac::TransformedSequenceConfiguration& trans
                             gabac::DataBlock *const diffAndLutTransformedSequence
 ){
     StreamHandler::readStream(*inStream, diffAndLutTransformedSequence);
-    //GABACIFY_LOG_TRACE << "Bitstream size: " << diffAndLutTransformedSequence->size();
+    // GABACIFY_LOG_TRACE << "Bitstream size: " << diffAndLutTransformedSequence->size();
 
     // Decoding
     gabac::decode_cabac(
@@ -124,7 +125,6 @@ static void doEntropyCoding(const gabac::TransformedSequenceConfiguration& trans
             wordsize,
             diffAndLutTransformedSequence
     );
-
 }
 
 //------------------------------------------------------------------------------
@@ -133,16 +133,14 @@ void decode(
         const IOConfiguration& ioConf,
         const EncodingConfiguration& enConf
 ){
-
     while (ioConf.inputStream->peek() != EOF) {
-
         // Set up for the inverse sequence transformation
         size_t numTransformedSequences = gabac::getTransformation(enConf.sequenceTransformationId).wordsizes.size();
 
         // Loop through the transformed sequences
         std::vector<gabac::DataBlock> transformedSequences;
         for (size_t i = 0; i < numTransformedSequences; i++) {
-            //GABACIFY_LOG_TRACE << "Processing transformed sequence: " << i;
+            // GABACIFY_LOG_TRACE << "Processing transformed sequence: " << i;
             auto transformedSequenceConfiguration = enConf.transformedSequenceConfigurations.at(i);
 
             std::vector<gabac::DataBlock> lutTransformedSequences(3);
@@ -188,7 +186,7 @@ void decode(
                 {enConf.sequenceTransformationParameter},
                 &transformedSequences
         );
-        //GABACIFY_LOG_TRACE << "Decoded sequence of length: " << transformedSequences[0].size();
+        // GABACIFY_LOG_TRACE << "Decoded sequence of length: " << transformedSequences[0].size();
 
         gabac::StreamHandler::writeBytes(*ioConf.outputStream, &transformedSequences[0]);
     }

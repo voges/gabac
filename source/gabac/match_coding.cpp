@@ -102,7 +102,6 @@ void inverseTransformMatchCoding(
     pointers->shrink_to_fit();
     lengths->clear();
     lengths->shrink_to_fit();
-
 }
 
 // ----------------------------------------------------------------------------

@@ -1,5 +1,6 @@
 #include <vector>
 
+#include "gabac/data_block.h"
 #include "gabac/lut_transform.h"
 #include "iostream"
 #include "./test_common.h"
@@ -26,7 +27,6 @@ TEST_F(lutTransformTest, roundTripCoding0){
     fillVectorRandomUniform(0, 64, &symbols);
     gabac::DataBlock transsymbols = symbols;
     gabac::DataBlock decodedSymbols(0, 1);
-    std::vector<std::pair<uint64_t, uint64_t>> lut0 = {};
     gabac::DataBlock inverseLut0(0, 1);
     gabac::DataBlock inverseLut1(0, 1);
 

@@ -1,11 +1,16 @@
 #include "gabac/data_block.h"
 
+#include <utility>
+
 #include "gabac/block_stepper.h"
 
 namespace gabac {
 
-BlockStepper DataBlock::getReader() const{
-    return {(uint8_t *) data.data(), (uint8_t *) data.end().base(), wordSize};
+const BlockStepper DataBlock::getReader() const{
+    return {const_cast<uint8_t *>(data.data()),
+            const_cast<uint8_t *>(data.end().base()),
+            wordSize
+    };  // TODO(Fabian): Add BlockStepper for const
 }
 
 bool DataBlock::operator==(const DataBlock& d) const{
@@ -77,4 +82,4 @@ DataBlock::DataBlock(uint8_t *d, size_t size, uint8_t word_size) : wordSize(word
     std::memcpy(this->data.data(), d, s);
 }
 
-}
+}  // namespace gabac

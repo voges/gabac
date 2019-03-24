@@ -1,4 +1,4 @@
-#include "exceptions.h"
+#include "gabac/exceptions.h"
 
 
 namespace gabac {
@@ -53,4 +53,4 @@ RuntimeException::RuntimeException(
 RuntimeException::~RuntimeException() noexcept = default;
 
 
-}  // namespace gabacify
+}  // namespace gabac

@@ -1,6 +1,5 @@
 #include "gabac/stream_handler.h"
 #include "gabac/data_block.h"
-#include "gabac/exceptions.h"
 
 
 namespace gabac {
@@ -24,7 +23,7 @@ size_t StreamHandler::readFull(std::istream& input, DataBlock *buffer){
     auto safe = input.exceptions();
     input.exceptions(std::ios::badbit);
 
-    const size_t BUFFER_SIZE = 1000000 / buffer->getWordSize();
+    const size_t BUFFER_SIZE = size_t(1000000) / buffer->getWordSize();
     buffer->resize(0);
     while (input.good()) {
         size_t pos = buffer->size();
@@ -77,4 +76,4 @@ size_t StreamHandler::writeBytes(std::ostream& output, DataBlock *buffer){
     return ret;
 }
 
-}
+}  // namespace gabac

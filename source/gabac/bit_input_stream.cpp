@@ -1,11 +1,9 @@
 #include "gabac/bit_input_stream.h"
-#include "gabac/data_block.h"
-#include "gabac/exceptions.h"
 
 #include <cassert>
 #include <limits>
-#include <vector>
 
+#include "gabac/data_block.h"
 
 namespace gabac {
 
@@ -14,7 +12,7 @@ inline static unsigned char readIn(
         gabac::BlockStepper *reader
 ){
     if (!reader->isValid()) {
-       GABAC_DIE("Index out of bounds");
+        GABAC_DIE("Index out of bounds");
     }
     auto byte = static_cast<unsigned char>(reader->get());
     reader->inc();
@@ -25,7 +23,7 @@ inline static unsigned char readIn(
 BitInputStream::BitInputStream(
         DataBlock *const bitstream
 )
-        :  m_bitstream(bitstream), m_heldBits(0), m_numHeldBits(0){
+        : m_bitstream(bitstream), m_heldBits(0), m_numHeldBits(0){
     m_reader = m_bitstream->getReader();
     reset();
 }
@@ -75,19 +73,24 @@ unsigned int BitInputStream::read(
     // Read in more bytes to satisfy the request
     unsigned int numBytesToLoad = ((numBits - 1u) >> 3u) + 1;
     unsigned int alignedWord = 0;
-    if (numBytesToLoad == 1) goto L1;
-    else if (numBytesToLoad == 2) goto L2;
-    else if (numBytesToLoad == 3) goto L3;
-    else if (numBytesToLoad != 4) goto L0;
+    if (numBytesToLoad == 1) {
+        goto L1;
+    } else if (numBytesToLoad == 2) {
+        goto L2;
+    } else if (numBytesToLoad == 3) {
+        goto L3;
+    } else if (numBytesToLoad != 4) {
+        goto L0;
+    }
 
     alignedWord |= (readIn(&m_reader) << 24u);
-   L3:
+    L3:
     alignedWord |= (readIn(&m_reader) << 16u);
-   L2:
+    L2:
     alignedWord |= (readIn(&m_reader) << 8u);
-   L1:
+    L1:
     alignedWord |= (readIn(&m_reader));
-   L0:
+    L0:
 
     // Append requested bits and hold the remaining read bits
     unsigned int numNextHeldBits = (32 - numBits) % 8;

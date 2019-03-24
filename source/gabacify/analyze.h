@@ -1,5 +1,5 @@
-#ifndef PROJECT_ANALYZE_H
-#define PROJECT_ANALYZE_H
+#ifndef GABACIFY_ANALYZE_H_
+#define GABACIFY_ANALYZE_H_
 
 #include <string>
 
@@ -10,6 +10,6 @@ void analyze(const std::string& inputFilePath,
              size_t blocksize
 );
 
-}
+}  // namespace gabacify
 
-#endif //PROJECT_ANALYZE_H
+#endif  // GABACIFY_ANALYZE_H_

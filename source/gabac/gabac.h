@@ -10,6 +10,7 @@
 #include "gabac/exceptions.h"
 
 /* Encode / Decode */
+#include "gabac/analysis.h"
 #include "gabac/configuration.h"
 #include "gabac/decoding.h"
 #include "gabac/encoding.h"
@@ -19,10 +20,8 @@
 #include "gabac/data_block.h"
 #include "gabac/streams.h"
 
-#else
+#endif
 
 #include "gabac/c_interface.h"
-
-#endif
 
 #endif /* GABAC_GABAC_H_ */

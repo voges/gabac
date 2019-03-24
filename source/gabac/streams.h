@@ -1,17 +1,17 @@
-#ifndef PROJECT_STREAMS_H
-#define PROJECT_STREAMS_H
-
-#include "gabac/data_block.h"
+#ifndef GABAC_STREAMS_H_
+#define GABAC_STREAMS_H_
 
 #include <istream>
 #include <ostream>
+
+#include "gabac/data_block.h"
 
 namespace gabac {
 
 class FileBuffer : public std::streambuf
 {
  public:
-    FileBuffer(FILE *f);
+    explicit FileBuffer(FILE *f);
  protected:
     int overflow(int c) override;
     std::streamsize xsputn(const char *s, std::streamsize n) override;
@@ -26,7 +26,7 @@ class FileBuffer : public std::streambuf
 class DataBlockBuffer : public std::streambuf
 {
  public:
-    DataBlockBuffer(DataBlock *d, size_t pos_i = 0);
+    explicit DataBlockBuffer(DataBlock *d, size_t pos_i = 0);
  protected:
     int overflow(int c) override;
     std::streamsize xsputn(const char *s, std::streamsize n) override;
@@ -42,29 +42,25 @@ class DataBlockBuffer : public std::streambuf
 class IFileStream : public FileBuffer, public std::istream
 {
  public:
-    IFileStream(FILE *f) : FileBuffer(f), std::istream(this){
-    }
+    explicit IFileStream(FILE *f);
 };
 
 class OFileStream : public FileBuffer, public std::ostream
 {
  public:
-    OFileStream(FILE *f) : FileBuffer(f), std::ostream(this){
-    }
+    explicit OFileStream(FILE *f);
 };
 
 class IBufferStream : public DataBlockBuffer, public std::istream
 {
  public:
-    IBufferStream(DataBlock *d, size_t pos_i = 0) : DataBlockBuffer(d, pos_i), std::istream(this){
-    }
+    explicit IBufferStream(DataBlock *d, size_t pos_i = 0);
 };
 
 class OBufferStream : public DataBlockBuffer, public std::ostream
 {
  public:
-    OBufferStream(DataBlock *d) : DataBlockBuffer(d, 0), std::ostream(this){
-    }
+    explicit OBufferStream(DataBlock *d);
 
     virtual void flush(gabac::DataBlock *blk){
         flush_block(blk);
@@ -82,13 +78,12 @@ class NullBuffer : public std::streambuf
 class NullStream : public std::ostream
 {
  public:
-    NullStream() : std::ostream(&m_sb){
-    }
+    NullStream();
 
  private:
     NullBuffer m_sb;
 };
 
-}
+}  // namespace gabac
 
-#endif //PROJECT_STREAMS_H
+#endif  // GABAC_STREAMS_H_

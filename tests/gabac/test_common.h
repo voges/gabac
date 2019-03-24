@@ -1,5 +1,5 @@
-#ifndef GABAC_TEST_COMMON_H_
-#define GABAC_TEST_COMMON_H_
+#ifndef TESTS_GABAC_TEST_COMMON_H_
+#define TESTS_GABAC_TEST_COMMON_H_
 
 
 #include <algorithm>
@@ -16,4 +16,4 @@ void fillVectorRandomUniform(uint64_t min, uint64_t max, gabac::DataBlock *vecto
 void fillVectorRandomGeometric(gabac::DataBlock *vector);
 
 
-#endif  // GABAC_TEST_COMMON_H_
+#endif  // TESTS_GABAC_TEST_COMMON_H_

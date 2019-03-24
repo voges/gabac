@@ -1,21 +1,17 @@
 #include "gabac/writer.h"
 
 #include <cassert>
-#include <cmath>
-#include <cstdint>
 #include <limits>
 
 #include "gabac/constants.h"
 #include "gabac/context_selector.h"
-#include "gabac/context_tables.h"
 
 //
 // #include binary_arithmetic_decoder.cpp from here instead of compiling it
 // separately, so that we may call inlined member functions of class
 // BinaryArithmeticDecoder in this file.
 //
-#include "binary_arithmetic_encoder.cpp"
-
+#include "gabac/binary_arithmetic_encoder.cpp"
 
 namespace gabac {
 
@@ -97,10 +93,10 @@ void Writer::writeAsBIcabac(
     assert(getBinarization(BinarizationId::BI).sbCheck(input, input, cLength));
 
     unsigned int cm = ContextSelector::getContextForBi(offset, 0);
-    std::vector<ContextModel>::iterator scan = m_contextModels.begin() + cm;
+    auto scan = m_contextModels.begin() + cm;
     for (int i = cLength - 1; i >= 0; i--)  // i must be signed
     {
-        unsigned int bin = static_cast<unsigned int>(static_cast<uint64_t >(input) >> i) & 0x1u;
+        unsigned int bin = static_cast<unsigned int>(static_cast<uint64_t >(input) >> static_cast<uint8_t >(i)) & 0x1u;
         m_binaryArithmeticEncoder.encodeBin(bin, &*(scan++));
     }
 }
@@ -133,14 +129,11 @@ void Writer::writeAsTUcabac(
     auto scan = m_contextModels.begin() + cm;
 
     if (input == cMax) {
-        for (; input > 0; input--)
-        {
+        for (; input > 0; input--) {
             m_binaryArithmeticEncoder.encodeBin(1, &*(scan++));
         }
-    }
-    else {
-        for (; input > 0; input--)
-        {
+    } else {
+        for (; input > 0; input--) {
             m_binaryArithmeticEncoder.encodeBin(1, &*(scan++));
         }
         m_binaryArithmeticEncoder.encodeBin(0, &*scan);
@@ -175,15 +168,13 @@ void Writer::writeAsEGcabac(
     auto scan = m_contextModels.begin() + cm;
     unsigned int length = ((bitLength(static_cast<uint64_t>(input)) - 1) << 1u) + 1;
 
-    for (i = length >> 1; i > 0; i--)
-    {
+    for (i = static_cast<uint8_t >(length) >> 1u; i > 0; i--) {
         m_binaryArithmeticEncoder.encodeBin(0, &*(scan++));
     }
     m_binaryArithmeticEncoder.encodeBin(1, &*scan);
 
-    length -= ((length >> 1) + 1);
-    if (length != 0)
-    {
+    length -= ((static_cast<uint8_t >(length) >> 1u) + 1);
+    if (length != 0) {
         input -= (1u << length);
         assert(input <= std::numeric_limits<unsigned>::max());
         m_binaryArithmeticEncoder.encodeBinsEP(static_cast<unsigned>(input), length);
@@ -196,12 +187,9 @@ void Writer::writeAsSEGbypass(
         unsigned int
 ){
     assert(getBinarization(BinarizationId::SEG).sbCheck(input, input, 0));
-    if (int64_t (input) <= 0)
-    {
-        writeAsEGbypass(static_cast<unsigned int>(-int64_t (input)) << 1u, 0);
-    }
-    else
-    {
+    if (int64_t(input) <= 0) {
+        writeAsEGbypass(static_cast<unsigned int>(-int64_t(input)) << 1u, 0);
+    } else {
         writeAsEGbypass(static_cast<unsigned int>(static_cast<uint64_t>(input) << 1u) - 1, 0);
     }
 }
@@ -214,12 +202,9 @@ void Writer::writeAsSEGcabac(
 ){
     assert(getBinarization(BinarizationId::SEG).sbCheck(uint64_t(input), uint64_t(input), 0));
 
-    if (int64_t(input) <= 0)
-    {
-        writeAsEGcabac(static_cast<unsigned int>(-int64_t (input)) << 1u, 0, offset);
-    }
-    else
-    {
+    if (int64_t(input) <= 0) {
+        writeAsEGcabac(static_cast<unsigned int>(-int64_t(input)) << 1u, 0, offset);
+    } else {
         writeAsEGcabac(static_cast<unsigned int>(static_cast<uint64_t>(input) << 1u) - 1, 0, offset);
     }
 }
@@ -266,7 +251,7 @@ void Writer::writeAsSTEGbypass(
             cSignedTruncExpGolParam
     ));
 
-    if (int64_t (input) < 0) {
+    if (int64_t(input) < 0) {
         writeAsTEGbypass(uint64_t(-int64_t(input)), cSignedTruncExpGolParam);
         writeAsBIbypass(1, 1);
     } else if (input > 0) {
@@ -290,7 +275,7 @@ void Writer::writeAsSTEGcabac(
     ));
 
     if (int64_t(input) < 0) {
-        writeAsTEGcabac(uint64_t(-int64_t (input)), cSignedTruncExpGolParam, offset);
+        writeAsTEGcabac(uint64_t(-int64_t(input)), cSignedTruncExpGolParam, offset);
         writeAsBIcabac(1, 1, offset);
     } else if (input > 0) {
         writeAsTEGcabac(uint64_t(input), cSignedTruncExpGolParam, offset);

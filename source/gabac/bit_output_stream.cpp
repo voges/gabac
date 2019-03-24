@@ -1,7 +1,6 @@
 #include "gabac/bit_output_stream.h"
 
 #include <cassert>
-#include <vector>
 
 #include "gabac/data_block.h"
 
@@ -66,19 +65,24 @@ void BitOutputStream::write(
 
     // Write everything
     // 1 byte / L1 is the most common case, check for it first
-    if ((numTotalBits >> 3u) == 1) goto L1;
-    else if ((numTotalBits >> 3u) == 2) goto L2;
-    else if ((numTotalBits >> 3u) == 3) goto L3;
-    else if ((numTotalBits >> 3u) != 4) goto L0;
+    if ((numTotalBits >> 3u) == 1) {
+        goto L1;
+    } else if ((numTotalBits >> 3u) == 2) {
+        goto L2;
+    } else if ((numTotalBits >> 3u) == 3) {
+        goto L3;
+    } else if ((numTotalBits >> 3u) != 4) {
+        goto L0;
+    }
 
     writeOut(static_cast<unsigned char> ((writeBits >> 24u) & 0xffu), m_bitstream);
-   L3:
+    L3:
     writeOut(static_cast<unsigned char> ((writeBits >> 16u) & 0xffu), m_bitstream);
-   L2:
+    L2:
     writeOut(static_cast<unsigned char> ((writeBits >> 8u) & 0xffu), m_bitstream);
-   L1:
+    L1:
     writeOut(static_cast<unsigned char> (writeBits & 0xffu), m_bitstream);
-   L0:
+    L0:
 
     // Update output bitstream state
     m_heldBits = nextHeldBits;

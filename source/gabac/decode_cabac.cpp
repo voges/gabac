@@ -1,11 +1,12 @@
-#include "gabac/constants.h"
-#include "gabac/data_block.h"
 #include "gabac/decode_cabac.h"
-#include "gabac/exceptions.h"
-#include "gabac/reader.h"
 
 #include <cassert>
 #include <limits>
+
+#include "gabac/constants.h"
+#include "gabac/data_block.h"
+#include "gabac/reader.h"
+
 
 namespace gabac {
 
@@ -28,15 +29,14 @@ ReturnCode decode_cabac(
     symbols.resize(symbolsSize);
 
     unsigned int binarizationParameter = 0;
-    if (binarizationParameters.size() > 0) {
+    if (!binarizationParameters.empty()) {
         binarizationParameter = binarizationParameters[0];
     }
 
     BlockStepper r = symbols.getReader();
 
     if (contextSelectionId == ContextSelectionId::bypass) {
-        uint64_t(Reader::*
-        func)(unsigned int);
+        uint64_t(Reader::*func)(unsigned int);
         switch (binarizationId) {
             case BinarizationId::BI:
                 func = &Reader::readAsBIbypass;
@@ -163,4 +163,4 @@ ReturnCode decode_cabac(
     return ReturnCode::success;
 }
 
-}
+}  // namespace gabac

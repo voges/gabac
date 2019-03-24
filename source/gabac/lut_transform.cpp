@@ -1,9 +1,5 @@
 #include "gabac/lut_transform.h"
 
-#include "gabac/block_stepper.h"
-#include "gabac/data_block.h"
-#include "gabac/exceptions.h"
-
 #include <algorithm>
 #include <cassert>
 #include <iostream>
@@ -12,9 +8,12 @@
 #include <utility>
 #include <vector>
 
+#include "gabac/block_stepper.h"
+#include "gabac/data_block.h"
+
 namespace gabac {
 
-const size_t MAX_LUT_SIZE = 1u << 20u; // 8MB table
+const size_t MAX_LUT_SIZE = 1u << 20u;  // 8MB table
 
 
 // Inplace not reasonable, because symbols stream is reused 100% of time and lut is much smaller
@@ -24,7 +23,6 @@ static void inferLut0(
         DataBlock *const fastlut,
         DataBlock *const inverseLut
 ){
-
     uint64_t maxValue = 0;
 
     // At some point it is more efficient to use an hashmap instead of an array
@@ -47,7 +45,6 @@ static void inferLut0(
             }
         }
         // Step 1: basic mapping for order 0. All symbols are now in a dense interval starting [0...N]
-
     }
 
     // Clear
@@ -135,7 +132,6 @@ static void inferLut0(
             (*fastlut).set(p.first, p.second);
         }
     }
-
 }
 
 // ----------------------------------------------------------------------------
@@ -400,7 +396,7 @@ void transformLutTransform(
         DataBlock *const inverseLUT1
 ){
     std::vector<std::pair<uint64_t, uint64_t>> lut;
-    DataBlock fastlut(0, transformedSymbols->getWordSize()); // For small, dense symbol spaces
+    DataBlock fastlut(0, transformedSymbols->getWordSize());  // For small, dense symbol spaces
     DataBlock lut1(0, transformedSymbols->getWordSize());
     inferLut(order, *transformedSymbols, &lut, &fastlut, inverseLUT, &lut1, inverseLUT1);
     if (lut.empty()) {

@@ -1,11 +1,12 @@
-#ifndef GABAC_DATASTREAM_HPP
-#define GABAC_DATASTREAM_HPP
-
-#include "gabac/exceptions.h"
+#ifndef GABAC_DATA_BLOCK_H_
+#define GABAC_DATA_BLOCK_H_
 
 #include <cstring>
 #include <string>
+#include <utility>
 #include <vector>
+
+#include "gabac/exceptions.h"
 
 namespace gabac {
 
@@ -17,9 +18,9 @@ class DataBlock
     uint8_t wordSize;
 
     std::vector<uint8_t> data;
- public:
 
-    BlockStepper getReader() const;
+ public:
+    const BlockStepper getReader() const;
     bool operator==(const DataBlock& d) const;
     DataBlock& operator=(const std::initializer_list<uint64_t>& il);
 
@@ -39,7 +40,6 @@ class DataBlock
         explicit operator uint64_t() const;
 
         ProxyCore& operator=(uint64_t val);
-
     };
 
     using Proxy = ProxyCore<DataBlock *>;
@@ -136,20 +136,19 @@ class DataBlock
     explicit DataBlock(std::string *vec);
 
     explicit DataBlock(uint8_t *d, size_t size, uint8_t word_size);
-
 };
 
 
 inline uint64_t DataBlock::get(size_t index) const{
     switch (wordSize) {
         case 1:
-            return *(uint8_t *) (data.data() + index);
+            return *(data.data() + index);
         case 2:
-            return *(uint16_t *) (data.data() + (index << 1u));
+            return *reinterpret_cast<const uint16_t *> (data.data() + (index << 1u));
         case 4:
-            return *(uint32_t *) (data.data() + (index << 2u));
+            return *reinterpret_cast<const uint32_t *> (data.data() + (index << 2u));
         case 8:
-            return *(uint64_t *) (data.data() + (index << 3u));
+            return *reinterpret_cast<const uint64_t *> (data.data() + (index << 3u));
         default:
             return 0;
     }
@@ -161,13 +160,13 @@ inline void DataBlock::set(size_t index, uint64_t val){
             *(data.data() + index) = static_cast<uint8_t>(val);
             return;
         case 2:
-            *(uint16_t *) (data.data() + (index << 1u)) = static_cast<uint16_t>(val);
+            *reinterpret_cast<uint16_t *> (data.data() + (index << 1u)) = static_cast<uint16_t>(val);
             return;
         case 4:
-            *(uint32_t *) (data.data() + (index << 2u)) = static_cast<uint32_t>(val);
+            *reinterpret_cast<uint32_t *> (data.data() + (index << 2u)) = static_cast<uint32_t>(val);
             return;
         case 8:
-            *(uint64_t *) (data.data() + (index << 3u)) = static_cast<uint64_t>(val);
+            *reinterpret_cast<uint64_t *> (data.data() + (index << 3u)) = static_cast<uint64_t>(val);
             return;
         default:
             return;
@@ -197,17 +196,19 @@ inline void DataBlock::push_back(uint64_t val){
     data.resize(data.size() + wordSize);
     switch (wordSize) {
         case 1:
-            *(uint8_t *) (data.end().base() - 1) = static_cast<uint8_t>(val);
+            *reinterpret_cast<uint8_t *> (data.end().base() - 1) = static_cast<uint8_t>(val);
             return;
         case 2:
-            *(uint16_t *) (data.end().base() - 2) = static_cast<uint16_t>(val);
+            *reinterpret_cast<uint16_t *> (data.end().base() - 2) = static_cast<uint16_t>(val);
             return;
         case 4:
-            *(uint32_t *) (data.end().base() - 4) = static_cast<uint32_t>(val);
+            *reinterpret_cast<uint32_t *> (data.end().base() - 4) = static_cast<uint32_t>(val);
             return;
         case 8:
-            *(uint64_t *) (data.end().base() - 8) = static_cast<uint64_t>(val);
+            *reinterpret_cast<uint64_t *> (data.end().base() - 8) = static_cast<uint64_t>(val);
             return;
+        default:
+            break;
     }
 }
 
@@ -335,7 +336,7 @@ DataBlock::DataBlock(std::vector<T> *vec) : wordSize(sizeof(T)){
     vec->clear();
 }
 
-}
+}  // namespace gabac
 
 
-#endif //GABAC_DATASTREAM_HPP
+#endif  // GABAC_DATA_BLOCK_H_

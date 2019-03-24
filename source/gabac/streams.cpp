@@ -1,10 +1,12 @@
-#include "gabac/exceptions.h"
 #include "gabac/streams.h"
+
+#include <algorithm>
+
+#include "gabac/exceptions.h"
 
 namespace gabac {
 
 FileBuffer::FileBuffer(FILE *f) : fileptr(f){
-
 }
 
 int FileBuffer::overflow(int c){
@@ -12,7 +14,7 @@ int FileBuffer::overflow(int c){
 }
 
 std::streamsize FileBuffer::xsputn(const char *s, std::streamsize n){
-    return fwrite(s, 1, n, fileptr);
+    return fwrite(s, 1, static_cast<size_t>(n), fileptr);
 }
 
 int FileBuffer::sync(){
@@ -20,7 +22,7 @@ int FileBuffer::sync(){
 }
 
 std::streamsize FileBuffer::xsgetn(char *s, std::streamsize n){
-    return fread(s, 1, n, fileptr);
+    return fread(s, 1, static_cast<size_t>(n), fileptr);
 }
 
 int FileBuffer::underflow(){
@@ -32,7 +34,7 @@ DataBlockBuffer::DataBlockBuffer(DataBlock *d, size_t pos_i) : block(0, 1), pos(
 }
 
 int DataBlockBuffer::overflow(int c){
-    block.push_back(c);
+    block.push_back(static_cast<uint64_t >(c));
     return c;
 }
 
@@ -42,7 +44,7 @@ std::streamsize DataBlockBuffer::xsputn(const char *s, std::streamsize n){
     }
     size_t oldSize = block.size();
     block.resize(block.size() + n / block.getWordSize());
-    memcpy(static_cast<uint8_t *>(block.getData()) + oldSize * block.getWordSize(), s, n);
+    memcpy(static_cast<uint8_t *>(block.getData()) + oldSize * block.getWordSize(), s, static_cast<size_t>(n));
     return n;
 }
 
@@ -60,17 +62,34 @@ int DataBlockBuffer::underflow(){
     if (pos == block.size()) {
         return EOF;
     }
-    return block.get(pos);
+    return static_cast<int>(block.get(pos));
 }
 
 int DataBlockBuffer::uflow(){
     if (pos == block.size()) {
         return EOF;
     }
-    return block.get(pos++);
+    return static_cast<int>(block.get(pos++));
 }
 
 void DataBlockBuffer::flush_block(gabac::DataBlock *blk){
     block.swap(blk);
 }
+
+
+IFileStream::IFileStream(FILE *f) : FileBuffer(f), std::istream(this){
 }
+
+OFileStream::OFileStream(FILE *f) : FileBuffer(f), std::ostream(this){
+}
+
+IBufferStream::IBufferStream(DataBlock *d, size_t pos_i) : DataBlockBuffer(d, pos_i), std::istream(this){
+}
+
+OBufferStream::OBufferStream(DataBlock *d) : DataBlockBuffer(d, 0), std::ostream(this){
+}
+
+NullStream::NullStream() : std::ostream(&m_sb){
+}
+
+}  // namespace gabac

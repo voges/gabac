@@ -20,4 +20,4 @@ void inverseTransformEqualityCoding(
 }  // namespace gabac
 
 
-#endif  /* GABAC_EQUALITY_CODING_H_ */
+#endif  // GABAC_EQUALITY_CODING_H_

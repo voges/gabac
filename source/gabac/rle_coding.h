@@ -24,4 +24,4 @@ void inverseTransformRleCoding(
 
 }  // namespace gabac
 
-#endif  /* GABAC_RLE_CODING_H_ */
+#endif  // GABAC_RLE_CODING_H_

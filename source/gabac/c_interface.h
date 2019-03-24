@@ -1,5 +1,5 @@
-#ifndef PROJECT_C_INTERFACE_H
-#define PROJECT_C_INTERFACE_H
+#ifndef GABAC_C_INTERFACE_H_
+#define GABAC_C_INTERFACE_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -144,7 +144,6 @@ typedef enum gabac_log_level
  */
 typedef enum gabac_transform
 {
-
     gabac_transform_NONE = 0,
     gabac_transform_EQUALITY = 1,
     gabac_transform_MATCH = 2,
@@ -152,7 +151,6 @@ typedef enum gabac_transform
     gabac_transform_LUT = 4,
     gabac_transform_DIFF = 5,
     gabac_transform_CABAC = 6
-
 } gabac_transform;
 
 /**
@@ -237,22 +235,22 @@ typedef struct gabac_stream
 /**
  * Constant for stdout
  */
-extern const char* gabac_stream_create_file_STDOUT;
+extern const char *gabac_stream_create_file_STDOUT;
 
 /**
  * Constant for stderr
  */
-extern const char* gabac_stream_create_file_STDERR;
+extern const char *gabac_stream_create_file_STDERR;
 
 /**
  * Constant for stdin
  */
-extern const char* gabac_stream_create_file_STDIN;
+extern const char *gabac_stream_create_file_STDIN;
 
 /**
  * Constant for tmpfile
  */
-extern const char* gabac_stream_create_file_TMP;
+extern const char *gabac_stream_create_file_TMP;
 
 /**
  * Initialize a stream from a file
@@ -267,7 +265,7 @@ extern const char* gabac_stream_create_file_TMP;
  */
 int gabac_stream_create_file(
         gabac_stream *stream,
-        const char* filename,
+        const char *filename,
         size_t filename_size,
         int write
 );
@@ -303,7 +301,7 @@ int gabac_stream_swap_block(
  */
 int gabac_stream_swap_file(
         gabac_stream *stream,
-        FILE** file
+        FILE **file
 );
 
 /**
@@ -393,4 +391,4 @@ int gabac_run(
 }
 #endif
 
-#endif /* PROJECT_C_INTERFACE_H */
+#endif  /* GABAC_C_INTERFACE_H_ */

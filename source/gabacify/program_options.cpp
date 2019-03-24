@@ -1,10 +1,11 @@
 #include "gabacify/program_options.h"
 
+#include <gabac/gabac.h>
+
 #include <cassert>
 #include <fstream>
 
 #include <boost/program_options.hpp>
-#include <gabac/gabac.h>
 
 
 namespace gabacify {
@@ -90,7 +91,7 @@ void ProgramOptions::processCommandLine(
             optionsStringStream << options;
             std::string optionsLine;
             while (std::getline(optionsStringStream, optionsLine)) {
-                //GABACIFY_LOG_INFO << optionsLine;
+                // GABACIFY_LOG_INFO << optionsLine;
             }
             exit(0);  // Just get out here, quickly
         }
@@ -109,7 +110,6 @@ void ProgramOptions::processCommandLine(
 
 
 void ProgramOptions::validate(void){
-
     // Do stuff depending on the task
     if (this->task == "encode" || this->task == "decode") {
         // It's fine not to provide a configuration file path for encoding.

@@ -1,6 +1,5 @@
 #include "gabac/rle_coding.h"
 
-#include <algorithm>
 #include <cassert>
 
 #include "gabac/block_stepper.h"

@@ -3,9 +3,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
-#include <cstdint>
 #include <limits>
-#include <vector>
 
 #include "gabac/equality_coding.h"
 #include "gabac/diff_coding.h"
@@ -110,16 +108,15 @@ const BinarizationProperties& getBinarization(const gabac::BinarizationId& id){
     return binarizationInformation[unsigned(id)];
 }
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
 const TransformationProperties& getTransformation(const gabac::SequenceTransformationId& id){
-
     static const std::vector<TransformationProperties> transformationInformation = {
             {
-                    "no_transform", // Name
+                    "no_transform",  // Name
                     {},
-                    {"out"}, // StreamNames
-                    {0}, // WordSizes (0: non fixed current stream wordsize)
+                    {"out"},  // StreamNames
+                    {0},  // WordSizes (0: non fixed current stream wordsize)
                     [](const std::vector<uint64_t>&,
                        std::vector<DataBlock> *const transformedSequences
                     )
@@ -134,10 +131,10 @@ const TransformationProperties& getTransformation(const gabac::SequenceTransform
                     }
             },
             {
-                    "equality_coding", // Name
+                    "equality_coding",  // Name
                     {},
-                    {"raw_symbols", "eq_flags"}, // StreamNames
-                    {0, 1}, // WordSizes (0: non fixed current stream wordsize)
+                    {"raw_symbols", "eq_flags"},  // StreamNames
+                    {0, 1},  // WordSizes (0: non fixed current stream wordsize)
                     [](const std::vector<uint64_t>&,
                        std::vector<DataBlock> *const transformedSequences
                     )
@@ -161,10 +158,10 @@ const TransformationProperties& getTransformation(const gabac::SequenceTransform
                     }
             },
             {
-                    "match_coding", // Name
+                    "match_coding",  // Name
                     {"window_size"},
-                    {"raw_values",  "pointers", "lengths"}, // StreamNames
-                    {0, 4, 4}, // WordSizes (0: non fixed current stream wordsize)
+                    {"raw_values",  "pointers", "lengths"},  // StreamNames
+                    {0, 4, 4},  // WordSizes (0: non fixed current stream wordsize)
                     [](const std::vector<uint64_t>& param,
                        std::vector<DataBlock> *const transformedSequences
                     )
@@ -193,10 +190,10 @@ const TransformationProperties& getTransformation(const gabac::SequenceTransform
                     }
             },
             {
-                    "rle_coding", // Name
+                    "rle_coding",  // Name
                     {"guard"},
-                    {"raw_values",  "lengths"}, // StreamNames
-                    {0, 1}, // WordSizes (0: non fixed current stream wordsize)
+                    {"raw_values",  "lengths"},  // StreamNames
+                    {0, 1},  // WordSizes (0: non fixed current stream wordsize)
                     [](const std::vector<uint64_t>& param,
                        std::vector<DataBlock> *const transformedSequences
                     )
@@ -222,10 +219,10 @@ const TransformationProperties& getTransformation(const gabac::SequenceTransform
                     }
             },
             {
-                    "lut_coding", // Name
+                    "lut_coding",  // Name
                     {"context_order"},
-                    {"sequence",    "lut0",     "lut1"}, // StreamNames
-                    {0, 0, 0}, // WordSizes (0: non fixed current stream wordsize)
+                    {"sequence",    "lut0",     "lut1"},  // StreamNames
+                    {0, 0, 0},  // WordSizes (0: non fixed current stream wordsize)
                     [](const std::vector<uint64_t>& order,
                        std::vector<DataBlock> *const transformedSequences
                     )
@@ -254,10 +251,10 @@ const TransformationProperties& getTransformation(const gabac::SequenceTransform
                     }
             },
             {
-                    "diff_coding", // Name
+                    "diff_coding",  // Name
                     {},
-                    {"sequence"}, // StreamNames
-                    {0}, // WordSizes (0: non fixed current stream wordsize)
+                    {"sequence"},  // StreamNames
+                    {0},  // WordSizes (0: non fixed current stream wordsize)
                     [](const std::vector<uint64_t>&,
                        std::vector<DataBlock> *const transformedSequences
                     )
@@ -274,10 +271,10 @@ const TransformationProperties& getTransformation(const gabac::SequenceTransform
                     }
             },
             {
-                    "cabac", // Name
+                    "cabac",  // Name
                     {"binarization_id", "binarization_parameter", "context_selection_id", "word_size"},
-                    {"sequence"}, // StreamNames
-                    {0}, // WordSizes (0: non fixed current stream wordsize)
+                    {"sequence"},  // StreamNames
+                    {0},  // WordSizes (0: non fixed current stream wordsize)
                     [](const std::vector<uint64_t>& param,
                        std::vector<DataBlock> *const transformedSequences
                     )
@@ -299,7 +296,7 @@ const TransformationProperties& getTransformation(const gabac::SequenceTransform
                                 gabac::BinarizationId(param[0]),
                                 {static_cast<unsigned>(param[1])},
                                 gabac::ContextSelectionId(param[2]),
-                                param[3],
+                                static_cast<uint8_t>(param[3]),
                                 &(*transformedSequences)[0]
                         );
                     }
@@ -315,6 +312,6 @@ bool BinarizationProperties::sbCheck(uint64_t minv, uint64_t maxv, uint64_t para
     return minv >= this->min(parameter) && maxv <= this->max(parameter);
 }
 
-//------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------
 
-}
+}  // namespace gabac

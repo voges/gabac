@@ -1,8 +1,5 @@
 #include "gabac/reader.h"
 
-#include <cassert>
-#include <limits>
-
 #include "gabac/constants.h"
 #include "gabac/context_tables.h"
 
@@ -44,9 +41,8 @@ uint64_t Reader::readAsBIcabac(
 ){
     unsigned int bins = 0;
     unsigned int cm = ContextSelector::getContextForBi(offset, 0);
-    std::vector<ContextModel>::iterator scan = m_contextModels.begin() + cm;
-    for (size_t i = cLength; i > 0; i--)
-    {
+    auto scan = m_contextModels.begin() + cm;
+    for (size_t i = cLength; i > 0; i--) {
         bins = (bins << 1u) | m_decBinCabac.decodeBin(&*(scan++));
     }
     return static_cast<uint64_t>(bins);
@@ -73,7 +69,7 @@ uint64_t Reader::readAsTUcabac(
 ){
     unsigned int i = 0;
     unsigned int cm = ContextSelector::getContextForTu(offset, i);
-    std::vector<ContextModel>::iterator scan = m_contextModels.begin() + cm;
+    auto scan = m_contextModels.begin() + cm;
     while (m_decBinCabac.decodeBin(&*scan) == 1) {
         i++;
         if (cMax == i) {
@@ -108,7 +104,7 @@ uint64_t Reader::readAsEGcabac(
         unsigned int offset
 ){
     unsigned int cm = ContextSelector::getContextForEg(offset, 0);
-    std::vector<ContextModel>::iterator scan = m_contextModels.begin() + cm;
+    auto scan = m_contextModels.begin() + cm;
     unsigned int i = 0;
     while (m_decBinCabac.decodeBin(&*scan) == 0) {
         scan++;
@@ -146,10 +142,8 @@ uint64_t Reader::readAsSEGcabac(
         unsigned int offset
 ){
     uint64_t tmp = readAsEGcabac(0, offset);
-    if ((static_cast<uint64_t>(tmp) & 0x1u) == 0)
-    {
-        if (tmp == 0)
-        {
+    if ((static_cast<uint64_t>(tmp) & 0x1u) == 0) {
+        if (tmp == 0) {
             return 0;
         } else {
             return (static_cast<uint64_t>(-1 * static_cast<int64_t>(tmp >> 1u)));
@@ -164,8 +158,7 @@ uint64_t Reader::readAsTEGbypass(
         unsigned int treshold
 ){
     uint64_t value = readAsTUbypass(treshold);
-    if (static_cast<unsigned int>(value) == treshold)
-    {
+    if (static_cast<unsigned int>(value) == treshold) {
         value += readAsEGbypass(0);
     }
     return value;
@@ -177,8 +170,7 @@ uint64_t Reader::readAsTEGcabac(
         unsigned int offset
 ){
     uint64_t value = readAsTUcabac(treshold, offset);
-    if (static_cast<unsigned int>(value) == treshold)
-    {
+    if (static_cast<unsigned int>(value) == treshold) {
         value += readAsEGcabac(0, offset);
     }
     return value;
@@ -191,7 +183,7 @@ uint64_t Reader::readAsSTEGbypass(
     uint64_t value = readAsTEGbypass(treshold);
     if (value != 0) {
         if (readAsBIbypass(1) == 1) {
-            return uint64_t(-1 * int64_t (value));
+            return uint64_t(-1 * int64_t(value));
         } else {
             return value;
         }
@@ -207,7 +199,7 @@ uint64_t Reader::readAsSTEGcabac(
     uint64_t value = readAsTEGcabac(treshold, offset);
     if (value != 0) {
         if (readAsBIcabac(1, offset) == 1) {
-            return uint64_t (-1 * int64_t (value));
+            return uint64_t(-1 * int64_t(value));
         } else {
             return value;
         }

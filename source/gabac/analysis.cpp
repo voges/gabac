@@ -1,30 +1,23 @@
-#include "analysis.h"
-
-#include <cinttypes>
-#include <cmath>
-#include <cstdint>
-#include <cstdio>
+#include "gabac/analysis.h"
 
 #include <algorithm>
-#include <cassert>
+#include <cinttypes>
+#include <cmath>
+#include <cstdio>
 #include <iomanip>
 #include <iostream>
 #include <limits>
-#include <utility>
+#include <stack>
 #include <string>
 #include <vector>
 
 #include "gabac/block_stepper.h"
+#include "gabac/configuration.h"
 #include "gabac/constants.h"
 #include "gabac/data_block.h"
 #include "gabac/encode_cabac.h"
-
-#include "gabac/configuration.h"
-#include "gabacify/code.h"
-#include "gabac/exceptions.h"
 #include "gabac/stream_handler.h"
 
-#include <stack>
 
 namespace gabac {
 
@@ -50,60 +43,58 @@ struct TraversalInfo
     size_t bestTotalSize{};
 
     std::stack<Snapshot> stack;
-
 };
-
 
 const AnalysisConfiguration& getCandidateConfig(){
     static const AnalysisConfiguration config = {
-            { // Wordsizes
+            {  // Wordsizes
                     1,
                        2,
                           4,
                              8
             },
-            { // Sequence Transformations
+            {  // Sequence Transformations
                     gabac::SequenceTransformationId::no_transform,
                        gabac::SequenceTransformationId::equality_coding,
                           gabac::SequenceTransformationId::match_coding,
                              gabac::SequenceTransformationId::rle_coding
             },
-            { // Match coding window sizes
+            {  // Match coding window sizes
                     32,
                        256
             },
-            { // RLE Guard
+            {  // RLE Guard
                     255
             },
-            { // LUT transform
+            {  // LUT transform
                     false,
                        true
             },
-            { // Diff transform
+            {  // Diff transform
                     false,
                        true
             },
-            { // Binarizations (unsigned)
+            {  // Binarizations (unsigned)
                     gabac::BinarizationId::BI,
                        gabac::BinarizationId::TU,
                           gabac::BinarizationId::EG,
                              gabac::BinarizationId::TEG
             },
-            { // Binarizations (signed)
+            {  // Binarizations (signed)
                     gabac::BinarizationId::SEG,
                        gabac::BinarizationId::STEG
             },
-            { // Binarization parameters (TEG and STEG only)
+            {  // Binarization parameters (TEG and STEG only)
                     1, 2, 3, 5, 7, 9,
                     15, 30, 255
             },
-            { // Context modes
+            {  // Context modes
                     gabac::ContextSelectionId::bypass,
                        gabac::ContextSelectionId::adaptive_coding_order_0,
                           gabac::ContextSelectionId::adaptive_coding_order_1,
                              gabac::ContextSelectionId::adaptive_coding_order_2
             },
-            { // LUT order
+            {  // LUT order
                     0,
                        1
             }
@@ -159,11 +150,9 @@ static void getMinMax(const gabac::DataBlock& b, uint64_t *umin, uint64_t *umax,
     }
 }
 
-
 void getOptimumOfBinarization(const AnalysisConfiguration& aconf,
                               TraversalInfo *info
 ){
-
     uint64_t min, max;
     int64_t smin, smax;
     getMinMax(info->stack.top().streams.front(), &min, &max, &smin, &smax);
@@ -207,7 +196,7 @@ void getOptimumOfDiffTransformedStream(const AnalysisConfiguration& aconf,
     std::vector<gabac::BinarizationId>
             candidates = (!info->currConfig.transformedSequenceConfigurations[info->currStreamIndex].diffCodingEnabled)
                          ? aconf.candidateUnsignedBinarizationIds
-                         : aconf.candidateSignedBinarizationIds; // TODO: avoid copy
+                         : aconf.candidateSignedBinarizationIds;
 
     for (const auto& transID : candidates) {
         info->currConfig.transformedSequenceConfigurations[info->currStreamIndex].binarizationId = transID;
@@ -223,7 +212,6 @@ void getOptimumOfDiffTransformedStream(const AnalysisConfiguration& aconf,
 void getOptimumOfLutTransformedStream(const AnalysisConfiguration& aconf,
                                       TraversalInfo *info
 ){
-
     for (const auto& transID : aconf.candidateDiffParameters) {
         info->currConfig.transformedSequenceConfigurations[info->currStreamIndex].diffCodingEnabled = transID;
         if (transID) {
@@ -454,7 +442,7 @@ void analyze(const IOConfiguration& ioconf, const AnalysisConfiguration& aconf){
 
 //------------------------------------------------------------------------------
 
-}  // namespace gabacify
+}  // namespace gabac
 
 //------------------------------------------------------------------------------
 //------------------------------------------------------------------------------

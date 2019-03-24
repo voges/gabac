@@ -1,5 +1,5 @@
-#ifndef GABACIFY_ANALYSIS_H_
-#define GABACIFY_ANALYSIS_H_
+#ifndef GABAC_ANALYSIS_H_
+#define GABAC_ANALYSIS_H_
 
 namespace gabac {
 
@@ -9,10 +9,10 @@ struct IOConfiguration;
 const AnalysisConfiguration& getCandidateConfig();
 
 void analyze(const IOConfiguration& ioconf,
-               const AnalysisConfiguration& aconf
+             const AnalysisConfiguration& aconf
 );
 
-}
+}  // namespace gabac
 
 
-#endif  // GABACIFY_ANALYSIS_H_
+#endif  // GABAC_ANALYSIS_H_

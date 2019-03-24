@@ -1,5 +1,5 @@
-#ifndef GABAC_STREAM_HANDLER_H
-#define GABAC_STREAM_HANDLER_H
+#ifndef GABAC_STREAM_HANDLER_H_
+#define GABAC_STREAM_HANDLER_H_
 
 #include <istream>
 #include <ostream>
@@ -18,6 +18,6 @@ class StreamHandler
     static size_t writeStream(std::ostream& output, DataBlock *buffer);
     static size_t writeBytes(std::ostream& output, DataBlock *buffer);
 };
-}
+}  // namespace gabac
 
-#endif //GABAC_STREAM_HANDLER_H
+#endif  // GABAC_STREAM_HANDLER_H_

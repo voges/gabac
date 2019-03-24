@@ -1,5 +1,6 @@
 #include <vector>
 
+#include "gabac/data_block.h"
 #include "gabac/equality_coding.h"
 #include "iostream"
 #include "./test_common.h"
@@ -89,7 +90,7 @@ TEST_F(equalityCodingTest, inverseTransformEqualityCoding){
         // void input
         gabac::DataBlock flags(0, 1);
         gabac::DataBlock
-        rawSymbols(0, 8);
+                rawSymbols(0, 8);
         rawSymbols = {1};
         EXPECT_NO_THROW(gabac::inverseTransformEqualityCoding(&rawSymbols, &flags));
         EXPECT_EQ(rawSymbols.size(), 0);

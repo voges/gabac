@@ -1,5 +1,5 @@
-#ifndef PROJECT_ENCODE_CABAC_H
-#define PROJECT_ENCODE_CABAC_H
+#ifndef GABAC_ENCODE_CABAC_H_
+#define GABAC_ENCODE_CABAC_H_
 
 #include <cstdint>
 #include <limits>
@@ -10,6 +10,7 @@ namespace gabac {
 enum class ReturnCode;
 enum class BinarizationId;
 enum class ContextSelectionId;
+
 class DataBlock;
 
 ReturnCode encode_cabac(
@@ -20,6 +21,6 @@ ReturnCode encode_cabac(
         size_t maxsize = std::numeric_limits<size_t>::max()
 );
 
-}
+}  // namespace gabac
 
-#endif //PROJECT_ENCODE_CABAC_H
+#endif  // GABAC_ENCODE_CABAC_H_

@@ -1,5 +1,5 @@
-#ifndef GABACIFY_CONFIGURATION_H_
-#define GABACIFY_CONFIGURATION_H_
+#ifndef GABAC_CONFIGURATION_H_
+#define GABAC_CONFIGURATION_H_
 
 #include <istream>
 #include <ostream>
@@ -33,7 +33,7 @@ class EncodingConfiguration
     EncodingConfiguration();
 
     explicit EncodingConfiguration(
-            const std::string& json
+            const std::string& jsonstring
     );
 
     ~EncodingConfiguration();
@@ -92,4 +92,4 @@ struct AnalysisConfiguration
 }  // namespace gabac
 
 
-#endif  // GABACIFY_CONFIGURATION_H_
+#endif  // GABAC_CONFIGURATION_H_

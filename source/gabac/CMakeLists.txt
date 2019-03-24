@@ -23,7 +23,7 @@ message(STATUS "GABAC_BUILD_SHARED_LIB=${GABAC_BUILD_SHARED_LIB}")
 #==============================================================================
 
 message(STATUS "CMAKE_CXX_COMPILER_ID=${CMAKE_CXX_COMPILER_ID}")
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
@@ -31,30 +31,30 @@ if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wstrict-aliasing")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
-elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
+elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
     set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast")
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")
-elseif("${CMAKE_CXX_COMPILER_ID}" MATCHES "Intel")
+elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Intel")
     message(STATUS "C++ compiler: Intel")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wextra")
     # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -inline-level=1")
-else()
+else ()
     message(FATAL_ERROR "C++ compiler currently not supported by CMake build")
-endif()
+endif ()
 
 #==============================================================================
 # Build type
 #==============================================================================
 
 # Set default build type
-if(NOT CMAKE_BUILD_TYPE)
+if (NOT CMAKE_BUILD_TYPE)
     message(STATUS "Build type not specified")
     set(CMAKE_BUILD_TYPE Release)
     message(STATUS "Using fall-back build type '${CMAKE_BUILD_TYPE}'")
-endif()
+endif ()
 
 # Log the compiler flags for each build type
 message(STATUS "C++ compiler flags: ${CMAKE_CXX_FLAGS}")
@@ -77,7 +77,6 @@ message("Header dir: ${gabac_header_dir}")
 get_filename_component(PARENT_DIR ${PROJECT_SOURCE_DIR} DIRECTORY)
 set(gabac_include_dir ${PARENT_DIR})
 message("Include dir: ${gabac_include_dir}")
-
 
 
 # List all source files (alphabetically)
@@ -143,13 +142,13 @@ set(gabac_header_files ${gabac_header_files} ${gabac_header_dir}/writer.h)
 source_group("GABAC Source Files" FILES ${gabac_source_files})
 source_group("GABAC Header Files" FILES ${gabac_header_files})
 
-if(${GABAC_BUILD_SHARED_LIB})
+if (${GABAC_BUILD_SHARED_LIB})
     message(STATUS "Configured build of GABAC as *shared* library")
     add_library(${gabac} SHARED ${gabac_source_files} ${gabac_header_files})
     set_target_properties(${gabac} PROPERTIES POSITION_INDEPENDENT_CODE 1)
-else()
+else ()
     message(STATUS "Configured build of GABAC as *static* library")
     add_library(${gabac} STATIC ${gabac_source_files} ${gabac_header_files})
-endif()
+endif ()
 target_include_directories(${gabac} PRIVATE ${gabac_include_dir})
 
