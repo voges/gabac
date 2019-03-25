@@ -76,11 +76,7 @@ void code(const std::string& inputFilePath,
         configuration = gabac::EncodingConfiguration(jsonInput);
     }
 
-    if (decode) {
-        gabac::decode(ioconf, configuration);
-    } else {
-        gabac::encode(ioconf, configuration);
-    }
+    gabac::run(ioconf, configuration, decode);
 
     /* GABACIFY_LOG_INFO << "Wrote buffer of size "
                       << outStream.bytesWritten()

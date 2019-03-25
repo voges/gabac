@@ -6,14 +6,12 @@
 
 namespace gabac {
 
-enum class ReturnCode;
 enum class BinarizationId;
 enum class ContextSelectionId;
 
 class DataBlock;
 
-
-ReturnCode decode_cabac(
+void decode_cabac(
         const BinarizationId& binarizationId,
         const std::vector<uint32_t>& binarizationParameters,
         const ContextSelectionId& contextSelectionId,

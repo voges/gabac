@@ -4,7 +4,6 @@
 namespace gabac {
 
 class IOConfiguration;
-
 class EncodingConfiguration;
 
 void encode(

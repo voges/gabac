@@ -12,6 +12,9 @@ namespace gabac {
 
 struct BlockStepper;
 
+/**
+ * Word size aware data structure similar to a std::vector. Memory efficient.
+ */
 class DataBlock
 {
  private:
@@ -20,14 +23,52 @@ class DataBlock
     std::vector<uint8_t> data;
 
  public:
-    const BlockStepper getReader() const;
+    /**
+     * Creates a blockStepper for this DataBlock.
+     * @warning It will become invalid once you add or remove elements from the data block.
+     * @todo This has to be refactored. There should be a BlockStepper_Const. Currently it is
+     * possible to alter a const datablock via blockstepper which should not be possible.
+     * @return BlockStepper
+     */
+    BlockStepper getReader() const;
+
+    /**
+     * Compare data and word size
+     * @param d Other block
+     * @return True if equal
+     */
     bool operator==(const DataBlock& d) const;
+
+    /**
+     * Set contents to values from a list. Does not affect the word size.
+     * @param il List
+     * @return This data block.
+     */
     DataBlock& operator=(const std::initializer_list<uint64_t>& il);
 
+    /**
+     * Extract one symbol
+     * @param index Position of symbol in block
+     * @return Symbol widened to 64 bits
+     */
     uint64_t get(size_t index) const;
 
+    /**
+     * Pack symbol into stream.
+     * @param index Position in stream
+     * @param val Value (will be narrowed to word size)
+     */
     void set(size_t index, uint64_t val);
 
+    /**
+     * A proxy object abstracting the get/set access using regular operators.
+     * This way it is possible to use for example range based for loops or
+     * std algorithms with iterators.
+     * @note Even though this is convenient you should avoid it. It's slow.
+     * @warning Adding or removing elements from the data block this object is referring to
+     * leads to undefined behaviour. Don't do it as long as a proxy object is existent.
+     * @tparam T Type of data block
+     */
     template<typename T>
     class ProxyCore
     {
@@ -35,16 +76,35 @@ class DataBlock
         T stream;
         size_t position;
      public:
+
+        /**
+         * Create access proxy
+         * @param str Block we are referring to
+         * @param pos Element index inside the data block
+         */
         ProxyCore(T str, size_t pos);
 
+        /**
+         * Conversion to uint64_t - executes get() of data block
+         * @return str.get(pos);
+         */
         explicit operator uint64_t() const;
 
+        /**
+         * Assign uint64_t - executes set() of data block
+         * @param val New value
+         * @return *this, so that you can execute additional operations on this element.
+         */
         ProxyCore& operator=(uint64_t val);
     };
 
-    using Proxy = ProxyCore<DataBlock *>;
-    using ConstProxy = ProxyCore<const DataBlock *>;
+    using Proxy = ProxyCore<DataBlock *>;  /**< Standard proxy */
+    using ConstProxy = ProxyCore<const DataBlock *>  /**< Standard proxy for const */;
 
+    /**
+     * Iterator for data blocks. Like for proxy object: only use if BlockStepper does not work.
+     * @tparam T Data block type
+     */
     template<typename T>
     class IteratorCore
     {
@@ -52,28 +112,90 @@ class DataBlock
         T stream;
         size_t position;
      public:
+        /**
+         * Create iterator
+         * @param str Data block
+         * @param pos Index in data block.
+         */
         IteratorCore(T str, size_t pos);
 
+        /**
+         * Fast forward
+         * @param offset Index offset
+         * @return *this
+         */
         IteratorCore operator+(size_t offset) const;
 
+        /**
+         * Rewind
+         * @param offset Index offset
+         * @return *this
+         */
         IteratorCore operator-(size_t offset) const;
 
+        /**
+         * Calculate offset between iterators
+         * @param offset Other iterator
+         * @return Index offset
+         */
         size_t operator-(const IteratorCore& offset) const{
             return position - offset.position;
         }
 
+        /**
+         * Increment prefix
+         * @return *this
+         */
         IteratorCore& operator++();
 
+        /**
+         * Decrement prefix
+         * @return *this
+         */
         IteratorCore& operator--();
 
+        /**
+         * Increment postfix
+         * @return *this
+         */
         const IteratorCore operator++(int);
 
+        /**
+         * Increment postfix
+         * @return *this
+         */
         const IteratorCore operator--(int);
+
+        /**
+         * Return index
+         * @return Saved index
+         */
         size_t getOffset() const;
+
+        /**
+         * Return DataBlock
+         * @return Saved block
+         */
         T getStream() const;
+
+        /**
+         * Dereference to Proxy object
+         * @return Newly created proxy
+         */
         ProxyCore<T> operator*() const;
+
+        /**
+         * Compare
+         * @param c other Iterator
+         * @return True if block and index equal
+         */
         bool operator==(const IteratorCore& c) const;
 
+        /**
+         * Compare
+         * @param c other Iterator
+         * @return False if block and index equal
+         */
         bool operator!=(const IteratorCore& c) const;
 
         using iterator_category = std::random_access_iterator_tag;
@@ -83,58 +205,164 @@ class DataBlock
         using difference_type = size_t;
     };
 
-    using Iterator = IteratorCore<DataBlock *>;
-    using ConstIterator = IteratorCore<const DataBlock *>;
+    using Iterator = IteratorCore<DataBlock *>; /**< Default iterator */
+    using ConstIterator = IteratorCore<const DataBlock *>; /**< Default const iterator */
 
+    /**
+     * Get number of elements
+     * @return Size of data blocks in elements
+     */
     size_t size() const;
 
+    /**
+     * Reserve more memory without expanding the actual data. Similar to vector.
+     * @param size New memory size in elements
+     */
     void reserve(size_t size);
 
+    /**
+     * Free unused memory without shrinking the actual data. Similar to vector.
+     */
     void shrink_to_fit();
+
+    /**
+     * Delete all elements. Sets the size to zero.
+     */
     void clear();
 
+    /**
+     * Sets the size to a specified number of elements. If you are shrinking, the last elements
+     * are discarded.
+     * @param size New size in elements
+     */
     void resize(size_t size);
 
+    /**
+     * Check if there are elements in the block.
+     * @return True if no elements
+     */
     bool empty() const;
 
+    /**
+     * Begin const iterator
+     * @return Const iterator to first element.
+     */
     ConstIterator begin() const;
 
+    /**
+     * Begin iterator
+     * @return iterator to first element.
+     */
     Iterator begin();
 
+    /**
+     * End const iterator
+     * @return Const iterator to behind the last element.
+     */
     ConstIterator end() const;
 
+    /**
+     * End iterator
+     * @return iterator to behind the last element.
+     */
     Iterator end();
 
+    /**
+     * Append a new symbol
+     * @param val Value of symbol
+     */
     void push_back(uint64_t val);
 
+    /**
+     * Append a new symbol
+     * @param val Value of symbol
+     */
     void emplace_back(uint64_t val);
 
+    /**
+     * Get raw const pointer to memory block
+     * @return Pointer
+     */
     const void *getData() const;
 
+    /**
+     * Get raw pointer to memory block
+     * @return Pointer
+     */
     void *getData();
 
+    /**
+     * Get size of one symbol in bytes
+     * @return bytes of one symbol
+     */
     uint8_t getWordSize() const;
 
+    /**
+     * Sets the size of one symbol, changing the number of elments
+     * @param size New size in bytes
+     */
     void setWordSize(uint8_t size);
 
+    /**
+     * Gets the size of the underlying data in bytes,
+     * wordsize * numberOfElements
+     * @return Data size in bytes
+     */
     size_t getRawSize() const{
         return getWordSize() * size();
     }
 
+    /**
+     * Swap the contents of two data blocks without copying of data.
+     * @param d The other block.
+     */
     void swap(DataBlock *d);
 
-
+    /**
+     * Insert elements into the data block
+     * @tparam IT1 Type of iterator 1
+     * @tparam IT2 Type of Iterator 2
+     * @param pos Where to insert
+     * @param start Where the source buffer starts
+     * @param end Where the source buffer ends
+     */
     template<typename IT1, typename IT2>
     void insert(const IT1& pos, const IT2& start, const IT2& end);
 
+    /**
+     * Create Data block
+     * @param size initial size in elements
+     * @param wsize size of one element in bytes
+     */
     explicit DataBlock(size_t size = 0, size_t wsize = 1);
 
+    /**
+     * Create Data block from vector
+     * @tparam T Should be an integral type
+     * @param vec Vector to process
+     */
     template<typename T>
     explicit DataBlock(std::vector<T> *vec);
 
+    /**
+     * Create Data block from vector. This is an optimization, as you can move byte vectors
+     * into data blocks without any copy.
+     * @param vec Other vector
+     */
     explicit DataBlock(std::vector<uint8_t> *vec);
+
+    /**
+     * Create data block from string.
+     * @param vec String treated like a vector here.
+     */
     explicit DataBlock(std::string *vec);
 
+    /**
+     * Create data block from a memory buffer. Will copy the data.
+     * @param d Start of buffer
+     * @param size Number of elements
+     * @param word_size Size of one element
+     */
     explicit DataBlock(uint8_t *d, size_t size, uint8_t word_size);
 };
 

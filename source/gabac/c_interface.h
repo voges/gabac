@@ -9,27 +9,16 @@
 extern "C" {
 #endif
 
-/*---- Data block ----*/
+/* ---- Data block ---- */
 
 /**
  * Basic chunk of data
  */
 typedef struct gabac_data_block
 {
-    /**
-     * Actual data
-     */
-    uint8_t *values;
-
-    /**
-     * Number of elements (not bytes, except if word_size = 1!)
-     */
-    size_t values_size;
-
-    /**
-     * Number of bytes per element
-     */
-    uint8_t word_size;
+    uint8_t *values;  /**< Actual data */
+    size_t values_size;  /**< Number of elements (not bytes, except if word_size = 1!) */
+    uint8_t word_size;  /**< Number of bytes per element */
 } gabac_data_block;
 
 
@@ -122,8 +111,8 @@ void gabac_data_block_set(
  */
 typedef enum gabac_return
 {
-    gabac_return_SUCCESS = 0,
-    gabac_return_FAILURE = 1
+    gabac_return_SUCCESS = 0,  /**< OK */
+    gabac_return_FAILURE = 1  /**< Not OK */
 } gabac_return;
 
 /**
@@ -131,12 +120,12 @@ typedef enum gabac_return
  */
 typedef enum gabac_log_level
 {
-    gabac_log_level_TRACE = 0,
-    gabac_log_level_DEBUG = 1,
-    gabac_log_level_INFO = 2,
-    gabac_log_level_WARNING = 3,
-    gabac_log_level_ERROR = 4,
-    gabac_log_level_FATAL = 5
+    gabac_log_level_TRACE = 0,  /**< Log every step in great detail */
+    gabac_log_level_DEBUG = 1,  /**< Intermediate results */
+    gabac_log_level_INFO = 2,  /**< Expected Results */
+    gabac_log_level_WARNING = 3,  /**< Suspicious events (may be an error) */
+    gabac_log_level_ERROR = 4,  /**< Handled errors */
+    gabac_log_level_FATAL = 5  /**< Error causing application to terminate */
 } gabac_log_level;
 
 /**
@@ -144,13 +133,13 @@ typedef enum gabac_log_level
  */
 typedef enum gabac_transform
 {
-    gabac_transform_NONE = 0,
-    gabac_transform_EQUALITY = 1,
-    gabac_transform_MATCH = 2,
-    gabac_transform_RLE = 3,
-    gabac_transform_LUT = 4,
-    gabac_transform_DIFF = 5,
-    gabac_transform_CABAC = 6
+    gabac_transform_NONE = 0,  /**< Do nothing */
+    gabac_transform_EQUALITY = 1,  /**< Find equal values sequentially */
+    gabac_transform_MATCH = 2,  /**< Find larger sequence matches */
+    gabac_transform_RLE = 3,  /**< Find run lengths */
+    gabac_transform_LUT = 4,  /**< Remap symbols based on probability */
+    gabac_transform_DIFF = 5,  /**< Use differences between symbol values instead of symbols */
+    gabac_transform_CABAC = 6  /**< Entropy coding based on cabac */
 } gabac_transform;
 
 /**
@@ -174,9 +163,9 @@ extern const uint8_t gabac_transform_WORD_SIZES[][3];
  */
 typedef enum gabac_operation
 {
-    gabac_operation_ENCODE = 0,
-    gabac_operation_DECODE = 1,
-    gabac_operation_ANALYZE = 2
+    gabac_operation_ENCODE = 0,  /**< Use configuration to compress */
+    gabac_operation_DECODE = 1,  /**< Use configuration to decompress */
+    gabac_operation_ANALYZE = 2  /**< Find best configuration for input data */
 } gabac_operation;
 
 /**
@@ -184,12 +173,12 @@ typedef enum gabac_operation
  */
 typedef enum gabac_binarization
 {
-    gabac_binarization_BI = 0,  /** Binary */
-    gabac_binarization_TU = 1,  /** Truncated Unary */
-    gabac_binarization_EG = 2,  /** Exponential Golomb */
-    gabac_binarization_SEG = 3,  /** Signed Exponential Golomb */
-    gabac_binarization_TEG = 4,  /** Truncated Exponential Golomb */
-    gabac_binarization_STEG = 5  /** Signed Truncated Exponential Golomb */
+    gabac_binarization_BI = 0,  /**< Binary */
+    gabac_binarization_TU = 1,  /**< Truncated Unary */
+    gabac_binarization_EG = 2,  /**< Exponential Golomb */
+    gabac_binarization_SEG = 3,  /**< Signed Exponential Golomb */
+    gabac_binarization_TEG = 4,  /**< Truncated Exponential Golomb */
+    gabac_binarization_STEG = 5  /**< Signed Truncated Exponential Golomb */
 } gabac_binarization;
 
 /**
@@ -197,10 +186,10 @@ typedef enum gabac_binarization
  */
 typedef enum gabac_context_select
 {
-    gabac_context_select_BYPASS = 0,
-    gabac_context_select_ADAPTIVE_ORDER_0 = 1,
-    gabac_context_select_ADAPTIVE_ORDER_1 = 2,
-    gabac_context_select_ADAPTIVE_ORDER_2 = 3
+    gabac_context_select_BYPASS = 0,  /**< Do not use arithmetic coding */
+    gabac_context_select_ADAPTIVE_ORDER_0 = 1,  /**< Current symbol only */
+    gabac_context_select_ADAPTIVE_ORDER_1 = 2,  /**< Use current + previous symbol */
+    gabac_context_select_ADAPTIVE_ORDER_2 = 3   /**< Use current + previous + before previous symbol */
 } gabac_context_select;
 
 /* Constants end */
@@ -212,8 +201,8 @@ typedef enum gabac_context_select
  */
 typedef enum gabac_stream_mode
 {
-    gabac_stream_mode_FILE = 0,
-    gabac_stream_mode_BUFFER = 1
+    gabac_stream_mode_FILE = 0,  /**< Read/write from file */
+    gabac_stream_mode_BUFFER = 1  /**< Read/write from data block */
 } gabac_stream_mode;
 
 /**
@@ -221,36 +210,15 @@ typedef enum gabac_stream_mode
  */
 typedef struct gabac_stream
 {
-    /**
-     * Will be a data_block* if input_mode == buffer and FILE* if input_mode == file
-     */
-    void *data;
-
-    /**
-     * Flag for data type
-     */
-    gabac_stream_mode input_mode;
+    void *data;  /**< data_block* if input_mode == buffer and FILE* if input_mode == file */
+    gabac_stream_mode input_mode;  /**< Flag for data type */
 } gabac_stream;
 
-/**
- * Constant for stdout
- */
-extern const char *gabac_stream_create_file_STDOUT;
 
-/**
- * Constant for stderr
- */
-extern const char *gabac_stream_create_file_STDERR;
-
-/**
- * Constant for stdin
- */
-extern const char *gabac_stream_create_file_STDIN;
-
-/**
- * Constant for tmpfile
- */
-extern const char *gabac_stream_create_file_TMP;
+extern const char *gabac_stream_create_file_STDOUT;  /**< Constant for stdout */
+extern const char *gabac_stream_create_file_STDERR;  /**< Constant for stderr */
+extern const char *gabac_stream_create_file_STDIN;  /**< Constant for stdin */
+extern const char *gabac_stream_create_file_TMP;  /**< Constant for tmpfile */
 
 /**
  * Initialize a stream from a file
@@ -318,30 +286,11 @@ int gabac_stream_release(
  */
 typedef struct gabac_io_config
 {
-    /**
-     * Where to get data from
-     */
-    gabac_stream input;
-
-    /**
-     * Where to write data to
-     */
-    gabac_stream output;
-
-    /**
-     * Where to output log
-     */
-    gabac_stream log;
-
-    /**
-     * Logging level
-     */
-    gabac_log_level log_level;
-
-    /**
-     * Block size. Put 0 for infinite block size
-     */
-    size_t blocksize;
+    gabac_stream input;  /**< Where to get data from */
+    gabac_stream output;  /**< Where to write data to */
+    gabac_stream log;  /**< Where to output log */
+    gabac_log_level log_level  /**< Logging level */;
+    size_t blocksize;  /**< Block size. Put 0 for infinite block size */
 } gabac_io_config;
 
 /**

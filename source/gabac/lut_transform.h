@@ -1,8 +1,3 @@
-/**
- *  @file lut_transform.h
- */
-
-
 #ifndef GABAC_LUT_TRANSFORM_H_
 #define GABAC_LUT_TRANSFORM_H_
 

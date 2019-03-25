@@ -1,15 +1,9 @@
-/**
- *  @file decoding.h
- */
-
-
 #ifndef GABAC_DECODING_H_
 #define GABAC_DECODING_H_
 
 namespace gabac {
 
 class EncodingConfiguration;
-
 class IOConfiguration;
 
 void decode(

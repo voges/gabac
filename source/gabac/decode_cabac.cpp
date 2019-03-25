@@ -10,7 +10,7 @@
 
 namespace gabac {
 
-ReturnCode decode_cabac(
+void decode_cabac(
         const BinarizationId& binarizationId,
         const std::vector<unsigned int>& binarizationParameters,
         const ContextSelectionId& contextSelectionId,
@@ -19,7 +19,7 @@ ReturnCode decode_cabac(
 ){
     DataBlock symbols(0, wordsize);
     if (bitstream == nullptr) {
-        return ReturnCode::failure;
+        GABAC_DIE("Bitstream is null");
     }
 
     Reader reader(bitstream);
@@ -70,12 +70,9 @@ ReturnCode decode_cabac(
         reader.reset();
 
         symbols.swap(bitstream);
-
-        return ReturnCode::success;
     }
 
-    uint64_t(Reader::*
-    func)(unsigned int, unsigned int);
+    uint64_t(Reader::*func)(unsigned int, unsigned int);
     switch (binarizationId) {
         case BinarizationId::BI:
             func = &Reader::readAsBIcabac;
@@ -153,14 +150,12 @@ ReturnCode decode_cabac(
             r.inc();
         }
     } else {
-        return ReturnCode::failure;
+        GABAC_DIE("Invalid context selection");
     }
 
     reader.reset();
 
     symbols.swap(bitstream);
-
-    return ReturnCode::success;
 }
 
 }  // namespace gabac

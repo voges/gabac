@@ -1,8 +1,3 @@
-/**
- *  @file cabac_tables.h
- */
-
-
 #ifndef GABAC_CABAC_TABLES_H_
 #define GABAC_CABAC_TABLES_H_
 

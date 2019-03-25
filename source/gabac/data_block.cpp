@@ -6,7 +6,7 @@
 
 namespace gabac {
 
-const BlockStepper DataBlock::getReader() const{
+BlockStepper DataBlock::getReader() const{
     return {const_cast<uint8_t *>(data.data()),
             const_cast<uint8_t *>(data.end().base()),
             wordSize

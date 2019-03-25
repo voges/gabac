@@ -9,7 +9,7 @@
 
 namespace gabac {
 
-ReturnCode encode_cabac(
+void encode_cabac(
         const BinarizationId& binarizationId,
         const std::vector<unsigned int>& binarizationParameters,
         const ContextSelectionId& contextSelectionId,
@@ -71,8 +71,6 @@ ReturnCode encode_cabac(
         writer.reset();
 
         symbols->swap(&bitstream);
-
-        return ReturnCode::success;
     }
 
     void (Writer::*func)(uint64_t, unsigned int, unsigned int);
@@ -160,14 +158,12 @@ ReturnCode encode_cabac(
             r.inc();
         }
     } else {
-        return ReturnCode::failure;
+        GABAC_DIE("Invalid context selection");
     }
 
     writer.reset();
 
     symbols->swap(&bitstream);
-
-    return ReturnCode::success;
 }
 
 }  // namespace gabac

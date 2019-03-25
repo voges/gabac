@@ -4,14 +4,38 @@
 #include <cstdint>
 
 namespace gabac {
+
+/**
+ * Allows to traverse a DataBlock sequentially in a fast way
+ * @example Blockstepper r = datablock.getreader();
+ * while(r.isValid()) {auto v = r.get(); ... ; r.inc();}
+ */
 struct BlockStepper
 {
-    uint8_t *curr;
-    uint8_t *end;
-    uint8_t wordSize;
+    uint8_t *curr;  /**< Current element */
+    uint8_t *end;  /**< Last Element in the array */
+    uint8_t wordSize;  /**< Bytes per element*/
+
+    /**
+     * Check if curr == end
+     * @return
+     */
     bool isValid() const;
+
+    /**
+     * Increment curr to point to the next element
+     */
     void inc();
+
+    /**
+     * Read current element
+     * @return Value
+     */
     uint64_t get() const;
+
+    /**
+     * Set current element
+     */
     void set(uint64_t val) const;
 };
 
