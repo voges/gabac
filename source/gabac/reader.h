@@ -1,3 +1,9 @@
+/**
+ * @file
+ * @copyright This file is part of the GABAC encoder. See LICENCE and/or
+ * https://github.com/mitogen/gabac for more details.
+ */
+
 #ifndef GABAC_READER_H_
 #define GABAC_READER_H_
 

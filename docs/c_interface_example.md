@@ -1,3 +1,8 @@
+# C interface example #
+
+See an example how to use the c interface below.
+
+~~~~~~~~~~~~~~~{.c}
 #include "gabac/gabac.h"
 
 #include <stdio.h>
@@ -32,23 +37,20 @@ const char input_data2[] = "\x01\x00\x00\x00"
                            "\x05\x00\x00\x00";
 
 const char config_json[] = "{\n"
-                           "\"word_size\": \"1\",\n"
-                           "\"sequence_transformation_id\": \"0\",\n"
-                           "\"sequence_transformation_parameter\": \"0\",\n"
+                           "\"word_size\": 1,\n"
+                           "\"sequence_transformation_id\": 0,\n"
+                           "\"sequence_transformation_parameter\": 0,\n"
                            "\"transformed_sequences\":\n"
                            "[\n"
                            "{\n"
-                           "\"lut_transformation_enabled\": \"0\",\n"
-                           "\"lut_transformation_bits\": \"0\",\n"
-                           "\"lut_transformation_parameter\": \"0\",\n"
-                           "\"lut_transformation_order\": \"0\",\n"
-                           "\"diff_coding_enabled\": \"0\",\n"
-                           "\"binarization_id\": \"0\",\n"
+                           "\"lut_transformation_enabled\": false,\n"
+                           "\"diff_coding_enabled\": false,\n"
+                           "\"binarization_id\": 0,\n"
                            "\"binarization_parameters\":\n"
                            "[\n"
-                           "\"8\"\n"
+                           "8\n"
                            "],\n"
-                           "\"context_selection_id\": \"1\"\n"
+                           "\"context_selection_id\": 1\n"
                            "}\n"
                            "]\n"
                            "}";
@@ -260,3 +262,4 @@ int main()
     }
     return 0;
 }
+~~~~~~~~~~~~~~~

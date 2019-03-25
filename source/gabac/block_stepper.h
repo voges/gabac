@@ -1,3 +1,10 @@
+/**
+ * @file
+ * @brief Gabac fast data block traversal
+ * @copyright This file is part of the GABAC encoder. See LICENCE and/or
+ * https://github.com/mitogen/gabac for more details.
+ */
+
 #ifndef GABAC_BLOCK_STEPPER_H_
 #define GABAC_BLOCK_STEPPER_H_
 
@@ -6,35 +13,35 @@
 namespace gabac {
 
 /**
- * Allows to traverse a DataBlock sequentially in a fast way
- * @example Blockstepper r = datablock.getreader();
+ * @brief Allows to traverse a DataBlock sequentially in a fast way
+ * Blockstepper r = datablock.getreader();
  * while(r.isValid()) {auto v = r.get(); ... ; r.inc();}
  */
 struct BlockStepper
 {
-    uint8_t *curr;  /**< Current element */
-    uint8_t *end;  /**< Last Element in the array */
-    uint8_t wordSize;  /**< Bytes per element*/
+    uint8_t *curr;  /**< @brief Current element */
+    uint8_t *end;  /**< @brief Last Element in the array */
+    uint8_t wordSize;  /**< @brief Bytes per element*/
 
     /**
-     * Check if curr == end
+     * @brief Check if curr == end
      * @return
      */
     bool isValid() const;
 
     /**
-     * Increment curr to point to the next element
+     * @brief Increment curr to point to the next element
      */
     void inc();
 
     /**
-     * Read current element
+     * @brief Read current element
      * @return Value
      */
     uint64_t get() const;
 
     /**
-     * Set current element
+     * @brief Set current element
      */
     void set(uint64_t val) const;
 };

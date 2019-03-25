@@ -1,3 +1,9 @@
+/**
+ * @file
+ * @copyright This file is part of the GABAC encoder. See LICENCE and/or
+ * https://github.com/mitogen/gabac for more details.
+ */
+
 #include "gabac/run.h"
 
 #include "encoding.h"

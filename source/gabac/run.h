@@ -1,3 +1,10 @@
+/**
+ * @file
+ * @brief Gabac compression / decompression
+ * @copyright This file is part of the GABAC encoder. See LICENCE and/or
+ * https://github.com/mitogen/gabac for more details.
+ */
+
 #ifndef GABAC_RUN_H_
 #define GABAC_RUN_H_
 
@@ -7,7 +14,7 @@ class EncodingConfiguration;
 class IOConfiguration;
 
 /**
- * Start a run of gabac coding
+ * @brief Start a run of gabac coding
  * @param conf i/o configuration
  * @param enConf gabac configuration
  * @param decode If you want to decode (true) or encode (false).

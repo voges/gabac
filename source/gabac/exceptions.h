@@ -1,6 +1,16 @@
+/**
+ * @file
+ * @brief Gabac exception classes
+ * @copyright This file is part of the GABAC encoder. See LICENCE and/or
+ * https://github.com/mitogen/gabac for more details.
+ */
+
 #ifndef GABAC_EXCEPTIONS_H_
 #define GABAC_EXCEPTIONS_H_
 
+/**
+ * @brief Throws a gabac exception containing the current position in the code.
+ */
 #define GABAC_DIE(message) \
     throw gabac::RuntimeException(__FILE__, __FUNCTION__, __LINE__, message)
 
@@ -12,13 +22,13 @@
 namespace gabac {
 
 /**
- * General exception
+ * @brief General exception
  */
 class Exception : public std::exception
 {
  public:
     /**
-     * Create a new exception
+     * @brief Create a new exception
      * @param message Reason of error
      */
     explicit Exception(
@@ -26,18 +36,18 @@ class Exception : public std::exception
     );
 
     /**
-     * Destroy exception
+     * @brief Destroy exception
      */
     ~Exception() noexcept override;
 
     /**
-     * Return the exception message
+     * @brief Return the exception message
      * @return Reason of error
      */
     virtual std::string message() const;
 
     /**
-     * Return the exception message as char*
+     * @brief Return the exception message as char*
      * @return Reason of error
      */
     const char *what() const noexcept override;
@@ -47,13 +57,13 @@ class Exception : public std::exception
 };
 
 /**
- * Exception specialized for runtime information
+ * @brief Exception specialized for runtime information
  */
 class RuntimeException : public Exception
 {
  public:
     /**
-     * Create new runtime exception
+     * @brief Create new runtime exception
      * @param file File the error occurred
      * @param function Function the error occurred
      * @param line Line the error occurred
@@ -67,7 +77,7 @@ class RuntimeException : public Exception
     ) noexcept;
 
     /**
-     * Copy construction
+     * @brief Copy construction
      * @param e Source
      */
     RuntimeException(
@@ -75,7 +85,7 @@ class RuntimeException : public Exception
     ) noexcept;
 
     /**
-     * Destroy exception
+     * @brief Destroy exception
      */
     ~RuntimeException() noexcept override;
 };
