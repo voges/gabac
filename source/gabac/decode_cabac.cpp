@@ -76,6 +76,8 @@ void decode_cabac(
         reader.reset();
 
         symbols.swap(bitstream);
+
+        return;
     }
 
     uint64_t(Reader::*func)(unsigned int, unsigned int);

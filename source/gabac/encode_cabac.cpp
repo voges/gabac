@@ -77,6 +77,8 @@ void encode_cabac(
         writer.reset();
 
         symbols->swap(&bitstream);
+
+        return;
     }
 
     void (Writer::*func)(uint64_t, unsigned int, unsigned int);
