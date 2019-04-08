@@ -63,7 +63,7 @@ size_t StreamHandler::readBlock(std::istream& input, size_t bytes, DataBlock *bu
         if (!input.eof()) {
             GABAC_DIE("Error while reading input stream");
         }
-        buffer->resize(buffer->size() - (BUFFER_SIZE - input.gcount()));
+        buffer->resize(buffer->size() - (BUFFER_SIZE - input.gcount() / buffer->getWordSize()));
     }
     input.exceptions(safe);
     return buffer->size();
