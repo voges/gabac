@@ -124,6 +124,7 @@ struct IOConfiguration
 
 /**
  * @brief Candidates for analysis
+ * TODO: Add json serialization
  */
 struct AnalysisConfiguration
 {

@@ -17,11 +17,19 @@ Build the GABAC library and the gabacify application:
     cmake ..
     make gabacify
 
+(See also the ``.travis.yml``.)
+
+For quick build without using any globally installed libraries, see build.sh. 
+Make sure you have a recent version of gcc installed (7.3 and newer has been tested).
+
 Perform a test roundtrip from the ``build`` directory:
 
-    ./gabacify encode -i ../resources/input_files/one_mebibyte_random
-    ./gabacify decode -i ../resources/input_files/one_mebibyte_random.gabac_bytestream
-    diff ../resources/input_files/one_mebibyte_random ../resources/input_files/one_mebibyte_random.gabac_uncompressed
+    $ ./bin/gabacify analyze -i ../resources/input_files/one_mebibyte_random -o config.json  # Generate a configuration for this kind of data
+
+    $ ./bin/gabacify encode -i ../resources/input_files/one_mebibyte_random -c config.json -o one_mebibyte_random.gabac
+    $ ./bin/gabacify decode -o one_mebibyte_random_decompressed -c config.json -i one_mebibyte_random.gabac
+
+    $ diff ../resources/input_files/one_mebibyte_random ../resources/input_files/one_mebibyte_random.gabac_uncompressed
 
 ## Comparing GABAC to other codecs
 
@@ -31,7 +39,7 @@ The Bash script ``scripts/perform_codec_comparison.sh`` can be used to compare t
 
 The compression and decompression times, the maximum RAM usage, and the compressed file sizes will be logged in the file ``../resources/input_files/one_mebibyte_random.codec_stats``.
 
-**NOTE**: gabacify is designed to run on pieces of data which sizes lie below 1 GB. The entire input file will be read into memory and several buffers will be allocated. The estimated RAM usage for compressing a 1 GB file lies between 10 GB and 30 GB.
+**NOTE**: gabacify is designed to run on pieces of data which sizes lie below 1 GB. The entire input file will be read into memory and several buffers will be allocated. The estimated RAM usage for compressing a 1 GB file lies between 2 GB and 4 GB. To reduce RAM usage you can tell gabacify to split the input file into blocks of fixed size (using -b [Blocksize in bytes]). This can reduce compression performance but can be much more ressource friendly. Choose a blocksize divisible by 8 for optimal performance.
 
 ## Continuous integration
 
