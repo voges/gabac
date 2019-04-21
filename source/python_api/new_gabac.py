@@ -54,11 +54,87 @@ ct.c_void_p]
 # int64_t *const symbols                        symbols.ctypes.data_as(ct.POINTER(ct.c_uint64))
 # unsigned int *const binarizationParameters    binarization_parameters.ctypes.data_as(ct.POINTER(ct.c_uint))
 
-class gabac_return:
+class GABAC_RETURN:
     """Return Codes."""
+    SUCCESS = 0
+    FAILURE = 1
 
-    gabac_return_SUCCESS = 0
-    gabac_return_FAILURE = 1
+class GABAC_LOG_LEVEL:
+    """
+    Different logging urgency\n
+
+    TRACE   : Log every step in great detail\n
+    DEBUG   : Intermediate results\n
+    INFO    : Expected Results\n
+    WARNING : Suspicious events (may be an error)\n
+    ERROR   : Handled errors\n
+    FATAL   : Error causing application to terminate\n
+    """
+    TRACE = 0
+    DEBUG = 1
+    INFO = 2
+    WARNING = 3
+    ERROR = 4
+    FATAL = 5
+
+class GABAC_TRANSFORM:
+    r"""
+    gabac_transform_NONE        : Do nothing
+    gabac_transform_EQUALITY    : Find equal values sequentially
+    gabac_transform_MATCH       : Find larger sequence matches
+    gabac_transform_RLE         : Find run lengths
+    gabac_transform_LUT         : Remap symbols based on probability
+    gabac_transform_DIFF        : Use differences between symbol values instead of symbols
+    gabac_transform_CABAC       : coding based on cabac
+    """
+    NONE = 0
+    EQUALITY = 1
+    MATCH = 2
+    RLE = 3
+    LUT = 4
+    DIFF = 5
+    CABAC = 6
+
+class GABAC_BINARIZATION:
+    """
+    BI = 0,  /**< @brief Binary */
+    TU = 1,  /**< @brief Truncated Unary */
+    EG = 2,  /**< @brief Exponential Golomb */
+    SEG = 3,  /**< @brief Signed Exponential Golomb */
+    TEG = 4,  /**< @brief Truncated Exponential Golomb */
+    STEG = 5  /**< @brief Signed Truncated Exponential Golomb */
+    """
+    BI = 0
+    TU = 1
+    EG = 2
+    SEG = 3
+    TEG = 4
+    STEG = 5
+
+class GABAC_CONTEXT_SELCT:
+    """
+    BYPASS = 0,             /**< @brief Do not use arithmetic coding */
+    ADAPTIVE_ORDER_0 = 1,   /**< @brief Current symbol only */
+    ADAPTIVE_ORDER_1 = 2,   /**< @brief Use current + previous symbol */
+    ADAPTIVE_ORDER_2 = 3    /**< @brief Use current + previous + before previous symbol */
+    """
+    BYPASS = 0
+    ADAPTIVE_ORDER_0 = 1
+    ADAPTIVE_ORDER_1 = 2
+    ADAPTIVE_ORDER_2 = 3 
+
+class GABAC_OPERATION:
+    """enum gabac_operation"""
+    ENCODE = 0
+    DECODE = 1
+    ANALYZE = 2
+
+class GABAC_STREAM_MODE:
+    """ enum gabac_stream_mode"""
+    FILE = 0
+    BUFFER = 1
+
+
 
 
 ###-------Data Block-------###
@@ -83,7 +159,8 @@ class gabac_data_block(ct.Structure):
 # Return
 #   int gabac_data_block_init()
 libgabac.gabac_data_block_init.argtypes = [
-    ct.c_void_p,
+    #ct.c_void_p,
+    ct.POINTER(gabac_data_block),
     ct.c_void_p,
     ct.c_size_t,
     ct.c_uint8
@@ -160,19 +237,26 @@ class GabacDataBlock(object):
     def __init__(self,
         #block,
         size:int,
-        wordsize:int,
+        word_size:int,
         data=None,
     ):
+        # uint8_t wordSize;
+        # std::vector<uint8_t> data;
+
+        self.word_size = word_size
+
         self.data_block = gabac_data_block()
 
         return_code = libgabac.gabac_data_block_init(
-            self.data_block,
+            #self.data_block,
+            self.data_block.ctypes.data_as(ct.POINTER(gabac_data_block)),
             data,
+            #data.ctypes.data_as(ct.POINTER(ct.char),
             size,
-            wordsize,
+            word_size,
         )
 
-        if return_code == gabac_return.gabac_return_FAILURE:
+        if return_code == GABAC_RETURN.FAILURE:
             raise("Failed to initialize GabacDataCode")
 
     def release(self):
@@ -180,7 +264,7 @@ class GabacDataBlock(object):
             self.data_block,
         )
 
-        if return_code == gabac_return.gabac_return_FAILURE:
+        if return_code == GABAC_RETURN.FAILURE:
             raise("Failed to release memory of GabacDataCode")
 
     def __getitem__(self, index):
@@ -195,27 +279,6 @@ class GabacDataBlock(object):
             index,
             value
         )
-
-class gabac_operation:
-    """enum gabac_operation"""
-
-    gabac_operation_ENCODE = 0
-    gabac_operation_DECODE = 1
-    gabac_operation_ANALYZE = 2
-
-class gabac_log_level:
-    """enum gabac_log_level"""
-
-    gabac_log_level_TRACE = 0
-    gabac_log_level_DEBUG = 1
-    gabac_log_level_INFO = 2
-    gabac_log_level_WARNING = 3
-    gabac_log_level_ERROR = 4
-    gabac_log_level_FATAL = 5
-
-class gabac_stream_mode:
-    gabac_stream_mode_FILE = 0
-    gabac_stream_mode_BUFFER = 1
 
 class gabac_stream(ct.Structure):
     r"""
@@ -235,8 +298,8 @@ class gabac_stream(ct.Structure):
 # Return
 #   int gabac_stream_create_file(
 libgabac.gabac_stream_create_file.argtypes = [
-    gabac_stream,
-    ct.c_char_p,
+    ct.c_void_p,
+    ct.c_void_p,
     ct.c_size_t,
     ct.c_int
 ]
@@ -248,8 +311,8 @@ libgabac.gabac_stream_create_file.restype = ct.c_int
 # Return
 #   int gabac_stream_create_buffer(
 libgabac.gabac_stream_create_buffer.argtypes = [
-    gabac_stream,
-    gabac_data_block,
+    ct.c_void_p,
+    ct.c_void_p,
 ]
 libgabac.gabac_stream_create_buffer.restype = ct.c_int
 
@@ -318,11 +381,18 @@ class gabac_io_config(ct.Structure):
 # gabac_execute_transform
 # -----------------------------------------------------------------------------
 
+# Arguments
+#   uint8_t transformationID,
+#   const uint64_t *param,
+#   int inverse,
+#   gabac_data_block *input
+# Return
+#   int gabac_execute_transform(
 libgabac.gabac_execute_transform.argtypes = (
     [ct.c_uint8,
-    ct.c_uint64,
+    ct.c_void_p,
     ct.c_int,
-    gabac_data_block]
+    ct.c_void_p]
 )
 
 libgabac.gabac_execute_transform.restype = ct.c_int
@@ -344,7 +414,7 @@ def gabac_execute_transform(
         input_gabac_data_block.ctypes.data_as(ct.POINTER(gabac_data_block))
     )
 
-    if return_code != gabac_return.gabac_return_SUCCESS:
+    if return_code == GABAC_RETURN.FAILURE:
         sys.exit("error: gabac_encode() failed")
 
     return input_gabac_data_block
@@ -380,6 +450,6 @@ def gabac_run(
         len(config_json)
     )
 
-    if return_code != gabac_return.gabac_return_SUCCESS:
+    if return_code == GABAC_RETURN.FAILURE:
         sys.exit("error: gabac_run() failed")
 
