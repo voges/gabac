@@ -194,6 +194,7 @@ void encode(
             );
         }
         if (conf.blocksize) {
+            sequence.setWordSize(static_cast<uint8_t>(enConf.wordSize));
             size = gabac::StreamHandler::readBlock(*conf.inputStream, conf.blocksize, &sequence);
         } else {
             size = 0;
