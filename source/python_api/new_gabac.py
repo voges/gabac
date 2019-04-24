@@ -55,7 +55,12 @@ ct.c_void_p]
 # unsigned int *const binarizationParameters    binarization_parameters.ctypes.data_as(ct.POINTER(ct.c_uint))
 
 class GABAC_RETURN:
-    """Return Codes."""
+    """Return Codes.
+    
+    Values:
+        SUCCESS : if success.
+        FAILURE : if failed.
+    """
     SUCCESS = 0
     FAILURE = 1
 
@@ -63,12 +68,13 @@ class GABAC_LOG_LEVEL:
     """
     Different logging urgency\n
 
-    TRACE   : Log every step in great detail\n
-    DEBUG   : Intermediate results\n
-    INFO    : Expected Results\n
-    WARNING : Suspicious events (may be an error)\n
-    ERROR   : Handled errors\n
-    FATAL   : Error causing application to terminate\n
+    Values:
+        TRACE   : Log every step in great detail
+        DEBUG   : Intermediate results
+        INFO    : Expected Results
+        WARNING : Suspicious events (may be an error)
+        ERROR   : Handled errors
+        FATAL   : Error causing application to terminate
     """
     TRACE = 0
     DEBUG = 1
@@ -79,13 +85,14 @@ class GABAC_LOG_LEVEL:
 
 class GABAC_TRANSFORM:
     r"""
-    gabac_transform_NONE        : Do nothing
-    gabac_transform_EQUALITY    : Find equal values sequentially
-    gabac_transform_MATCH       : Find larger sequence matches
-    gabac_transform_RLE         : Find run lengths
-    gabac_transform_LUT         : Remap symbols based on probability
-    gabac_transform_DIFF        : Use differences between symbol values instead of symbols
-    gabac_transform_CABAC       : coding based on cabac
+    Values:
+        gabac_transform_NONE        : Do nothing
+        gabac_transform_EQUALITY    : Find equal values sequentially
+        gabac_transform_MATCH       : Find larger sequence matches
+        gabac_transform_RLE         : Find run lengths
+        gabac_transform_LUT         : Remap symbols based on probability
+        gabac_transform_DIFF        : Use differences between symbol values instead of symbols
+        gabac_transform_CABAC       : coding based on cabac
     """
     NONE = 0
     EQUALITY = 1
@@ -97,12 +104,13 @@ class GABAC_TRANSFORM:
 
 class GABAC_BINARIZATION:
     """
-    BI = 0,  /**< @brief Binary */
-    TU = 1,  /**< @brief Truncated Unary */
-    EG = 2,  /**< @brief Exponential Golomb */
-    SEG = 3,  /**< @brief Signed Exponential Golomb */
-    TEG = 4,  /**< @brief Truncated Exponential Golomb */
-    STEG = 5  /**< @brief Signed Truncated Exponential Golomb */
+    Values:
+        BI : Binary
+        TU : Truncated Unary
+        EG : Exponential Golomb
+        SEG  : Signed Exponential Golomb
+        TEG  : Truncated Exponential Golomb
+        STEG : Signed Truncated Exponential Golomb
     """
     BI = 0
     TU = 1
@@ -113,10 +121,11 @@ class GABAC_BINARIZATION:
 
 class GABAC_CONTEXT_SELCT:
     """
-    BYPASS = 0,             /**< @brief Do not use arithmetic coding */
-    ADAPTIVE_ORDER_0 = 1,   /**< @brief Current symbol only */
-    ADAPTIVE_ORDER_1 = 2,   /**< @brief Use current + previous symbol */
-    ADAPTIVE_ORDER_2 = 3    /**< @brief Use current + previous + before previous symbol */
+    Values:
+        BYPASS           : Do not use arithmetic coding
+        ADAPTIVE_ORDER_0 : Current symbol only
+        ADAPTIVE_ORDER_1 : Use current + previous symbol
+        ADAPTIVE_ORDER_2 : Use current + previous + before previous symbol
     """
     BYPASS = 0
     ADAPTIVE_ORDER_0 = 1
@@ -124,7 +133,14 @@ class GABAC_CONTEXT_SELCT:
     ADAPTIVE_ORDER_2 = 3 
 
 class GABAC_OPERATION:
-    """enum gabac_operation"""
+    """
+    Enum for gabac operation
+
+    Values
+        ENCODE
+        DECODE
+        ANALYZE
+    """
     ENCODE = 0
     DECODE = 1
     ANALYZE = 2
