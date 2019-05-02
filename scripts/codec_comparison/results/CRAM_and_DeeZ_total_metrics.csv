@@ -1,0 +1,7 @@
+﻿codec,total_compressed_size_MiB,total_compression_time_s
+gzip,2160,6277
+bzip2,2031,1217
+xz,1888,9252
+rans0,3193,207
+rans1,2248,244
+gabac,2037,5127
