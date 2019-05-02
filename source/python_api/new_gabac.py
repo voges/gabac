@@ -55,6 +55,7 @@ ct.c_void_p]
 # unsigned int *const binarizationParameters    binarization_parameters.ctypes.data_as(ct.POINTER(ct.c_uint))
 
 STRONG_TYPE = True
+
 class GABAC_RETURN:
     """Return Codes.
     
@@ -312,7 +313,7 @@ class gabac_stream(ct.Structure):
     """
     _fields_ = [
         ("data", ct.c_void_p),
-        ("gabac_stream_mode", ct.c_uint)
+        ("input_mode", ct.c_uint)
     ]
 
 # Arguments
