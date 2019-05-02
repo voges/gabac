@@ -16,6 +16,8 @@ process = subprocess.Popen("git rev-parse --show-toplevel".split(), stdout=subpr
 output, error = process.communicate()
 root_path = output.strip().decode("utf-8")
 
+libc = ct.CDLL("libc.so.6")
+
 def array(dtype, data):
     if isinstance(data, int):
         arr_dtype = data * dtype
@@ -78,21 +80,6 @@ class PythonApiTest(unittest.TestCase):
         b"\x05\x00\x00\x00"
     )
 
-    # config_json_py = {
-    #     "word_size" : 1,
-    #     "sequence_transformation_id" : 0,
-    #     "sequence_transformation_parameter" : 0,
-    #     "transfomred_sequences" : [
-    #         {
-    #             "lut_transformation_enabled" : False,
-    #             "diff_coding_enabled" : False,
-    #             "binarization_id" : 0,
-    #             "binarization_parameters" : [ 8 ],
-    #             "context_selection_id" : 1
-    #         }
-    #     ]
-    # }
-
     config_json_py = {
         "word_size" : 1,
         "sequence_transformation_id" : 3,
@@ -118,34 +105,43 @@ class PythonApiTest(unittest.TestCase):
     }
 
 
-    config_json = array(
-        ct.c_char,
-        json.dumps(config_json_py)
+    # config_json = array(
+    #     ct.c_char,
+    #     json.dumps(config_json_py)
+    # )
+
+    config_json_raw = json.dumps(config_json_py).encode(
+        'utf-8'
+    )
+    config_json_ptr = ct.c_char_p(
+        config_json_raw
     )
 
-# config_json = array(
-#     ct.c_char,
-#     b"{\n" + \
-#     b"\"word_size\": 1,\n" + \
-#     b"\"sequence_transformation_id\": 0,\n" + \
-#     b"\"sequence_transformation_parameter\": 0,\n" + \
-#     b"\"transformed_sequences\":\n" + \
-#     b"[\n" + \
-#     b"{\n" + \
-#     b"\"lut_transformation_enabled\": false,\n" + \
-#     b"\"diff_coding_enabled\": false,\n" + \
-#     b"\"binarization_id\": 0,\n" + \
-#     b"\"binarization_parameters\":\n" + \
-#     b"[\n" + \
-#     b"8\n" + \
-#     b"],\n" + \
-#     b"\"context_selection_id\": 1\n" + \
-#     b"}\n" + \
-#     b"]\n" + \
-#     b"}"
-# )
+
+    config_json_cchar = array(
+        ct.c_char,
+        b"{\n" + \
+        b"\"word_size\": 1,\n" + \
+        b"\"sequence_transformation_id\": 0,\n" + \
+        b"\"sequence_transformation_parameter\": 0,\n" + \
+        b"\"transformed_sequences\":\n" + \
+        b"[\n" + \
+        b"{\n" + \
+        b"\"lut_transformation_enabled\": false,\n" + \
+        b"\"diff_coding_enabled\": false,\n" + \
+        b"\"binarization_id\": 0,\n" + \
+        b"\"binarization_parameters\":\n" + \
+        b"[\n" + \
+        b"8\n" + \
+        b"],\n" + \
+        b"\"context_selection_id\": 1\n" + \
+        b"}\n" + \
+        b"]\n" + \
+        b"}"
+    )
 
     def test_api(self):
+        
         self.assertEqual(0, self._example_transformations(self.input_data1))
         self.assertEqual(0, self._example_transformations(self.input_data2))
         self.assertEqual(0, self._example_run())
@@ -166,7 +162,7 @@ class PythonApiTest(unittest.TestCase):
         # Allocate data block with 4 byte block size and the appriate length. 
         # The example data is copied 
         if libgabac.gabac_data_block_init(
-            blocks[0],
+            ct.byref(blocks[0]),
             input_data,
             ct.sizeof(input_data) // ct.sizeof(ct.c_int),
             ct.sizeof(ct.c_int)
@@ -174,7 +170,7 @@ class PythonApiTest(unittest.TestCase):
             return -1
 
         if libgabac.gabac_data_block_init(
-            blocks[1], 
+            ct.byref(blocks[1]), 
             None, 
             0, 
             ct.sizeof(ct.c_uint8)
@@ -277,10 +273,15 @@ class PythonApiTest(unittest.TestCase):
         # We will let gabac compress its own configuration.
         # Notice that offset -1 is to cut of the \0 at the end of the stream
         if libgabac.gabac_data_block_init(
-            ct.byref(in_block),
-            self.config_json,
-            ct.sizeof(self.config_json) - 1,
-            ct.sizeof(ct.c_uint8)
+            in_block,
+            ### With cchar
+            # self.config_json_cchar,
+            # ct.sizeof(self.config_json_cchar) - 1,
+            # ct.sizeof(ct.c_char)
+            ### With ptr
+            self.config_json_ptr,
+            len(self.config_json_raw),
+            ct.sizeof(ct.c_char),
         ):
             return -1
 
@@ -288,50 +289,58 @@ class PythonApiTest(unittest.TestCase):
 
         # Swap newly created input data block into a newly created input stream
         if libgabac.gabac_stream_create_buffer(
-            ct.byref(io_config.input),
-            ct.byref(in_block)
+            io_config.input,
+            in_block
         ):
-            libgabac.gabac_data_block_release(ct.byref(in_block))
+            libgabac.gabac_data_block_release(in_block)
             return -1
 
         # Create empty output stream
         if libgabac.gabac_stream_create_buffer(
-            ct.byref(io_config.output), 
+            io_config.output, 
             None
         ):
-            libgabac.gabac_stream_release(ct.byref(io_config.input))
+            libgabac.gabac_stream_release(io_config.input)
             return -1
 
         # Create log stream from file. You could also pass stdout instead.
         if libgabac.gabac_stream_create_file(
-            ct.byref(io_config.log),
+            io_config.log,
             logfilename, 
             len(logfilename), 
             1
         ):
-            libgabac.gabac_stream_release(ct.byref(io_config.input))
-            libgabac.gabac_stream_release(ct.byref(io_config.output))
+            libgabac.gabac_stream_release(io_config.input)
+            libgabac.gabac_stream_release(io_config.output)
             return -1
 
 
         # Encode using config
         if libgabac.gabac_run(
             GABAC_OPERATION.ENCODE,
-            ct.byref(io_config),
-            self.config_json,
-            ct.sizeof(self.config_json) - 1
+            # ct.byref(io_config),
+            # ct.byref(self.config_json),
+            # ct.sizeof(self.config_json) - 1
+            # ct.byref(io_config),
+            # self.config_json_ptr,
+            # ct.sizeof(self.config_json_ptr) - 1
+            
+            ### With cchar
+            io_config,
+            self.config_json_raw,
+            len(self.config_json_raw)-1,
         ):
-            libgabac.gabac_stream_release(ct.byref(io_config.input))
-            libgabac.gabac_stream_release(ct.byref(io_config.output))
+            libgabac.gabac_stream_release(io_config.input)
+            libgabac.gabac_stream_release(io_config.output)
             return -1
 
         # Swap contents of output stream back into input stream to prepare decoding
         if libgabac.gabac_stream_swap_block(
-            ct.byref(io_config.output), 
-            ct.byref(in_block)
+            io_config.output, 
+            in_block
         ):
-            libgabac.gabac_stream_release(ct.byref(io_config.input))
-            libgabac.gabac_stream_release(ct.byref(io_config.output))
+            libgabac.gabac_stream_release(io_config.input)
+            libgabac.gabac_stream_release(io_config.output)
             return -1
         libgabac.gabac_stream_swap_block(ct.byref(io_config.input), ct.byref(in_block))
 
@@ -339,9 +348,10 @@ class PythonApiTest(unittest.TestCase):
         print("*** Run gabac decode...")
         if libgabac.gabac_run(
             GABAC_OPERATION.DECODE, 
-            ct.byref(io_config),
-            self.config_json, 
-            ct.sizeof(self.config_json) - 1
+            ### With cchar
+            io_config,
+            self.config_json_raw,
+            len(self.config_json_raw)-1,
         ):
             print("*** Gabac decode failed!")
 

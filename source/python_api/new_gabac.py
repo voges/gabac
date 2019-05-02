@@ -54,6 +54,7 @@ ct.c_void_p]
 # int64_t *const symbols                        symbols.ctypes.data_as(ct.POINTER(ct.c_uint64))
 # unsigned int *const binarizationParameters    binarization_parameters.ctypes.data_as(ct.POINTER(ct.c_uint))
 
+STRONG_TYPE = True
 class GABAC_RETURN:
     """Return Codes.
     
@@ -176,7 +177,7 @@ class gabac_data_block(ct.Structure):
 #   int gabac_data_block_init()
 libgabac.gabac_data_block_init.argtypes = [
     #ct.c_void_p,
-    ct.POINTER(gabac_data_block),
+    ct.POINTER(gabac_data_block) if STRONG_TYPE else ct.c_void_p,
     ct.c_void_p,
     ct.c_size_t,
     ct.c_uint8
@@ -188,7 +189,8 @@ libgabac.gabac_data_block_init.restype = ct.c_int
 # Return
 #   int gabac_data_block_release()
 libgabac.gabac_data_block_release.argtypes = [
-    ct.c_void_p
+    #ct.c_void_p
+    ct.POINTER(gabac_data_block) if STRONG_TYPE else ct.c_void_p,
 ]
 libgabac.gabac_data_block_init.restype = ct.c_int
 
@@ -198,7 +200,8 @@ libgabac.gabac_data_block_init.restype = ct.c_int
 # Return
 #   int gabac_data_block_resize()
 libgabac.gabac_data_block_resize.argtypes = [
-    ct.c_void_p,
+    # ct.c_void_p,
+    ct.POINTER(gabac_data_block) if STRONG_TYPE else ct.c_void_p,
     ct.c_size_t
 ]
 libgabac.gabac_data_block_resize.restype = ct.c_int
@@ -209,8 +212,10 @@ libgabac.gabac_data_block_resize.restype = ct.c_int
 # Return
 #   int gabac_data_block_swap()
 libgabac.gabac_data_block_swap.argtypes = [
-    ct.c_void_p,
-    ct.c_void_p
+    # ct.c_void_p,
+    # ct.c_void_p
+    ct.POINTER(gabac_data_block) if STRONG_TYPE else ct.c_void_p,
+    ct.POINTER(gabac_data_block) if STRONG_TYPE else ct.c_void_p,
 ]
 libgabac.gabac_data_block_swap.restype = ct.c_int
 
@@ -220,8 +225,10 @@ libgabac.gabac_data_block_swap.restype = ct.c_int
 # Return
 #   int gabac_data_block_copy()
 libgabac.gabac_data_block_copy.argtypes = [
-    ct.c_void_p,
-    ct.c_void_p
+    # ct.c_void_p,
+    # ct.c_void_p
+    ct.POINTER(gabac_data_block) if STRONG_TYPE else ct.c_void_p,
+    ct.POINTER(gabac_data_block) if STRONG_TYPE else ct.c_void_p,
 ]
 libgabac.gabac_data_block_copy.restype = ct.c_int
 
@@ -231,7 +238,8 @@ libgabac.gabac_data_block_copy.restype = ct.c_int
 # Return
 #   uint64_t gabac_data_block_get()
 libgabac.gabac_data_block_get.argtypes = [
-    ct.c_void_p,
+    # ct.c_void_p,
+    ct.POINTER(gabac_data_block) if STRONG_TYPE else ct.c_void_p,
     ct.c_size_t
 ]
 libgabac.gabac_data_block_get.restype = ct.c_uint64
@@ -243,7 +251,8 @@ libgabac.gabac_data_block_get.restype = ct.c_uint64
 # Return
 #   void gabac_data_block_set()   
 libgabac.gabac_data_block_set.argtypes = [
-    ct.c_void_p,
+    # ct.c_void_p,
+    ct.POINTER(gabac_data_block) if STRONG_TYPE else ct.c_void_p,
     ct.c_size_t
 ]
 libgabac.gabac_data_block_set.restype = None
@@ -314,8 +323,10 @@ class gabac_stream(ct.Structure):
 # Return
 #   int gabac_stream_create_file(
 libgabac.gabac_stream_create_file.argtypes = [
-    ct.c_void_p,
-    ct.c_void_p,
+    # ct.c_void_p,
+    # ct.c_void_p,
+    ct.POINTER(gabac_stream) if STRONG_TYPE else ct.c_void_p,
+    ct.c_char_p if STRONG_TYPE else ct.c_void_p,
     ct.c_size_t,
     ct.c_int
 ]
@@ -327,8 +338,10 @@ libgabac.gabac_stream_create_file.restype = ct.c_int
 # Return
 #   int gabac_stream_create_buffer(
 libgabac.gabac_stream_create_buffer.argtypes = [
-    ct.c_void_p,
-    ct.c_void_p,
+    # ct.c_void_p,
+    # ct.c_void_p,
+    ct.POINTER(gabac_stream) if STRONG_TYPE else ct.c_void_p,
+    ct.POINTER(gabac_data_block) if STRONG_TYPE else ct.c_void_p,
 ]
 libgabac.gabac_stream_create_buffer.restype = ct.c_int
 
@@ -338,8 +351,8 @@ libgabac.gabac_stream_create_buffer.restype = ct.c_int
 # Return
 #   int gabac_stream_swap_block(
 libgabac.gabac_stream_swap_block.argtypes = [
-    gabac_stream,
-    gabac_data_block
+    ct.POINTER(gabac_stream) if STRONG_TYPE else ct.c_void_p,
+    ct.POINTER(gabac_data_block) if STRONG_TYPE else ct.c_void_p,
 ]
 libgabac.gabac_stream_swap_block.restype = ct.c_int
 
@@ -350,7 +363,7 @@ libgabac.gabac_stream_swap_block.restype = ct.c_int
 #   int gabac_stream_swap_file(
 # TODO: Check datatype for file
 libgabac.gabac_stream_swap_file.argtypes = [
-    gabac_stream,
+    ct.POINTER(gabac_stream) if STRONG_TYPE else ct.c_void_p,
     ct.c_void_p
 ]
 libgabac.gabac_stream_swap_file
@@ -360,7 +373,7 @@ libgabac.gabac_stream_swap_file
 # Return
 #   int gabac_stream_release(
 libgabac.gabac_stream_release.argtypes = [
-    gabac_stream
+    ct.POINTER(gabac_stream) if STRONG_TYPE else ct.c_void_p,
 ]
 libgabac.gabac_stream_release.restype = ct.c_int
 
@@ -404,12 +417,13 @@ class gabac_io_config(ct.Structure):
 #   gabac_data_block *input
 # Return
 #   int gabac_execute_transform(
-libgabac.gabac_execute_transform.argtypes = (
-    [ct.c_uint8,
-    ct.c_void_p,
+libgabac.gabac_execute_transform.argtypes = [
+    ct.c_uint8,
+    ct.POINTER(ct.c_uint64) if STRONG_TYPE else ct.c_void_p,
     ct.c_int,
-    ct.c_void_p]
-)
+    ct.POINTER(gabac_data_block) if STRONG_TYPE else ct.c_void_p,
+]
+
 
 libgabac.gabac_execute_transform.restype = ct.c_int
 
@@ -442,12 +456,12 @@ def gabac_execute_transform(
 # gabac_io_config *io_config,
 # const char *config_json,
 # size_t json_length
-libgabac.gabac_run.argtypes = (
-    [ct.c_uint,
-    ct.c_void_p,
-    ct.c_void_p,
-    ct.c_size_t]
-)
+libgabac.gabac_run.argtypes = [
+    ct.c_uint,
+    ct.POINTER(gabac_io_config) if STRONG_TYPE else ct.c_void_p,
+    ct.c_char_p if STRONG_TYPE else ct.c_void_p,
+    ct.c_size_t
+]
 
 libgabac.gabac_run.restype = ct.c_int
 
