@@ -275,13 +275,14 @@ class PythonApiTest(unittest.TestCase):
         if libgabac.gabac_data_block_init(
             in_block,
             ### With cchar
-            # self.config_json_cchar,
-            # ct.sizeof(self.config_json_cchar) - 1,
-            # ct.sizeof(ct.c_char)
-            ### With ptr
-            self.config_json_ptr,
-            len(self.config_json_raw),
-            ct.sizeof(ct.c_char),
+            self.config_json_cchar,
+            ct.sizeof(self.config_json_cchar) - 1,
+            ct.sizeof(ct.c_char)
+
+            # ### With raw
+            # self.config_json_raw,
+            # len(self.config_json_raw),
+            # ct.sizeof(ct.c_char),
         ):
             return -1
 
@@ -318,17 +319,21 @@ class PythonApiTest(unittest.TestCase):
         # Encode using config
         if libgabac.gabac_run(
             GABAC_OPERATION.ENCODE,
+            io_config,
             # ct.byref(io_config),
             # ct.byref(self.config_json),
             # ct.sizeof(self.config_json) - 1
             # ct.byref(io_config),
             # self.config_json_ptr,
             # ct.sizeof(self.config_json_ptr) - 1
-            
+
             ### With cchar
-            io_config,
-            self.config_json_raw,
-            len(self.config_json_raw)-1,
+            self.config_json_cchar,
+            ct.sizeof(self.config_json_cchar) - 1,
+            
+            # ### With ptr
+            # self.config_json_raw,
+            # len(self.config_json_raw)-1,
         ):
             libgabac.gabac_stream_release(io_config.input)
             libgabac.gabac_stream_release(io_config.output)
