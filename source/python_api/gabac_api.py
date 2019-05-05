@@ -444,11 +444,14 @@ def gabac_execute_transform(
 
 # gabac_run
 # -----------------------------------------------------------------------------
+# Arguments
+#   gabac_operation     operation
+#   gabac_io_config     *io_config,
+#   const char          *config_json,
+#   size_t              json_length
+# Return
+#   int gabac_run(
 
-# gabac_operation operation     enum
-# gabac_io_config *io_config,
-# const char *config_json,
-# size_t json_length
 libgabac.gabac_run.argtypes = [
     ct.c_uint,
     ct.POINTER(gabac_io_config) if STRONG_TYPE else ct.c_void_p,
