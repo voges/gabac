@@ -68,10 +68,10 @@ Braces () need to be removed from the ``summary.csv`` file to not confuse the R 
 Finally, usually the GABAC analyze runs do not go into our plots. The corresponding rows can be purged with the following command:
 
     # Linux
-    $ sed -i '/gabac-a/d' ./infile
+    $ sed -i '/gabac-a/d' summary.csv
 
     # macOS
-    $ sed -i "" '/gabac-a/d' ./infile
+    $ sed -i "" '/gabac-a/d' summary.csv
 
 ## Step 4: plotting of results
 
