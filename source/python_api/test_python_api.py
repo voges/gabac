@@ -316,9 +316,8 @@ class PythonApiTest(unittest.TestCase):
             in_block,
             ### With cchar
             self.config_json_cchar,
-            ct.sizeof(self.config_json_cchar) - 1,
+            ct.sizeof(self.config_json_cchar),
             ct.sizeof(ct.c_char)
-
             # ### With raw
             # self.config_json_raw,
             # len(self.config_json_raw),
@@ -328,6 +327,7 @@ class PythonApiTest(unittest.TestCase):
             return GABAC_RETURN.FAILURE
 
         print_block(in_block)
+        original_values = get_block_values(in_block)
 
         # Swap newly created input data block into a newly created input stream
         if libgabac.gabac_stream_create_buffer(
@@ -380,7 +380,7 @@ class PythonApiTest(unittest.TestCase):
             return GABAC_RETURN.FAILURE
 
         # Swap contents of output stream back into input stream to prepare decoding
-        libgabac.gabac_stream_swap_block(io_config.input, in_block)
+        libgabac.gabac_stream_swap_block(io_config.output, in_block)
         print_block(in_block)
         libgabac.gabac_stream_swap_block(io_config.input, in_block)
 
@@ -405,13 +405,19 @@ class PythonApiTest(unittest.TestCase):
         libgabac.gabac_stream_swap_block(io_config.output, in_block)
         print_block(in_block)
 
+        enc_dec_values = get_block_values(in_block)
+
         # Free all ressources
         print("*** Release...")
         libgabac.gabac_data_block_release(in_block)
         libgabac.gabac_stream_release(io_config.input)
         libgabac.gabac_stream_release(io_config.output)
         libgabac.gabac_stream_release(io_config.log)
-        return GABAC_RETURN.SUCCESS
+        
+        if enc_dec_values == original_values:
+            return GABAC_RETURN.SUCCESS
+        else:
+            return GABAC_RETURN.FAILURE
 
 if __name__ == '__main__':
     unittest.main()
