@@ -43,8 +43,10 @@ def print_array(arr):
 
 def print_block(block):
     for i in range(block.values_size):
-        print("{:02d}".format(libgabac.gabac_data_block_get(ct.byref(block), i)), end='')
-    print()
+        # print("{:02d}".format(libgabac.gabac_data_block_get(ct.byref(block), i)), end='')
+        libc.printf(b"%lu ", libgabac.gabac_data_block_get(ct.byref(block), i))
+    # print()
+    libc.printf(b"\n")
 
 def get_block_values(block):
     values = ""
@@ -87,7 +89,7 @@ class PythonApiTest(unittest.TestCase):
         "transformed_sequences" : [
             {
                 "lut_transformation_enabled" : True,
-                "lut_transformation_parameter": [0],
+                "lut_transformation_parameter": 0,
                 "diff_coding_enabled": False,
                 "binarization_id" : 2,
                 "binarization_parameters" : [ ],
@@ -142,9 +144,9 @@ class PythonApiTest(unittest.TestCase):
 
     def test_api(self):
         
-        self.assertEqual(0, self._example_transformations(self.input_data1))
-        self.assertEqual(0, self._example_transformations(self.input_data2))
-        # self.assertEqual(0, self._example_run())
+        # self.assertEqual(GABAC_RETURN.SUCCESS, self._example_transformations(self.input_data1))
+        self.assertEqual(GABAC_RETURN.SUCCESS, self._example_transformations(self.input_data2))
+        # self.assertEqual(GABAC_RETURN.SUCCESS, self._example_run())
 
     def _example_transformations(self, input_data):
         blocks = array(gabac_data_block, 2)
@@ -159,6 +161,10 @@ class PythonApiTest(unittest.TestCase):
             ]
         )
 
+        # /********************************************/
+        libc.printf(b"--> Test Transformations\n")
+        libc.printf(b"***Init blocks...\n")
+
         # Allocate data block with 4 byte block size and the appriate length. 
         # The example data is copied 
         if libgabac.gabac_data_block_init(
@@ -167,8 +173,10 @@ class PythonApiTest(unittest.TestCase):
             ct.sizeof(input_data) // ct.sizeof(ct.c_int),
             ct.sizeof(ct.c_int)
         ):
+            libc.printf(b"Block 0 init failed!\n")
             return -1
 
+        # Allocate an empty data block (will be used to contain the second stream of RLE-Coding)
         if libgabac.gabac_data_block_init(
             ct.byref(blocks[1]), 
             None, 
@@ -176,9 +184,19 @@ class PythonApiTest(unittest.TestCase):
             ct.sizeof(ct.c_uint8)
         ):
             libgabac.gabac_data_block_release(blocks[0])
+            libc.printf(b"Block 1 init failed!")
             return -1
 
+        # Addition to c_example
         original_values = [get_block_values(block) for block in blocks]
+
+        libc.printf(b"Block 0:\n")
+        print_block(blocks[0])
+        libc.printf(b"Block 1:\n")
+        print_block(blocks[1])
+
+        # /********************************************/
+        libc.printf(b"***Executing RLE-Coding!\n")
 
         # Execute the actual RLE transformation. 
         # blocks[0] and blocks[1] will now contain the transformed streams
@@ -190,85 +208,107 @@ class PythonApiTest(unittest.TestCase):
             GABAC_OPERATION.ENCODE,
             blocks
         ) == GABAC_RETURN.FAILURE:
+            libc.printf(b"RLE transform failed!\n")
             libgabac.gabac_data_block_release(blocks[0])
             libgabac.gabac_data_block_release(blocks[1])
-            return -1
+            return GABAC_RETURN.FAILURE
 
-        # Diff-Coding on block 0
+        print_block(blocks[0])
+        print_block(blocks[1])
+
+        libc.printf(b"***Executing Diff-Coding on block 0!\n")
         if libgabac.gabac_execute_transform(
             GABAC_TRANSFORM.DIFF, 
             None, 
             GABAC_OPERATION.ENCODE,
             blocks
         ):
+            libc.printf(b"Diff coding failed!\n")
             libgabac.gabac_data_block_release(blocks[0])
             libgabac.gabac_data_block_release(blocks[1])
-            return -1
+            return GABAC_RETURN.FAILURE
+        print_block(blocks[0])
 
-        # Executing CABAC-Coding on block 1
+        libc.printf(b"***Executing CABAC-Coding on block 1!\n")
         if libgabac.gabac_execute_transform(
             GABAC_TRANSFORM.CABAC,
             parameters_CABAC,
             GABAC_OPERATION.ENCODE, 
             ct.byref(blocks[1])
         ):
+            libc.printf(b"Cabac coding failed!\n")
             libgabac.gabac_data_block_release(blocks[0])
             libgabac.gabac_data_block_release(blocks[1])
-            return -1
+            return GABAC_RETURN.FAILURE
+        print_block(blocks[1])
 
-        # Executing CABAC-Decoding on block 1
+        libc.printf(b"***Executing CABAC-Decoding on block 1!\n")
         if libgabac.gabac_execute_transform(
             GABAC_TRANSFORM.CABAC,
             parameters_CABAC,
             GABAC_OPERATION.DECODE,
             ct.byref(blocks[1])
         ):
+            libc.printf(b"Cabac decoding failed!\n")
             libgabac.gabac_data_block_release(blocks[0])
             libgabac.gabac_data_block_release(blocks[1])
-            return -1
+            return GABAC_RETURN.FAILURE
+
+        print_block(blocks[1])
 
         # Diff-Decoding on block 0
+        libc.printf(b"***Executing Diff-Decoding on block 0!\n")
         if libgabac.gabac_execute_transform(
             GABAC_TRANSFORM.DIFF,
             None,
             GABAC_OPERATION.DECODE,
             blocks
         ):
+            libc.printf(b"Inverse diff transform failed!\n")
             libgabac.gabac_data_block_release(blocks[0])
             libgabac.gabac_data_block_release(blocks[1])
-            return -1
+            return GABAC_RETURN.FAILURE
 
+        print_block(blocks[0])
+
+        libc.printf(b"***Executing RLE-Decoding!\n")
         # After this last decoding step you should retrieve the raw example data again
-        # RLE-Decoding
         if libgabac.gabac_execute_transform(
             GABAC_TRANSFORM.RLE,
             parameters_RLE,
             GABAC_OPERATION.DECODE,
             blocks
         ):
+            libc.printf(b"Inverse diff coding failed!\n")
             libgabac.gabac_data_block_release(blocks[0])
             libgabac.gabac_data_block_release(blocks[1])
-            return -1
+            return GABAC_RETURN.FAILURE
+
+        print_block(blocks[0])
+        print_block(blocks[1])
 
         enc_dec_values = [get_block_values(block) for block in blocks]
 
+        libc.printf(b"***Releasing blocks...\n")
         libgabac.gabac_data_block_release(blocks[0])
         libgabac.gabac_data_block_release(blocks[1])
 
         if enc_dec_values[0] == original_values[0]:
-            return 0
+            return GABAC_RETURN.SUCCESS
         else:
-            return -1
+            return GABAC_RETURN.FAILURE
 
     def _example_run(self):
         # Init IO configuration
         io_config = gabac_io_config()
-        io_config.log_level = GABAC_LOG_LEVEL.TRACE
 
         # Data block for input stream buffer
         in_block = gabac_data_block()
 
         logfilename = array(ct.c_char, "log.txt")
+
+        libc.printf(b"--> Test full run\n")
+        libc.printf(b"*** Init streams...\n")
 
         # We will let gabac compress its own configuration.
         # Notice that offset -1 is to cut of the \0 at the end of the stream
