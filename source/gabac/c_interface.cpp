@@ -11,13 +11,7 @@
 #include <string>
 #include <vector>
 
-#include "gabac/analysis.h"
-#include "gabac/configuration.h"
-#include "gabac/constants.h"
-#include "gabac/data_block.h"
-#include "gabac/decoding.h"
-#include "gabac/encoding.h"
-#include "gabac/streams.h"
+#include "gabac/gabac.h"
 
 
 const uint8_t gabac_sequence_transform_params[] = {
@@ -107,8 +101,8 @@ int gabac_data_block_release(gabac_data_block *block){
 
 int gabac_data_block_resize(gabac_data_block *block, size_t size){
     block->values_size = size * block->word_size;
-    block->values = static_cast<uint8_t *>(realloc(block->values, size * block->word_size));
-    if (!block->values) {
+    block->values = static_cast<uint8_t *>(realloc(block->values, block->values_size));
+    if (!block->values && block->values_size) {
         block->values_size = 0;
         block->word_size = 1;
         return gabac_return_FAILURE;
@@ -190,6 +184,8 @@ int gabac_stream_create_file(gabac_stream *stream, FILE *file){
 
 int gabac_stream_create_buffer(gabac_stream *stream, gabac_data_block *block){
     stream->data = calloc(1, sizeof(gabac_data_block));
+    if(!stream->data)
+        return gabac_return_FAILURE;
     static_cast<gabac_data_block *>(stream->data)->word_size = 1;
     if (block) {
         if (gabac_data_block_swap(static_cast<gabac_data_block *>(stream->data), block)) {
@@ -320,7 +316,7 @@ int gabac_run(
                 auto *cblock = static_cast<gabac_data_block *>(io_config->input.data);
                 gabac::DataBlock tmp(cblock->values, cblock->values_size, cblock->word_size);
                 if (gabac_data_block_resize(cblock, 0)) {
-                    GABAC_DIE("Resize failed");
+                    GABAC_DIE("Resize failed - input");
                 }
                 input.reset(new gabac::IBufferStream(&tmp));
             }
@@ -335,11 +331,11 @@ int gabac_run(
                     break;
                 case gabac_operation_ENCODE:
                     enConf = gabac::EncodingConfiguration(config);
-                    gabac::encode(ioconf_cpp, enConf);
+                    gabac::run(ioconf_cpp, enConf, false);
                     break;
                 case gabac_operation_DECODE:
                     enConf = gabac::EncodingConfiguration(config);
-                    gabac::decode(ioconf_cpp, enConf);
+                    gabac::run(ioconf_cpp, enConf, true);
                     break;
             }
         }
@@ -350,7 +346,7 @@ int gabac_run(
             dynamic_cast<gabac::OBufferStream *> (output.get())->flush(&b);
             cblock->word_size = b.getWordSize();
             if (gabac_data_block_resize(cblock, b.size())) {
-                GABAC_DIE("Resize failed");
+                GABAC_DIE("Resize failed - output");
             }
             memcpy(cblock->values, b.getData(), b.getRawSize());
         }
@@ -361,7 +357,7 @@ int gabac_run(
             dynamic_cast<gabac::OBufferStream *> (log.get())->flush(&b);
             cblock->word_size = b.getWordSize();
             if (gabac_data_block_resize(cblock, b.size())) {
-                GABAC_DIE("Resize failed");
+                GABAC_DIE("Resize failed - log");
             }
             memcpy(cblock->values, b.getData(), b.getRawSize());
         }
