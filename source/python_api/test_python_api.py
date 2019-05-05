@@ -5,12 +5,11 @@ import subprocess
 import unittest
 import copy
 
-from new_gabac import libgabac
-from new_gabac import GABAC_BINARIZATION, GABAC_CONTEXT_SELCT, GABAC_LOG_LEVEL, GABAC_LOG_LEVEL
-from new_gabac import GABAC_OPERATION, GABAC_RETURN, GABAC_STREAM_MODE, GABAC_TRANSFORM
-from new_gabac import gabac_data_block
-from new_gabac import gabac_io_config
-
+from gabac_api import libgabac
+from gabac_api import GABAC_BINARIZATION, GABAC_CONTEXT_SELECT, GABAC_LOG_LEVEL, GABAC_LOG_LEVEL
+from gabac_api import GABAC_OPERATION, GABAC_RETURN, GABAC_STREAM_MODE, GABAC_TRANSFORM
+from gabac_api import gabac_data_block
+from gabac_api import gabac_io_config
 
 process = subprocess.Popen("git rev-parse --show-toplevel".split(), stdout=subprocess.PIPE)
 output, error = process.communicate()
@@ -156,7 +155,7 @@ class PythonApiTest(unittest.TestCase):
             [
                 GABAC_BINARIZATION.TU, 
                 2, 
-                GABAC_CONTEXT_SELCT.ADAPTIVE_ORDER_0, 
+                GABAC_CONTEXT_SELECT.ADAPTIVE_ORDER_0, 
                 ct.sizeof(ct.c_int)
             ]
         )

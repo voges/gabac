@@ -57,7 +57,7 @@ ct.c_void_p]
 STRONG_TYPE = True
 
 class GABAC_RETURN:
-    """Return Codes.
+    r"""Return Codes.
     
     Values:
         SUCCESS : if success.
@@ -67,8 +67,8 @@ class GABAC_RETURN:
     FAILURE = 1
 
 class GABAC_LOG_LEVEL:
-    """
-    Different logging urgency\n
+    r"""
+    Different logging urgency
 
     Values:
         TRACE   : Log every step in great detail
@@ -87,6 +87,8 @@ class GABAC_LOG_LEVEL:
 
 class GABAC_TRANSFORM:
     r"""
+    Gabac available transformations
+
     Values:
         gabac_transform_NONE        : Do nothing
         gabac_transform_EQUALITY    : Find equal values sequentially
@@ -105,7 +107,9 @@ class GABAC_TRANSFORM:
     CABAC = 6
 
 class GABAC_BINARIZATION:
-    """
+    r"""
+    Binarizations for cabac transformation
+
     Values:
         BI : Binary
         TU : Truncated Unary
@@ -121,8 +125,10 @@ class GABAC_BINARIZATION:
     TEG = 4
     STEG = 5
 
-class GABAC_CONTEXT_SELCT:
-    """
+class GABAC_CONTEXT_SELECT:
+    r"""
+    Context selection modes for cabac transformation
+
     Values:
         BYPASS           : Do not use arithmetic coding
         ADAPTIVE_ORDER_0 : Current symbol only
@@ -135,25 +141,28 @@ class GABAC_CONTEXT_SELCT:
     ADAPTIVE_ORDER_2 = 3 
 
 class GABAC_OPERATION:
-    """
+    r"""
     Enum for gabac operation
 
     Values
-        ENCODE
-        DECODE
-        ANALYZE
+        ENCODE  : Use configuration to compress
+        DECODE  : Use configuration to decompress
+        ANALYZE : Find best configuration for input data
     """
     ENCODE = 0
     DECODE = 1
     ANALYZE = 2
 
 class GABAC_STREAM_MODE:
-    """ enum gabac_stream_mode"""
+    r"""
+    Flags for different data types
+
+    Values
+        FILE    : Read/write from file
+        BUFFER  : Read/write from data block
+    """
     FILE = 0
     BUFFER = 1
-
-
-
 
 ###-------Data Block-------###
 
@@ -250,54 +259,6 @@ libgabac.gabac_data_block_set.argtypes = [
 ]
 libgabac.gabac_data_block_set.restype = None
 
-class GabacDataBlock(object):
-
-    def __init__(self,
-        #block,
-        size:int,
-        word_size:int,
-        data=None,
-    ):
-        # uint8_t wordSize;
-        # std::vector<uint8_t> data;
-
-        self.word_size = word_size
-
-        self.data_block = gabac_data_block()
-
-        return_code = libgabac.gabac_data_block_init(
-            #self.data_block,
-            self.data_block.ctypes.data_as(ct.POINTER(gabac_data_block)),
-            data,
-            #data.ctypes.data_as(ct.POINTER(ct.char),
-            size,
-            word_size,
-        )
-
-        if return_code == GABAC_RETURN.FAILURE:
-            raise("Failed to initialize GabacDataCode")
-
-    def release(self):
-        return_code = libgabac.gabac_data_block_init(
-            self.data_block,
-        )
-
-        if return_code == GABAC_RETURN.FAILURE:
-            raise("Failed to release memory of GabacDataCode")
-
-    def __getitem__(self, index):
-        return libgabac.gabac_data_block_get(
-            self.data_block,
-            index
-        )
-
-    def __setitem__(self, index, value):
-        libgabac.gabac_data_block_set(
-            self.data_block,
-            index,
-            value
-        )
-
 class gabac_stream(ct.Structure):
     r"""
     void *data;
@@ -370,19 +331,6 @@ libgabac.gabac_stream_release.argtypes = [
 ]
 libgabac.gabac_stream_release.restype = ct.c_int
 
-class GabacStream(object):
-    def __init__(self,
-        write,
-        filename="",
-    ):
-        
-        self.stream = gabac_stream()
-        
-        libgabac.gabac_stream_create_file(
-            self.stream,
-            filename,
-            len(filename),
-        )
 
 class gabac_io_config(ct.Structure):
     r"""
