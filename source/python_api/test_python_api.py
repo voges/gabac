@@ -146,7 +146,7 @@ class PythonApiTest(unittest.TestCase):
         
         # self.assertEqual(GABAC_RETURN.SUCCESS, self._example_transformations(self.input_data1))
         self.assertEqual(GABAC_RETURN.SUCCESS, self._example_transformations(self.input_data2))
-        # self.assertEqual(GABAC_RETURN.SUCCESS, self._example_run())
+        self.assertEqual(GABAC_RETURN.SUCCESS, self._example_run())
 
     def _example_transformations(self, input_data):
         blocks = array(gabac_data_block, 2)
@@ -324,7 +324,8 @@ class PythonApiTest(unittest.TestCase):
             # len(self.config_json_raw),
             # ct.sizeof(ct.c_char),
         ):
-            return -1
+            libc.printf(b"*** Could not allocate buffer!\n")
+            return GABAC_RETURN.FAILURE
 
         print_block(in_block)
 
@@ -333,16 +334,18 @@ class PythonApiTest(unittest.TestCase):
             io_config.input,
             in_block
         ):
+            libc.printf(b"*** Could not allocate in stream!\n")
             libgabac.gabac_data_block_release(in_block)
-            return -1
+            return GABAC_RETURN.FAILURE
 
         # Create empty output stream
         if libgabac.gabac_stream_create_buffer(
             io_config.output, 
             None
         ):
+            libc.printf(b"*** Could not allocate out stream!\n")
             libgabac.gabac_stream_release(io_config.input)
-            return -1
+            return GABAC_RETURN.FAILURE
 
         # Create log stream from file. You could also pass stdout instead.
         if libgabac.gabac_stream_create_file(
@@ -351,66 +354,64 @@ class PythonApiTest(unittest.TestCase):
             len(logfilename), 
             1
         ):
+            libc.printf(b"*** Could not allocate log stream!\n")
             libgabac.gabac_stream_release(io_config.input)
             libgabac.gabac_stream_release(io_config.output)
-            return -1
+            return GABAC_RETURN.FAILURE
 
+        libc.printf(b"*** Run gabac encode...\n")
 
         # Encode using config
         if libgabac.gabac_run(
             GABAC_OPERATION.ENCODE,
             io_config,
-            # ct.byref(io_config),
-            # ct.byref(self.config_json),
-            # ct.sizeof(self.config_json) - 1
-            # ct.byref(io_config),
-            # self.config_json_ptr,
-            # ct.sizeof(self.config_json_ptr) - 1
-
             ### With cchar
             self.config_json_cchar,
-            ct.sizeof(self.config_json_cchar) - 1,
-            
+            len(self.config_json_cchar),            
             # ### With ptr
             # self.config_json_raw,
             # len(self.config_json_raw)-1,
         ):
+            libc.printf(b"*** Gabac encode failed!\n")
+            libgabac.gabac_data_block_release(in_block)
             libgabac.gabac_stream_release(io_config.input)
             libgabac.gabac_stream_release(io_config.output)
-            return -1
+            libgabac.gabac_stream_release(io_config.log)
+            return GABAC_RETURN.FAILURE
 
         # Swap contents of output stream back into input stream to prepare decoding
-        if libgabac.gabac_stream_swap_block(
-            io_config.output, 
-            in_block
-        ):
-            libgabac.gabac_stream_release(io_config.input)
-            libgabac.gabac_stream_release(io_config.output)
-            return -1
-        libgabac.gabac_stream_swap_block(ct.byref(io_config.input), ct.byref(in_block))
+        libgabac.gabac_stream_swap_block(io_config.input, in_block)
+        print_block(in_block)
+        libgabac.gabac_stream_swap_block(io_config.input, in_block)
 
         # Decode
-        print("*** Run gabac decode...")
+        libc.printf(b"*** Run gabac decode...\n")
         if libgabac.gabac_run(
             GABAC_OPERATION.DECODE, 
-            ### With cchar
             io_config,
-            self.config_json_raw,
-            len(self.config_json_raw)-1,
+            ### With cchar
+            self.config_json_cchar,
+            len(self.config_json_cchar),   
         ):
-            print("*** Gabac decode failed!")
+            libc.printf(b"*** Gabac decode failed!\n")
+            libgabac.gabac_data_block_release(in_block)
+            libgabac.gabac_stream_release(io_config.input)
+            libgabac.gabac_stream_release(io_config.output)
+            libgabac.gabac_stream_release(io_config.log)
+            return GABAC_RETURN.FAILURE
+            
 
         # Retrieve results, you should end up with your input data again
-        libgabac.gabac_stream_swap_block(ct.byref(io_config.output), ct.byref(in_block))
+        libgabac.gabac_stream_swap_block(io_config.output, in_block)
         print_block(in_block)
 
         # Free all ressources
         print("*** Release...")
-        libgabac.gabac_data_block_release(ct.byref(in_block))
-        libgabac.gabac_stream_release(ct.byref(io_config.input))
-        libgabac.gabac_stream_release(ct.byref(io_config.output))
-        libgabac.gabac_stream_release(ct.byref(io_config.log))
-        return 0
+        libgabac.gabac_data_block_release(in_block)
+        libgabac.gabac_stream_release(io_config.input)
+        libgabac.gabac_stream_release(io_config.output)
+        libgabac.gabac_stream_release(io_config.log)
+        return GABAC_RETURN.SUCCESS
 
 if __name__ == '__main__':
     unittest.main()

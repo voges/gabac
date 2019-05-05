@@ -190,7 +190,6 @@ libgabac.gabac_data_block_init.restype = ct.c_int
 # Return
 #   int gabac_data_block_release()
 libgabac.gabac_data_block_release.argtypes = [
-    #ct.c_void_p
     ct.POINTER(gabac_data_block) if STRONG_TYPE else ct.c_void_p,
 ]
 libgabac.gabac_data_block_init.restype = ct.c_int
@@ -201,7 +200,6 @@ libgabac.gabac_data_block_init.restype = ct.c_int
 # Return
 #   int gabac_data_block_resize()
 libgabac.gabac_data_block_resize.argtypes = [
-    # ct.c_void_p,
     ct.POINTER(gabac_data_block) if STRONG_TYPE else ct.c_void_p,
     ct.c_size_t
 ]
@@ -213,8 +211,6 @@ libgabac.gabac_data_block_resize.restype = ct.c_int
 # Return
 #   int gabac_data_block_swap()
 libgabac.gabac_data_block_swap.argtypes = [
-    # ct.c_void_p,
-    # ct.c_void_p
     ct.POINTER(gabac_data_block) if STRONG_TYPE else ct.c_void_p,
     ct.POINTER(gabac_data_block) if STRONG_TYPE else ct.c_void_p,
 ]
@@ -226,8 +222,6 @@ libgabac.gabac_data_block_swap.restype = ct.c_int
 # Return
 #   int gabac_data_block_copy()
 libgabac.gabac_data_block_copy.argtypes = [
-    # ct.c_void_p,
-    # ct.c_void_p
     ct.POINTER(gabac_data_block) if STRONG_TYPE else ct.c_void_p,
     ct.POINTER(gabac_data_block) if STRONG_TYPE else ct.c_void_p,
 ]
@@ -239,7 +233,6 @@ libgabac.gabac_data_block_copy.restype = ct.c_int
 # Return
 #   uint64_t gabac_data_block_get()
 libgabac.gabac_data_block_get.argtypes = [
-    # ct.c_void_p,
     ct.POINTER(gabac_data_block) if STRONG_TYPE else ct.c_void_p,
     ct.c_size_t
 ]
@@ -252,7 +245,6 @@ libgabac.gabac_data_block_get.restype = ct.c_uint64
 # Return
 #   void gabac_data_block_set()   
 libgabac.gabac_data_block_set.argtypes = [
-    # ct.c_void_p,
     ct.POINTER(gabac_data_block) if STRONG_TYPE else ct.c_void_p,
     ct.c_size_t
 ]
