@@ -1,293 +1,272 @@
-import numpy as np
-import itertools
-import pprint
+import os
+import copy
+import json
 import random
+import ctypes as ct
 from collections import OrderedDict
 
-from new_gabac import GABAC_BINARIZATION, GABAC_CONTEXT_SELCT, GABAC_LOG_LEVEL, GABAC_LOG_LEVEL
-from new_gabac import GABAC_OPERATION, GABAC_RETURN, GABAC_STREAM_MODE, GABAC_TRANSFORM
+import numpy as np
 
-equ_params_values = [
-    [0]
-]
+from gabac_api import libgabac
+from gabac_api import gabac_stream
+from gabac_api import gabac_io_config
+from gabac_api import gabac_data_block
+from gabac_api import GABAC_BINARIZATION, GABAC_CONTEXT_SELECT, GABAC_LOG_LEVEL, GABAC_LOG_LEVEL
+from gabac_api import GABAC_OPERATION, GABAC_RETURN, GABAC_STREAM_MODE, GABAC_TRANSFORM
+from gabac_api import root_path
+from test_python_api import array, libc
 
-match_params_values = [
-    np.power(2, np.arange(8)),
-]
+class GabacConfiguration():
+    # TODO: Improve code for parameter with numerical value because json cannot accept numpy
 
-rle_params_values = [
-    np.arange(256)
-]
+    transformed_seq_conf_template = OrderedDict(
+        lut_transformation_enabled = [
+            False, 
+            True
+        ],
+        lut_transformation_parameter = 0,
+        diff_coding_enabled = [
+            False, 
+            True
+        ],
+        binarization_id = [
+            GABAC_BINARIZATION.BI, 
+            GABAC_BINARIZATION.TU,
+            GABAC_BINARIZATION.SEG,
+            GABAC_BINARIZATION.EG,
+            GABAC_BINARIZATION.STEG,
+            GABAC_BINARIZATION.TEG
+        ],
+        # binarization_parameters = [ v.item() for v in np.power(2, np.arange(5)) ],
+        binarization_parameters = [ v.item() for v in np.power(2, np.arange(4)) ],
+        context_selection_id = [
+            GABAC_CONTEXT_SELECT.BYPASS,
+            GABAC_CONTEXT_SELECT.ADAPTIVE_ORDER_0,
+            GABAC_CONTEXT_SELECT.ADAPTIVE_ORDER_1,
+            GABAC_CONTEXT_SELECT.ADAPTIVE_ORDER_2,
+        ]
+    )
 
-seq_transform_config_info = {
-    GABAC_TRANSFORM.EQUALITY : {
-        'num_transformed_seq' : 2,
-        'possible_params_values' : equ_params_values
-    },
-    GABAC_TRANSFORM.MATCH    : {
-        'num_transformed_seq' : 3,
-        'possible_params_values' : match_params_values
-    },
-    GABAC_TRANSFORM.RLE      : {
-        'num_transformed_seq' : 2,
-        'possible_params_values' : rle_params_values
+    transformed_seq_parameter_value_as_list = [
+        "binarization_parameters"
+    ]
+
+    main_conf_template = {
+        "word_size" : [
+            # [ v.item() for v in np.power(2, np.arange(6)) ]
+            [ v.item() for v in np.power(2, np.arange(4)) ]
+        ],
+        "sequence_transformation_id" : None,
+        "sequence_transformation_parameter" : None,
+        "transformed_sequences" : None
     }
-}
 
-lut_params_values = [
-    [False, True]
-]
+    equality_config_template = copy.deepcopy(main_conf_template)
+    equality_config_template["sequence_transformation_id"] = GABAC_TRANSFORM.EQUALITY
+    equality_config_template["sequence_transformation_parameter"] = 0
 
-diff_params_values = [
-    [False, True]
-]
+    match_config_template = copy.deepcopy(main_conf_template)
+    match_config_template["sequence_transformation_id"] = GABAC_TRANSFORM.MATCH
+    # match_config_template["sequence_transformation_parameter"] = [ v.item() for v in np.power(2, np.arange(8)) ]
+    match_config_template["sequence_transformation_parameter"] = [ v.item() for v in np.power(2, np.arange(4)) ]
+    
+    rle_config_template = copy.deepcopy(main_conf_template)
+    rle_config_template["sequence_transformation_id"] = GABAC_TRANSFORM.RLE 
+    rle_config_template["sequence_transformation_parameter"] = 255
 
-cabac_params_values =[
-    # GABAC_BINARIZATION
-    np.arange(6),
-    # Binariztion parameter -> Unknown parameter
-    np.power(2, np.arange(5)),
-    # GABAC_CONTEXT_SELCT
-    np.arange(4),
-]
+    available_variant = {
+        GABAC_TRANSFORM.EQUALITY : equality_config_template,
+        GABAC_TRANSFORM.MATCH : match_config_template,
+        GABAC_TRANSFORM.RLE : rle_config_template,
+    }
 
-class CabacConfiguration():
+    num_transformed_seq = {
+        GABAC_TRANSFORM.EQUALITY : 2,
+        GABAC_TRANSFORM.MATCH : 3,
+        GABAC_TRANSFORM.RLE : 2,
+    }
 
     @staticmethod
-    def randomize_complete_config(
+    def generate_random_config(
         seq_transform_id
     ):
-        seq_transform_config = seq_transform_config_info[seq_transform_id]
+        conf_template = GabacConfiguration.available_variant[seq_transform_id]
 
-        complete_config = []
+        conf = copy.deepcopy(conf_template)
+        conf["transformed_sequences"] = []
 
-        seq_transformation_config = [seq_transform_id]
-        seq_transformation_config.append(
-            CabacConfiguration.randomize_transformed_seq_params(
-                seq_transform_config['possible_params_values']
-            )
-        )
+        for key in conf_template.keys():
+            if isinstance(conf_template[key], list):
+                conf[key] = random.choice(*conf_template[key])
 
-        complete_config.append(seq_transformation_config)
+        for _ in range(GabacConfiguration.num_transformed_seq[seq_transform_id]):
+            transformed_seq_conf = copy.deepcopy(GabacConfiguration.transformed_seq_conf_template)
 
-        transformed_seq_configs = []
-        for _ in range(seq_transform_config['num_transformed_seq']):
-            transformed_seq_config = []
-            for params_values in [lut_params_values, diff_params_values, cabac_params_values]:
-                transformed_seq_config.append(
-                    CabacConfiguration.randomize_transformed_seq_params(params_values)
-                )
-            transformed_seq_configs.append(transformed_seq_config)
-        
-        complete_config.append(transformed_seq_configs)
+            for key in GabacConfiguration.transformed_seq_conf_template.keys():
+                if isinstance(GabacConfiguration.transformed_seq_conf_template[key], list):
+                    if key in GabacConfiguration.transformed_seq_parameter_value_as_list:
+                        transformed_seq_conf[key] = [
+                            random.choice(
+                                GabacConfiguration.transformed_seq_conf_template[key]
+                            )
+                        ]
+                    else:
+                        transformed_seq_conf[key] = random.choice(
+                            GabacConfiguration.transformed_seq_conf_template[key]
+                        )
+            
+            conf["transformed_sequences"].append(transformed_seq_conf)
 
-        return complete_config
-
-    @staticmethod
-    def config_to_dict(config):
-
-        config_as_dict = OrderedDict(
-            word_size = 1,
-            sequence_transformation_id = config[0][0],
-            sequence_transformation_parameter = config[0][1][0],
-        )
-
-        transformed_sequences_value = []
-        for section_config in config[1]:
-            transformed_sequences_value.append(OrderedDict(
-                lut_transformation_enabled    = section_config[0][0],
-                lut_transformation_parameter  = 0,
-                diff_coding_enabled           = section_config[1][0],
-                binarization_id               = section_config[2][0],
-                binarization_parameters       = section_config[2][1],
-                context_selection_id          = section_config[2][2]
-            ))
-
-        config_as_dict["transformed_sequences"] = transformed_sequences_value
-
-        return config_as_dict
-
+        return conf
 
     @staticmethod
-    def generate_config_list(
-        seq_transform_id
+    def json_to_char(
+        config
     ):
-        seq_transform_config = seq_transform_config_info[seq_transform_id]
+        return array(ct.c_char, json.dumps(config, indent=4).encode('utf-8'))
 
-        config_list = [seq_transform_id]
-        config_list.extend(
-            CabacConfiguration.randomize_transformed_seq_params(
-                seq_transform_config['possible_params_values']
-            )
-        )
-
-        for _ in range(seq_transform_config['num_transformed_seq']):
-            for params_values in [lut_params_values, diff_params_values, cabac_params_values]:
-                config_list.extend(
-                    CabacConfiguration.randomize_transformed_seq_params(params_values)
-                )
-
-        return config_list
 
     @staticmethod
-    def randomize_transformed_seq_params(
-        params_values
+    def randomize_param(
+        config,
+        prob
     ):
+        pass
 
-        parameters = []
-        for values in params_values:
-            parameters.append(values[np.random.randint(len(values))])
-        return parameters
-
-    @staticmethod
-    def config_list_to_config_dict(
-        config_list
-    ):
-
-        config_as_dict = OrderedDict(
-            word_size = 1,
-            sequence_transformation_id = config_list[0],
-            sequence_transformation_parameter = config_list[1],
-        )
-
-        transformed_sequences_value = []
-        for idx in range(2, len(config_list), 5):
-            transformed_sequences_value.append(OrderedDict(
-                lut_transformation_enabled    = config_list[idx+0],
-                lut_transformation_parameter  = 0,
-                diff_coding_enabled           = config_list[idx+1],
-                binarization_id               = config_list[idx+2],
-                binarization_parameters       = config_list[idx+3],
-                context_selection_id          = config_list[idx+4]
-            ))
-
-        config_as_dict["transformed_sequences"] = transformed_sequences_value
-
-        return config_as_dict
-
-
-class GeneticAlgorithm(object):
+class GeneticAlgorithmForGabac(object):
 
     def __init__(
         self,
-        seq_transform,
+        seq_transformation_id,
+        mutation_prob=0.05,
+        num_populations=100,
+        num_generations=100,
+        data=None
     ):
-        self.seq_transform = seq_transform
+        pass
+        self.gc = GabacConfiguration()
 
-    def init_population(
-        self,
-        num_population
-    ):
-        # self.population = []
-        # for _ in range(num_population):
-        #     self.population.append(
-        #         CabacConfiguration.generate_config_list(
-        #             self.seq_transform
-        #         )
-        #     )
+        self.seq_transform_id = seq_transformation_id
+        self.mutation_prob = mutation_prob
+        self.num_populations = num_populations
+        self.num_generations = num_generations
+        self.data = data
 
-        self.num_population = num_population
+    def _init_population(self):
+        self.populations = []
+        for _ in range(self.num_populations):
+            self.populations.append(
+                self.gc.json_to_char(
+                    self.gc.generate_random_config(self.seq_transform_id)
+                )
+            )
 
-    def crossover(
-        self,
-        parent01, 
-        parent02,
-        prob,
-        mode='slice'
-    ):
+        self.fitness = np.zeros((self.num_populations))
 
-        if mode == 'slice':
-            # left_slice = slice(
-            #     1, 
-            #     1 + round(
-            #         prob * (len(parent01)-1)
-            #     )
-            # )
-            # right_slice  = slice(
-            #     1 + round(
-            #         prob * (len(parent01)-1)
-            #     ),
-            #     len(parent01)
-            # )
+    def _run_gabac(self, config_cchar):
+        io_config = gabac_io_config()
+        in_block = gabac_data_block()
 
-            # child01 = [parent01[0]]
-            # child01.extend(parent01[left_slice])
-            # child01.extend(parent02[right_slice])
-            # child02 = [parent01[0]]
-            # child02.extend(parent01[left_slice])
-            # child02.extend(parent02[right_slice])
+        logfilename = array(ct.c_char, "log.txt")
 
-            rand_idx = random.choice(len(parent01))
+        if libgabac.gabac_data_block_init(
+            in_block,
+            copy.deepcopy(self.data),
+            len(self.data),
+            ct.sizeof(ct.c_char)
+        ):
+            raise OSError('Cannot initialize data block')
+            # return GABAC_RETURN.FAILURE, -1
 
-            child01 = parent01[rand_idx:] + parent02[:rand_idx]
-            child02 = parent02[rand_idx:] + parent01[:rand_idx]
+        original_length = in_block.values_size * in_block.word_size
 
-            return child01, child02
+        if libgabac.gabac_stream_create_buffer(
+            io_config.input,
+            in_block
+        ):
+            libgabac.gabac_data_block_release(in_block)
+            # return original_length
+            return 1
 
-        if mode == 'random':
+        if libgabac.gabac_stream_create_buffer(
+            io_config.output, 
+            None
+        ):
+            libgabac.gabac_stream_release(io_config.input)
+            # return original_length
+            return 1
+
+        # Create log stream from file. You could also pass stdout instead.
+        if libgabac.gabac_stream_create_file(
+            io_config.log,
+            logfilename,
+            len(logfilename),
+            1
+        ):
+            libc.printf(b"*** Could not allocate log stream!\n")
+            libgabac.gabac_stream_release(io_config.input)
+            libgabac.gabac_stream_release(io_config.output)
+            # return original_length
+            return 1
+
+        # Encode using config
+        if libgabac.gabac_run(
+            GABAC_OPERATION.ENCODE,
+            io_config,
+            config_cchar,
+            len(config_cchar),
+        ):
+            libgabac.gabac_data_block_release(in_block)
+            libgabac.gabac_stream_release(io_config.input)
+            libgabac.gabac_stream_release(io_config.output)
+            libgabac.gabac_stream_release(io_config.log)
+            # return original_length
+            return 1
+
+        # Swap contents of output stream back into input stream to prepare decoding
+        libgabac.gabac_stream_swap_block(io_config.output, in_block)
+        
+        encoded_length = in_block.values_size * in_block.word_size
+
+        libgabac.gabac_data_block_release(in_block)
+        libgabac.gabac_stream_release(io_config.input)
+        libgabac.gabac_stream_release(io_config.output)
+        libgabac.gabac_stream_release(io_config.log)
+
+        # return encoded_length
+        # return encoded_length - original_length
+        return encoded_length/original_length
+
+    def _evaluate_fitness(self, curr_gen):
+        
+        for idx, config_cchar in enumerate(self.populations):
+            try:
+                self.fitness[idx] = self._run_gabac(config_cchar)
+            except:
+                pass
+
+            print("Gen {:03d} idx {:03d} size {:.3f}".format(curr_gen, idx, self.fitness[idx]))
+
+    def start(self):
+        self._init_population()
+
+        for curr_gen in range(self.num_generations):
+            self._evaluate_fitness(curr_gen)
             pass
 
-    def set_mutation_rate(
-        self,
-        iteration
-    ):
-        pass
 
-    def selection(
-        self
-    ):
-        pass
+# x = GabacConfiguration.generate_random_config(GABAC_TRANSFORM.RLE)
+# with open('test_config.json', 'w') as f:
+#     json.dump(x, f, indent=4)
+# print(json.dumps(x, indent=4))
 
-    def mutate(
-        self,
-    ):
+with open(os.path.join(root_path, 'resources', 'input_files', 'one_mebibyte_random'), 'rb') as f:
+    data = f.read()
 
-        return None
-    
-    def obj_func(
-        self
-    ):
-
-        # Score
-        return 0
-
-    def run(self, max_iter=999):
-
-
-        parent = CabacConfiguration.generate_config_list(
-            self.seq_transform
-        )
-
-        for iteration in range(max_iter):
-            self.set_mutation_rate(iteration)
-
-            population = [self.mutate(parent) for _ in range(self.num_population)]
-            parent = min(population, key=self.obj_func)
-
-
-
-
-
-
-
-
-    
-
-
-ga = GeneticAlgorithm(GABAC_TRANSFORM.RLE)
-
-ga.init_population(10)
-
-config_dict = CabacConfiguration.config_list_to_config_dict(ga.population[0])
-
-ga.crossover(ga.population[0], ga.population[1], 0.6)
-
-# pp = pprint.PrettyPrinter(indent=4)
-# pp.pprint(config_dict)
-
+ga = GeneticAlgorithmForGabac(GABAC_TRANSFORM.RLE, data=data)
+ga.start()
 pass
             
-
         
 
 

@@ -3,7 +3,7 @@ import ctypes as ct
 from gabac_api import libgabac
 from gabac_api import gabac_stream
 from gabac_api import gabac_data_block
-from gabac_api import gabac_data_block
+from gabac_api import gabac_io_config
 from gabac_api import GABAC_BINARIZATION, GABAC_CONTEXT_SELECT, GABAC_LOG_LEVEL, GABAC_LOG_LEVEL
 from gabac_api import GABAC_OPERATION, GABAC_RETURN, GABAC_STREAM_MODE, GABAC_TRANSFORM
 
