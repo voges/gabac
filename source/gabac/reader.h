@@ -1,42 +1,33 @@
+/**
+ * @file
+ * @copyright This file is part of the GABAC encoder. See LICENCE and/or
+ * https://github.com/mitogen/gabac for more details.
+ */
+
 #ifndef GABAC_READER_H_
 #define GABAC_READER_H_
 
+#include <cstddef>
 #include <cstdint>
 #include <vector>
 
 #include "gabac/bit_input_stream.h"
-#include "gabac/constants.h"
-#include "gabac/context_model.h"
-#include "gabac/context_selector.h"
 #include "gabac/binary_arithmetic_decoder.h"
-
-using std::size_t;
 
 namespace gabac {
 
+class DataBlock;
 
 class Reader
 {
  public:
     explicit Reader(
-            const std::vector<unsigned char>& bitstream
+            DataBlock *bitstream
     );
 
     ~Reader();
 
     size_t readNumSymbols();
-
-    int64_t readBypassValue(
-            const BinarizationId& binarizationId,
-            const std::vector<unsigned int>& binarizationParameters
-    );
-
-    int64_t readAdaptiveCabacValue(
-            const BinarizationId& binarizationId,
-            const std::vector<unsigned int>& binarizationParameters,
-            unsigned int prevValue,
-            unsigned int prevPrevValue
-    );
 
     uint64_t readAsBIbypass(
             unsigned int cLength
@@ -56,15 +47,21 @@ class Reader
             unsigned int offset
     );
 
-    uint64_t readAsEGbypass();
+    uint64_t readAsEGbypass(
+            unsigned int dummy
+    );
 
     uint64_t readAsEGcabac(
+            unsigned int dummy,
             unsigned int offset
     );
 
-    int64_t readAsSEGbypass();
+    uint64_t readAsSEGbypass(
+            unsigned int dummy
+    );
 
-    int64_t readAsSEGcabac(
+    uint64_t readAsSEGcabac(
+            unsigned int dummy,
             unsigned int offset
     );
 
@@ -77,11 +74,11 @@ class Reader
             unsigned int offset
     );
 
-    int64_t readAsSTEGbypass(
+    uint64_t readAsSTEGbypass(
             unsigned int treshold
     );
 
-    int64_t readAsSTEGcabac(
+    uint64_t readAsSTEGcabac(
             unsigned int treshold,
             unsigned int offset
     );

@@ -1,22 +1,28 @@
+/**
+ * @file
+ * @copyright This file is part of the GABAC encoder. See LICENCE and/or
+ * https://github.com/mitogen/gabac for more details.
+ */
+
 #include "gabac/bit_output_stream.h"
 
 #include <cassert>
-#include <vector>
 
+#include "gabac/data_block.h"
 
 namespace gabac {
 
 
-static void writeOut(
+inline static void writeOut(
         unsigned char byte,
-        std::vector<unsigned char> *const bitstream
+        DataBlock *const bitstream
 ){
     bitstream->push_back(byte);
 }
 
 
 BitOutputStream::BitOutputStream(
-        std::vector<unsigned char> *const bitstream
+        DataBlock *const bitstream
 )
         : m_bitstream(bitstream), m_heldBits(0), m_numHeldBits(0){
     // Nothing to do here
@@ -49,8 +55,7 @@ void BitOutputStream::write(
 
     // Determine the nextHeldBits
     auto nextHeldBits = static_cast<unsigned char>((bits << (8u - numNextHeldBits)) & static_cast<unsigned char>(0xff));
-    if (numTotalBits < 8)
-    {
+    if (numTotalBits < 8) {
         // Insufficient bits accumulated to write out, append nextHeldBits to
         // current heldBits
         m_heldBits |= nextHeldBits;
@@ -65,29 +70,25 @@ void BitOutputStream::write(
     writeBits |= (bits >> numNextHeldBits);
 
     // Write everything
-    switch (numTotalBits >> 3u)
-    {
-        case 4:
-        {
-            writeOut(static_cast<unsigned char> ((writeBits >> 24u) & 0xffu), m_bitstream);
-        }  // fall-through
-        case 3:
-        {
-            writeOut(static_cast<unsigned char> ((writeBits >> 16u) & 0xffu), m_bitstream);
-        }  // fall-through
-        case 2:
-        {
-            writeOut(static_cast<unsigned char> ((writeBits >> 8u) & 0xffu), m_bitstream);
-        }  // fall-through
-        case 1:
-        {
-            writeOut(static_cast<unsigned char> (writeBits & 0xffu), m_bitstream);
-        }  // fall-through
-        default:
-        {
-            // Nothing to do here
-        }  // fall-through
+    // 1 byte / L1 is the most common case, check for it first
+    if ((numTotalBits >> 3u) == 1) {
+        goto L1;
+    } else if ((numTotalBits >> 3u) == 2) {
+        goto L2;
+    } else if ((numTotalBits >> 3u) == 3) {
+        goto L3;
+    } else if ((numTotalBits >> 3u) != 4) {
+        goto L0;
     }
+
+    writeOut(static_cast<unsigned char> ((writeBits >> 24u) & 0xffu), m_bitstream);
+    L3:
+    writeOut(static_cast<unsigned char> ((writeBits >> 16u) & 0xffu), m_bitstream);
+    L2:
+    writeOut(static_cast<unsigned char> ((writeBits >> 8u) & 0xffu), m_bitstream);
+    L1:
+    writeOut(static_cast<unsigned char> (writeBits & 0xffu), m_bitstream);
+    L0:
 
     // Update output bitstream state
     m_heldBits = nextHeldBits;
@@ -96,8 +97,7 @@ void BitOutputStream::write(
 
 
 void BitOutputStream::writeAlignZero(){
-    if (m_numHeldBits == 0)
-    {
+    if (m_numHeldBits == 0) {
         return;
     }
 

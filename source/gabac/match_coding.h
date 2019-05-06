@@ -1,71 +1,33 @@
+/**
+ * @file
+ * @copyright This file is part of the GABAC encoder. See LICENCE and/or
+ * https://github.com/mitogen/gabac for more details.
+ */
+
 #ifndef GABAC_MATCH_CODING_H_
 #define GABAC_MATCH_CODING_H_
 
-
-#ifdef __cplusplus
-extern "C" {
-#endif  /* __cplusplus */
-
-
-#include <stdint.h> /* NOLINT */
-#include <stdlib.h> /* NOLINT */
-
-
-
-int gabac_transformMatchCoding(
-        const uint64_t *symbols,
-        size_t symbolsSize,
-        uint32_t windowSize,
-        uint64_t **pointers,
-        size_t *pointersSize,
-        uint64_t **lengths,
-        size_t *lengthsSize,
-        uint64_t **rawValues,
-        size_t *rawValuesSize
-);
-
-
-int gabac_inverseTransformMatchCoding(
-        const uint64_t *pointers,
-        size_t pointersSize,
-        const uint64_t *lengths,
-        size_t lengthsSize,
-        const uint64_t *rawValues,
-        size_t rawValuesSize,
-        uint64_t **symbols,
-        size_t *symbolsSize
-);
-
-
-#ifdef __cplusplus
-}  // extern "C"
-
-
 #include <cstdint>
-#include <vector>
-
 
 namespace gabac {
 
+class DataBlock;
 
 void transformMatchCoding(
-        const std::vector<uint64_t>& symbols,
         uint32_t windowSize,
-        std::vector<uint64_t> *pointers,
-        std::vector<uint64_t> *lengths,
-        std::vector<uint64_t> *rawValues
+        DataBlock *rawValues,
+        DataBlock *pointers,
+        DataBlock *lengths
 );
 
 
 void inverseTransformMatchCoding(
-        const std::vector<uint64_t>& pointers,
-        const std::vector<uint64_t>& lengths,
-        const std::vector<uint64_t>& rawValues,
-        std::vector<uint64_t> *symbols
+        DataBlock *rawValues,
+        DataBlock *pointers,
+        DataBlock *lengths
 );
 
 
 }  // namespace gabac
 
-#endif  /* __cplusplus */
-#endif  /* GABAC_MATCH_CODING_H_ */
+#endif  // GABAC_MATCH_CODING_H_

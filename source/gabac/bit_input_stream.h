@@ -1,20 +1,23 @@
+/**
+ * @file
+ * @copyright This file is part of the GABAC encoder. See LICENCE and/or
+ * https://github.com/mitogen/gabac for more details.
+ */
+
 #ifndef GABAC_BIT_INPUT_STREAM_H_
 #define GABAC_BIT_INPUT_STREAM_H_
 
-
-#include <cstdlib>
-#include <vector>
-
-using std::size_t;
+#include "gabac/block_stepper.h"
 
 namespace gabac {
 
+class DataBlock;
 
 class BitInputStream
 {
  public:
     explicit BitInputStream(
-            const std::vector<unsigned char>& bitstream
+            DataBlock *bitstream
     );
 
     ~BitInputStream();
@@ -30,9 +33,9 @@ class BitInputStream
             unsigned int numBits
     );
 
-    std::vector<unsigned char> m_bitstream;
+    gabac::DataBlock *m_bitstream;
 
-    size_t m_bitstreamIndex;
+    gabac::BlockStepper m_reader;
 
     unsigned char m_heldBits;
 

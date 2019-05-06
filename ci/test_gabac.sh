@@ -4,4 +4,4 @@
 readonly git_root_dir="$(git rev-parse --show-toplevel)"
 
 # Run C/C++ unit tests
-"$git_root_dir/build/tests" || exit -1
+"$git_root_dir/build/bin/tests" || exit -1

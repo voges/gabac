@@ -1,18 +1,21 @@
+/**
+ * @file
+ * @copyright This file is part of the GABAC encoder. See LICENCE and/or
+ * https://github.com/mitogen/gabac for more details.
+ */
+
 #ifndef GABAC_BIT_OUTPUT_STREAM_H_
 #define GABAC_BIT_OUTPUT_STREAM_H_
 
-
-#include <vector>
-
-
 namespace gabac {
 
+class DataBlock;
 
 class BitOutputStream
 {
  public:
     explicit BitOutputStream(
-            std::vector<unsigned char> *bitstream
+            DataBlock *bitstream
     );
 
     ~BitOutputStream();
@@ -27,7 +30,7 @@ class BitOutputStream
     void writeAlignZero();
 
  private:
-    std::vector<unsigned char> *m_bitstream;
+    DataBlock *m_bitstream;
 
     unsigned char m_heldBits;
 

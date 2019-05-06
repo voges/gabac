@@ -1,27 +1,36 @@
+/**
+ * @file
+ * @copyright This file is part of the GABAC encoder. See LICENCE and/or
+ * https://github.com/mitogen/gabac for more details.
+ */
+
 #include "gabac/bit_input_stream.h"
 
 #include <cassert>
 #include <limits>
-#include <vector>
 
+#include "gabac/data_block.h"
 
 namespace gabac {
 
 
-static unsigned char readIn(
-        const std::vector<unsigned char>& bitstream,
-        size_t *const bitstreamIndex
+inline static unsigned char readIn(
+        gabac::BlockStepper *reader
 ){
-    unsigned char byte = bitstream.at(*bitstreamIndex);
-    (*bitstreamIndex)++;
+    if (!reader->isValid()) {
+        GABAC_DIE("Index out of bounds");
+    }
+    auto byte = static_cast<unsigned char>(reader->get());
+    reader->inc();
     return byte;
 }
 
 
 BitInputStream::BitInputStream(
-        const std::vector<unsigned char>& bitstream
+        DataBlock *const bitstream
 )
         : m_bitstream(bitstream), m_heldBits(0), m_numHeldBits(0){
+    m_reader = m_bitstream->getReader();
     reset();
 }
 
@@ -44,7 +53,7 @@ unsigned char BitInputStream::readByte(){
 void BitInputStream::reset(){
     m_heldBits = 0;
     m_numHeldBits = 0;
-    m_bitstreamIndex = 0;
+    m_reader = m_bitstream->getReader();
 }
 
 
@@ -54,8 +63,7 @@ unsigned int BitInputStream::read(
     assert(numBits <= 32);
 
     unsigned int bits = 0;
-    if (numBits <= m_numHeldBits)
-    {
+    if (numBits <= m_numHeldBits) {
         // Get numBits most significant bits from heldBits as bits
         bits = m_heldBits >> (m_numHeldBits - numBits);
         bits &= ~(0xffu << numBits);
@@ -71,29 +79,24 @@ unsigned int BitInputStream::read(
     // Read in more bytes to satisfy the request
     unsigned int numBytesToLoad = ((numBits - 1u) >> 3u) + 1;
     unsigned int alignedWord = 0;
-    switch (numBytesToLoad)
-    {
-        case 4:
-        {
-            alignedWord |= (readIn(m_bitstream, &m_bitstreamIndex) << 24u);
-        }  // fall-through
-        case 3:
-        {
-            alignedWord |= (readIn(m_bitstream, &m_bitstreamIndex) << 16u);
-        }  // fall-through
-        case 2:
-        {
-            alignedWord |= (readIn(m_bitstream, &m_bitstreamIndex) << 8u);
-        }  // fall-through
-        case 1:
-        {
-            alignedWord |= (readIn(m_bitstream, &m_bitstreamIndex));
-        }  // fall-through
-        default:
-        {
-            // Nothing to do here
-        }  // fall-through
+    if (numBytesToLoad == 1) {
+        goto L1;
+    } else if (numBytesToLoad == 2) {
+        goto L2;
+    } else if (numBytesToLoad == 3) {
+        goto L3;
+    } else if (numBytesToLoad != 4) {
+        goto L0;
     }
+
+    alignedWord |= (readIn(&m_reader) << 24u);
+    L3:
+    alignedWord |= (readIn(&m_reader) << 16u);
+    L2:
+    alignedWord |= (readIn(&m_reader) << 8u);
+    L1:
+    alignedWord |= (readIn(&m_reader));
+    L0:
 
     // Append requested bits and hold the remaining read bits
     unsigned int numNextHeldBits = (32 - numBits) % 8;

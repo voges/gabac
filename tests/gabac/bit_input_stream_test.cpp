@@ -1,5 +1,6 @@
 #include <vector>
 
+#include "gabac/data_block.h"
 #include "gabac/bit_input_stream.h"
 
 #include "gtest/gtest.h"
@@ -19,7 +20,8 @@ class BitInputStreamTest : public ::testing::Test
 
 
 TEST_F(BitInputStreamTest, readByte){
-    std::vector<unsigned char> bitstream = {0xFF};
-    gabac::BitInputStream bitInputStream(bitstream);
-    EXPECT_EQ(bitstream[0], bitInputStream.readByte());
+    gabac::DataBlock bitstream(0, 1);
+    bitstream = {0xFF};
+    gabac::BitInputStream bitInputStream(&bitstream);
+    EXPECT_EQ(0xFF, bitInputStream.readByte());
 }
