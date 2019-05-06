@@ -1,5 +1,6 @@
 #include <vector>
 
+#include "gabac/data_block.h"
 #include "gabac/lut_transform.h"
 #include "iostream"
 #include "./test_common.h"
@@ -18,18 +19,30 @@ class lutTransformTest : public ::testing::Test
     }
 };
 
+
 TEST_F(lutTransformTest, roundTripCoding0){
     // Void input
-    std::vector<uint64_t> symbols = {};
+    gabac::DataBlock symbols(0, 1);
     symbols.resize(1024 * 1024);
-    fillVectorRandomUniform<uint64_t>(0, 64, &symbols);
-    std::vector<uint64_t> transsymbols = {};
-    std::vector<uint64_t> decodedSymbols = {};
-    std::vector<std::pair<uint64_t, uint64_t>> lut0 = {};
-    std::vector<uint64_t> inverseLut0 = {};
+    fillVectorRandomUniform(0, 64, &symbols);
+    gabac::DataBlock transsymbols = symbols;
+    gabac::DataBlock decodedSymbols(0, 1);
+    gabac::DataBlock inverseLut0(0, 1);
+    gabac::DataBlock inverseLut1(0, 1);
 
-    EXPECT_NO_THROW(gabac::transformLutTransform0(symbols, &transsymbols, &inverseLut0));
-    EXPECT_NO_THROW(gabac::inverseTransformLutTransform0(transsymbols, inverseLut0, &decodedSymbols));
+    EXPECT_NO_THROW(gabac::transformLutTransform(0, &transsymbols, &inverseLut0, &inverseLut1));
+    decodedSymbols = transsymbols;
+    EXPECT_NO_THROW(gabac::inverseTransformLutTransform(0, &decodedSymbols, &inverseLut0, &inverseLut1));
+    EXPECT_EQ(decodedSymbols.size(), symbols.size());
+    EXPECT_EQ(decodedSymbols, symbols);
+
+    EXPECT_NO_THROW(gabac::transformLutTransform(1, &transsymbols, &inverseLut0, &inverseLut1));
+    EXPECT_NO_THROW(gabac::inverseTransformLutTransform(1, &transsymbols, &inverseLut0, &inverseLut1));
+    EXPECT_EQ(decodedSymbols.size(), symbols.size());
+    EXPECT_EQ(decodedSymbols, symbols);
+
+    EXPECT_NO_THROW(gabac::transformLutTransform(2, &transsymbols, &inverseLut0, &inverseLut1));
+    EXPECT_NO_THROW(gabac::inverseTransformLutTransform(2, &transsymbols, &inverseLut0, &inverseLut1));
     EXPECT_EQ(decodedSymbols.size(), symbols.size());
     EXPECT_EQ(decodedSymbols, symbols);
 }

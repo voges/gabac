@@ -1,3 +1,9 @@
+/**
+ * @file
+ * @copyright This file is part of the GABAC encoder. See LICENCE and/or
+ * https://github.com/mitogen/gabac for more details.
+ */
+
 #ifndef GABAC_WRITER_H_
 #define GABAC_WRITER_H_
 
@@ -5,21 +11,18 @@
 #include <cstdint>
 #include <vector>
 
-#include "gabac/bit_output_stream.h"
-#include "gabac/constants.h"
-#include "gabac/context_model.h"
-#include "gabac/context_selector.h"
 #include "gabac/binary_arithmetic_encoder.h"
-
-using std::size_t;
+#include "gabac/bit_output_stream.h"
 
 namespace gabac {
+
+class DataBlock;
 
 class Writer
 {
  public:
     explicit Writer(
-            std::vector<unsigned char> *bitstream
+            DataBlock *bitstream
     );
 
     ~Writer();
@@ -31,67 +34,67 @@ class Writer
     void reset();
 
     void writeAsBIbypass(
-            int64_t input,
+            uint64_t input,
             unsigned int cLength
     );
 
     void writeAsBIcabac(
-            int64_t input,
+            uint64_t input,
             unsigned int cLength,
             unsigned int offset
     );
 
     void writeAsTUbypass(
-            int64_t input,
+            uint64_t input,
             unsigned int cMax
     );
 
     void writeAsTUcabac(
-            int64_t input,
+            uint64_t input,
             unsigned int cMax,
             unsigned int offset
     );
 
     void writeAsEGbypass(
-            int64_t input,
+            uint64_t input,
             unsigned int dummy
     );
 
     void writeAsEGcabac(
-            int64_t input,
+            uint64_t input,
             unsigned int dummy,
             unsigned int offset
     );
 
     void writeAsSEGbypass(
-            int64_t input,
+            uint64_t input,
             unsigned int dummy
     );
 
     void writeAsSEGcabac(
-            int64_t input,
+            uint64_t input,
             unsigned int dummy,
             unsigned int offset
     );
 
     void writeAsTEGbypass(
-            int64_t input,
+            uint64_t input,
             unsigned int cTruncExpGolParam
     );
 
     void writeAsTEGcabac(
-            int64_t input,
+            uint64_t input,
             unsigned int cTruncExpGolParam,
             unsigned int offset
     );
 
     void writeAsSTEGbypass(
-            int64_t input,
+            uint64_t input,
             unsigned int cSignedTruncExpGolParam
     );
 
     void writeAsSTEGcabac(
-            int64_t input,
+            uint64_t input,
             unsigned int cSignedTruncExpGolParam,
             unsigned int offset
     );

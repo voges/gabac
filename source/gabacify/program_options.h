@@ -1,11 +1,7 @@
 #ifndef GABACIFY_PROGRAM_OPTIONS_H_
 #define GABACIFY_PROGRAM_OPTIONS_H_
 
-
-#include <boost/program_options.hpp>
-
 #include <string>
-#include <vector>
 
 
 namespace gabacify {
@@ -22,12 +18,12 @@ class ProgramOptions
     ~ProgramOptions();
 
  public:
-    bool analyze;
     std::string configurationFilePath;
     std::string logLevel;
     std::string inputFilePath;
     std::string outputFilePath;
     std::string task;
+    size_t blocksize;
 
  private:
     void processCommandLine(
@@ -36,10 +32,6 @@ class ProgramOptions
     );
 
     void validate();
-
-    static const std::string m_defaultBytestreamFilePathExtension;
-    static const std::string m_defaultConfigurationFilePathExtension;
-    static const std::string m_defaultUncompressedFilePathExtension;
 };
 
 

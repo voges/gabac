@@ -1,62 +1,29 @@
+/**
+ * @file
+ * @copyright This file is part of the GABAC encoder. See LICENCE and/or
+ * https://github.com/mitogen/gabac for more details.
+ */
+
 #ifndef GABAC_EQUALITY_CODING_H_
 #define GABAC_EQUALITY_CODING_H_
 
-
-#ifdef __cplusplus
-extern "C" {
-#endif  /* __cplusplus */
-
-
-#include <stdint.h> /* NOLINT */
-#include <stdlib.h> /* NOLINT */
-
-
-int gabac_transformEqualityCoding(
-        const uint64_t *symbols,
-        size_t symbolsSize,
-        uint64_t **equalityFlags,
-        uint64_t **values,
-        size_t *valuesSize
-);
-
-
-int gabac_inverseTransformEqualityCoding(
-        const uint64_t *equalityFlags,
-        size_t equalityFlagsSize,
-        const uint64_t *values,
-        size_t valuesSize,
-        uint64_t **symbols
-);
-
-
-#ifdef __cplusplus
-}  // extern "C"
-
-
-#include <vector>
-
-
 namespace gabac {
 
+class DataBlock;
 
 void transformEqualityCoding(
-        const std::vector<uint64_t>& symbols,
-        std::vector<uint64_t> *equalityFlags,
-        std::vector<uint64_t> *values
+        DataBlock *values,
+        DataBlock *equalityFlags
 );
 
 
 void inverseTransformEqualityCoding(
-        const std::vector<uint64_t>& equalityFlags,
-        const std::vector<uint64_t>& values,
-        std::vector<uint64_t> *symbols
+        DataBlock *values,
+        DataBlock *equalityFlags
 );
 
 
 }  // namespace gabac
 
 
-#endif  /* __cplusplus */
-
-
-#endif  /* GABAC_EQUALITY_CODING_H_ */
+#endif  // GABAC_EQUALITY_CODING_H_

@@ -3,6 +3,7 @@
 #include "gabac/binary_arithmetic_decoder.cpp"
 #include "gabac/context_tables.h"
 #include "gabac/context_selector.h"
+#include "gabac/data_block.h"
 #include "gtest/gtest.h"
 
 
@@ -18,13 +19,14 @@ class BinaryArithmeticDecoderTest : public ::testing::Test
         // Code here will be called immediately after each test
     }
 
-    std::vector<unsigned char> bitStream_;
+    gabac::DataBlock bitStream_;
     std::vector<gabac::ContextModel> contextModels_;
 };
 
 
 TEST_F(BinaryArithmeticDecoderTest, decodeBinsEp){
-    gabac::BitInputStream bitInputStream(bitStream_);
+    gabac::DataBlock tmp = bitStream_;
+    gabac::BitInputStream bitInputStream(&tmp);
     gabac::BinaryArithmeticDecoder bad(bitInputStream);
 
     EXPECT_EQ(48, bad.decodeBinsEP(8));
@@ -34,7 +36,8 @@ TEST_F(BinaryArithmeticDecoderTest, decodeBinsEp){
 }
 
 TEST_F(BinaryArithmeticDecoderTest, decodeBin){
-    gabac::BitInputStream bitInputStream(bitStream_);
+    gabac::DataBlock tmp = bitStream_;
+    gabac::BitInputStream bitInputStream(&tmp);
     gabac::BinaryArithmeticDecoder bad(bitInputStream);
 
 
@@ -122,7 +125,8 @@ TEST_F(BinaryArithmeticDecoderTest, decodeBin){
 }
 
 TEST_F(BinaryArithmeticDecoderTest, decodeBinTrm){
-    gabac::BitInputStream bitInputStream(bitStream_);
+    gabac::DataBlock tmp = bitStream_;
+    gabac::BitInputStream bitInputStream(&tmp);
     gabac::BinaryArithmeticDecoder bad(bitInputStream);
 
     EXPECT_NO_THROW(bad.decodeBinTrm());

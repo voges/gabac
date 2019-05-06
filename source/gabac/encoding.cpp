@@ -1,247 +1,205 @@
+/**
+ * @file
+ * @copyright This file is part of the GABAC encoder. See LICENCE and/or
+ * https://github.com/mitogen/gabac for more details.
+ */
+
 #include "gabac/encoding.h"
 
 #include <algorithm>
-#include <cassert>
-#include <limits>
+#include <cmath>
+#include <vector>
 
+#include "gabac/block_stepper.h"
+#include "gabac/configuration.h"
 #include "gabac/constants.h"
-#include "gabac/return_codes.h"
+#include "gabac/data_block.h"
+#include "gabac/encode_cabac.h"
+#include "gabac/stream_handler.h"
 #include "gabac/writer.h"
-
-
-// ----------------------------------------------------------------------------
-// C wrapper BEGIN
-// ----------------------------------------------------------------------------
-
-
-int gabac_encode(
-        int64_t *const symbols,
-        size_t symbolsSize,
-        unsigned int binarizationId,
-        unsigned int *const binarizationParameters,
-        size_t binarizationParametersSize,
-        unsigned int contextSelectionId,
-        unsigned char **const bitstream,
-        size_t *const bitstreamSize
-){
-    if (symbols == nullptr)
-    {
-        return GABAC_FAILURE;
-    }
-    if (binarizationParameters == nullptr)
-    {
-        return GABAC_FAILURE;
-    }
-    if (bitstream == nullptr)
-    {
-        return GABAC_FAILURE;
-    }
-    if (bitstreamSize == nullptr)
-    {
-        return GABAC_FAILURE;
-    }
-
-    // C++-style vectors to receive input data / accumulate output data
-    std::vector<int64_t> symbolsVector(
-            symbols,
-            (symbols + symbolsSize)
-    );
-    std::vector<unsigned int> binarizationParametersVector(
-            binarizationParameters,
-            (binarizationParameters + binarizationParametersSize)
-    );
-    std::vector<unsigned char> bitstreamVector;
-
-    assert(binarizationId <= static_cast<int>(gabac::BinarizationId::STEG));
-    assert(contextSelectionId <= static_cast<int>(gabac::ContextSelectionId::adaptive_coding_order_2));
-    // Execute
-    int rc = gabac::encode(
-            symbolsVector,
-            static_cast<gabac::BinarizationId>(binarizationId),
-            binarizationParametersVector,
-            static_cast<gabac::ContextSelectionId>(contextSelectionId),
-            &bitstreamVector
-    );
-    if (rc != GABAC_SUCCESS)
-    {
-        return GABAC_FAILURE;
-    }
-
-    // Extract plain C array data from result vectors
-    *bitstreamSize = bitstreamVector.size();
-    *bitstream = (unsigned char *) malloc(sizeof(char) * (*bitstreamSize));
-    std::copy(bitstreamVector.begin(), bitstreamVector.end(), *bitstream);
-
-    return GABAC_SUCCESS;
-}
-
-
-// ----------------------------------------------------------------------------
-// C wrapper END
-// ----------------------------------------------------------------------------
 
 
 namespace gabac {
 
-
-int encode(
-        const std::vector<int64_t>& symbols,
-        const BinarizationId& binarizationId,
-        const std::vector<unsigned int>& binarizationParameters,
-        const ContextSelectionId& contextSelectionId,
-        std::vector<unsigned char> *const bitstream
-){
-    assert(bitstream != nullptr);
-#ifndef NDEBUG
-    const unsigned int paramSize[unsigned(BinarizationId::STEG) + 1u] = {1, 1, 0, 0, 1, 1};
-#endif
-    assert(binarizationParameters.size() >= paramSize[static_cast<int>(binarizationId)]);
-    bitstream->clear();
-
-    Writer writer(bitstream);
-    writer.start(symbols.size());
-
-    unsigned int binarizationParameter = 0;
-    if (binarizationParameters.size() > 0) {
-       binarizationParameter = binarizationParameters[0];
+static uint64_t getMax(const gabac::DataBlock& b){
+    uint64_t max = 0;
+    gabac::BlockStepper r = b.getReader();
+    while (r.isValid()) {
+        max = std::max(max, r.get());
     }
-
-    if (contextSelectionId == ContextSelectionId::bypass)
-    {
-        void (Writer::*func)(int64_t, unsigned int);
-        switch (binarizationId)
-        {
-            case BinarizationId::BI:
-                func = &Writer::writeAsBIbypass;
-                break;
-            case BinarizationId::TU:
-                func = &Writer::writeAsTUbypass;
-                break;
-            case BinarizationId::EG:
-                func = &Writer::writeAsEGbypass;
-                break;
-            case BinarizationId::SEG:
-                func = &Writer::writeAsSEGbypass;
-                break;
-            case BinarizationId::TEG:
-                func = &Writer::writeAsTEGbypass;
-                break;
-            case BinarizationId::STEG:
-                func = &Writer::writeAsSTEGbypass;
-                break;
-            default:
-                assert(0);
-        }
-        for (int64_t symbol : symbols)
-        {
-            (writer.*func)(
-                    symbol,
-                    binarizationParameter
-            );
-        }
-
-        writer.reset();
-        return GABAC_SUCCESS;
-    }
-
-    void (Writer::*func)(int64_t, unsigned int, unsigned int);
-    switch (binarizationId)
-    {
-        case BinarizationId::BI:
-            func = &Writer::writeAsBIcabac;
-            break;
-        case BinarizationId::TU:
-            func = &Writer::writeAsTUcabac;
-            break;
-        case BinarizationId::EG:
-            func = &Writer::writeAsEGcabac;
-            break;
-        case BinarizationId::SEG:
-            func = &Writer::writeAsSEGcabac;
-            break;
-        case BinarizationId::TEG:
-            func = &Writer::writeAsTEGcabac;
-            break;
-        case BinarizationId::STEG:
-            func = &Writer::writeAsSTEGcabac;
-            break;
-        default:
-            assert(0);
-    }
-
-    if (contextSelectionId == ContextSelectionId::adaptive_coding_order_0)
-    {
-        for (int64_t symbol : symbols)
-        {
-            (writer.*func)(
-                    symbol,
-                    binarizationParameter,
-                    0
-            );
-        }
-    }
-    else if (contextSelectionId == ContextSelectionId::adaptive_coding_order_1)
-    {
-        unsigned int previousSymbol = 0;
-
-        for (int64_t symbol : symbols)
-        {
-            (writer.*func)(
-                    symbol,
-                    binarizationParameter,
-                    previousSymbol << 2u
-            );
-            if (symbol < 0)
-            {
-                symbol = -symbol;
-            }
-            if (symbol > 3)
-            {
-                previousSymbol = 3;
-            }
-            else
-            {
-                assert(symbol <= std::numeric_limits<unsigned int>::max());
-                previousSymbol = static_cast<unsigned int>(symbol);
-            }
-        }
-    }
-    else if (contextSelectionId == ContextSelectionId::adaptive_coding_order_2)
-    {
-        unsigned int previousSymbol = 0;
-        unsigned int previousPreviousSymbol = 0;
-
-        for (int64_t symbol : symbols)
-        {
-            (writer.*func)(
-                    symbol,
-                    binarizationParameter,
-                    (previousSymbol << 2u) + previousPreviousSymbol
-            );
-            previousPreviousSymbol = previousSymbol;
-            if (symbol < 0)
-            {
-                symbol = -symbol;
-            }
-            if (symbol > 3)
-            {
-                previousSymbol = 3;
-            }
-            else
-            {
-                assert(symbol <= std::numeric_limits<unsigned int>::max());
-                previousSymbol = static_cast<unsigned int>(symbol);
-            }
-        }
-    }
-    else
-    {
-        return GABAC_FAILURE;
-    }
-
-    writer.reset();
-    return GABAC_SUCCESS;
+    return max;
 }
 
+//------------------------------------------------------------------------------
+
+void doSequenceTransform(const gabac::SequenceTransformationId& transID,
+                         uint64_t param,
+                         std::vector<gabac::DataBlock> *const transformedSequences
+){
+    // GABACIFY_LOG_TRACE << "Encoding sequence of length: " << (*transformedSequences)[0].size();
+
+    // GABACIFY_LOG_DEBUG << "Performing sequence transformation " << gabac::transformationInformation[id].name;
+
+    getTransformation(transID).transform({param}, transformedSequences);
+
+    // GABACIFY_LOG_TRACE << "Got " << transformedSequences->size() << " sequences";
+    for (unsigned i = 0; i < transformedSequences->size(); ++i) {
+        // GABACIFY_LOG_TRACE << i << ": " << (*transformedSequences)[i].size() << " bytes";
+    }
+}
+
+//------------------------------------------------------------------------------
+
+static void encodeStream(const gabac::TransformedSequenceConfiguration& conf,
+                         gabac::DataBlock *const diffAndLutTransformedSequence,
+                         std::ostream *out
+){
+    // Encoding
+    gabac::encode_cabac(
+            conf.binarizationId,
+            conf.binarizationParameters,
+            conf.contextSelectionId,
+            diffAndLutTransformedSequence
+    );
+
+    gabac::StreamHandler::writeStream(*out, diffAndLutTransformedSequence);
+}
+
+//------------------------------------------------------------------------------
+
+void doLutTransform(unsigned int order,
+                    std::vector<gabac::DataBlock> *const lutSequences,
+                    unsigned *bits0,
+                    std::ostream *out
+){
+    // GABACIFY_LOG_TRACE << "LUT transform *en*abled";
+
+    // Put raw sequence in, get transformed sequence and lut tables
+    getTransformation(SequenceTransformationId::lut_transform).transform({order}, lutSequences);
+
+
+    // GABACIFY_LOG_DEBUG << "Got uncompressed stream after LUT: " << (*lutSequences)[0].size() << " bytes";
+    // GABACIFY_LOG_DEBUG << "Got table0 after LUT: " << (*lutSequences)[1].size() << " bytes";
+    // GABACIFY_LOG_DEBUG << "Got table1 after LUT: " << (*lutSequences)[2].size() << " bytes";
+
+    // Calculate bit size for order 0 table
+    if (*bits0 == 0) {
+        uint64_t max = getMax(lutSequences->at(1));
+        *bits0 = unsigned(std::ceil(std::log2(max + 1)));
+        if (max <= 1) {
+            *bits0 = 1;
+        }
+    }
+
+    auto bits1 = unsigned((*lutSequences)[1].size());
+    encodeStream(
+            {false, 0, 0, false, gabac::BinarizationId::BI, {*bits0}, gabac::ContextSelectionId::bypass},
+            &(*lutSequences)[1],
+            out
+    );
+
+    if (order > 0) {
+        bits1 = unsigned(std::ceil(std::log2(bits1)));
+        encodeStream(
+                {false, 0, 0, false, gabac::BinarizationId::BI, {bits1}, gabac::ContextSelectionId::bypass},
+                &(*lutSequences)[2],
+                out
+        );
+    }
+}
+
+//------------------------------------------------------------------------------
+
+void doDiffTransform(std::vector<gabac::DataBlock> *const sequence
+){
+    // GABACIFY_LOG_TRACE << "LUT transform *en*abled";
+
+    // Put raw sequence in, get transformed sequence and lut tables
+    getTransformation(SequenceTransformationId::diff_coding).transform({0}, sequence);
+
+    // GABACIFY_LOG_TRACE << "Diff coding *dis*abled";
+    // GABACIFY_LOG_DEBUG << "Got uncompressed stream after diff: "
+    // << diffAndLutTransformedSequence->size() << " bytes";
+}
+
+//------------------------------------------------------------------------------
+
+static void encodeSingleSequence(const gabac::TransformedSequenceConfiguration& configuration,
+                                 gabac::DataBlock *const seq,
+                                 std::ostream *out
+){
+    std::vector<gabac::DataBlock> lutTransformedSequences;
+
+    // Symbol/transformed symbols, lut0 bytestream, lut1 bytestream
+    lutTransformedSequences.resize(1);
+    lutTransformedSequences[0].swap(seq);
+
+    // Put sequence in, get lut sequence and lut bytestreams
+    if (configuration.lutTransformationEnabled) {
+        unsigned bits = configuration.lutBits;
+        doLutTransform(
+                configuration.lutOrder,
+                &lutTransformedSequences,
+                &bits,
+                out
+        );
+    }
+
+    // Put lut transformed in, get difftransformed out
+    if (configuration.diffCodingEnabled) {
+        doDiffTransform(
+                &lutTransformedSequences
+        );
+    }
+
+    encodeStream(configuration, &lutTransformedSequences[0], out);
+}
+
+//------------------------------------------------------------------------------
+
+
+void encode(
+        const IOConfiguration& conf,
+        const EncodingConfiguration& enConf
+){
+    conf.validate();
+    gabac::DataBlock sequence(0, 1);
+    sequence.setWordSize(static_cast<uint8_t>(enConf.wordSize));
+    size_t size = 0;
+    if (!conf.blocksize) {
+        size = gabac::StreamHandler::readFull(*conf.inputStream, &sequence);
+    } else {
+        size = gabac::StreamHandler::readBlock(*conf.inputStream, conf.blocksize, &sequence);
+    }
+    while (size) {
+        // Insert sequence into vector
+        std::vector<gabac::DataBlock> transformedSequences;
+        transformedSequences.resize(1);
+        transformedSequences[0].swap(&sequence);
+
+        // Put symbol stream in, get transformed streams out
+        doSequenceTransform(
+                enConf.sequenceTransformationId,
+                enConf.sequenceTransformationParameter,
+                &transformedSequences
+        );
+
+        // Loop through the transformed sequences
+        for (size_t i = 0; i < transformedSequences.size(); i++) {
+            // Put transformed sequence in, get partial bytestream back
+            encodeSingleSequence(
+                    enConf.transformedSequenceConfigurations[i],
+                    &(transformedSequences[i]),
+                    conf.outputStream
+            );
+        }
+        if (conf.blocksize) {
+            sequence.setWordSize(static_cast<uint8_t>(enConf.wordSize));
+            size = gabac::StreamHandler::readBlock(*conf.inputStream, conf.blocksize, &sequence);
+        } else {
+            size = 0;
+        }
+    }
+}
 
 }  // namespace gabac

@@ -14,7 +14,7 @@ printf "Creating 'tmp' directory: %s\\n" "$tmp_dir"
 mkdir -p "$tmp_dir" || exit -1
 
 # Get the gabacify executable
-readonly gabacify="$git_root_dir/build/gabacify"
+readonly gabacify="$git_root_dir/build/bin/gabacify"
 if [ ! -x "$gabacify" ]; then
     printf "gabacify '%s' is not executable; aborting roundtrip tests\\n" "$gabacify"
     exit -1
