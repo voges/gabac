@@ -62,8 +62,15 @@ class SimulatedAnnealingForGabac(object):
 
         # Init
         self.gc = GabacConfiguration(self.seq_transform_id)
-        self.s0 = self.gc.generate_random_config()
-        self.E0 = self.gc.run_gabac(self.data, self.gc.json_to_cchar(self.s0))
+        while True:
+            first_config = self.gc.generate_random_config()
+            return_val, enc_length, enc_time = self.gc.run_gabac(self.data, self.gc.json_to_cchar(first_config))
+            if return_val == GABAC_RETURN.SUCCESS:
+                break
+
+        self.s0 = first_config
+        self.E0 = enc_length / len(data)
+        
         print('E{:03d}: {:.3f}'.format(0, self.E0))
 
     def _temperature(
@@ -83,11 +90,18 @@ class SimulatedAnnealingForGabac(object):
 
         for k in range(self.kmax):
             T = self._temperature(k)
-            new_s = self.gc.generate_random_neighbor(s)
 
-            # with open("jsons/{:03d}.json".format(k), 'w') as f:
-            #     json.dump(new_s, f)
-            new_E = self.gc.run_gabac(self.data, self.gc.json_to_cchar(new_s))
+            while True:
+                new_s = self.gc.generate_random_neighbor(s)
+
+                with open('curr_config.json', 'w') as f:
+                    json.dump(new_s, f, indent=4)
+
+                return_val, enc_length, enc_time = self.gc.run_gabac(self.data, self.gc.json_to_cchar(new_s))
+                if return_val == GABAC_RETURN.SUCCESS:
+                    break
+
+            new_E = enc_length/len(self.data)
 
             dE = new_E - E
 
@@ -134,32 +148,3 @@ class SimulatedAnnealingForGabac(object):
         plt.show()
     
 
-# gc = GabacConfiguration(GABAC_TRANSFORM.RLE)
-
-# config = gc.generate_random_config()
-
-# r_conf = gc.generate_random_neighbor(config)
-
-with open(os.path.join(root_path, 'resources', 'input_files', 'one_mebibyte_random'), 'rb') as f:
-# with open(os.path.join(root_path, 'resources', 'input_files', 'one_million_zero_bytes'), 'rb') as f:
-    data = f.read()
-
-sa = SimulatedAnnealingForGabac(
-    data, 
-    # GABAC_TRANSFORM.RLE,
-    # GABAC_TRANSFORM.EQUALITY,
-    GABAC_TRANSFORM.MATCH,
-    kmax=200,
-    kt=0.2
-)
-
-s,E = sa.start()
-
-print(E)
-print(json.dumps(s, indent=4))
-
-sa.show_plot()
-
-# Best result kt=1 kmax=1000 : 0.9880580902099609
-# Best result kt=1 : 0.9880714416503906
-pass

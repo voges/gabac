@@ -1,6 +1,7 @@
 import os
 import copy
 import json
+import time
 import random
 import ctypes as ct
 from collections import OrderedDict
@@ -14,7 +15,8 @@ from gabac_api import gabac_data_block
 from gabac_api import GABAC_BINARIZATION, GABAC_CONTEXT_SELECT, GABAC_LOG_LEVEL, GABAC_LOG_LEVEL
 from gabac_api import GABAC_OPERATION, GABAC_RETURN, GABAC_STREAM_MODE, GABAC_TRANSFORM
 from gabac_api import root_path
-from test_python_api import array, libc
+
+from gabac_api import array, libc, get_block_values, are_blocks_equal
 
 class GabacConfiguration():
     # TODO: Improve code for parameter with numerical value because json cannot accept numpy
@@ -52,11 +54,12 @@ class GabacConfiguration():
     ]
 
     main_conf_template = {
-        "word_size" : [
-            # [ v.item() for v in np.power(2, np.arange(6)) ]
-            # [ v.item() for v in np.power(2, np.arange(4)) ]
-            v.item() for v in np.power(2, np.arange(3))
-        ],
+        # "word_size" : [
+        #     # [ v.item() for v in np.power(2, np.arange(6)) ]
+        #     # [ v.item() for v in np.power(2, np.arange(4)) ]
+        #     v.item() for v in np.power(2, np.arange(3))
+        # ],
+        "word_size" : 1,
         "sequence_transformation_id" : None,
         "sequence_transformation_parameter" : None,
         "transformed_sequences" : None
@@ -233,35 +236,45 @@ class GabacConfiguration():
 
         io_config = gabac_io_config()
         in_block = gabac_data_block()
+        copy_in_block = gabac_data_block()
 
         logfilename = array(ct.c_char, "log.txt")
 
+        start_time = time.time()
+
         if libgabac.gabac_data_block_init(
             in_block,
-            copy.deepcopy(data),
+            data,
             len(data),
             ct.sizeof(ct.c_char)
         ):
-            raise OSError('Cannot initialize data block')
-            # return GABAC_RETURN.FAILURE, -1
+            return GABAC_RETURN.FAILURE, np.Infinity, np.Infinity
+
+        if libgabac.gabac_data_block_copy(
+            copy_in_block,
+            in_block
+        ):
+            return GABAC_RETURN.FAILURE, np.Infinity, np.Infinity
 
         original_length = in_block.values_size * in_block.word_size
+
+        original_values = in_block.values
+        original_values_size = in_block.values_size
+        original_word_size = in_block.word_size
 
         if libgabac.gabac_stream_create_buffer(
             io_config.input,
             in_block
         ):
             libgabac.gabac_data_block_release(in_block)
-            # return original_length
-            return 1
+            return GABAC_RETURN.FAILURE, np.Infinity, np.Infinity
 
         if libgabac.gabac_stream_create_buffer(
             io_config.output, 
             None
         ):
             libgabac.gabac_stream_release(io_config.input)
-            # return original_length
-            return 1
+            return GABAC_RETURN.FAILURE, np.Infinity, np.Infinity
 
         # Create log stream from file. You could also pass stdout instead.
         if libgabac.gabac_stream_create_file(
@@ -270,11 +283,16 @@ class GabacConfiguration():
             len(logfilename),
             1
         ):
-            libc.printf(b"*** Could not allocate log stream!\n")
             libgabac.gabac_stream_release(io_config.input)
             libgabac.gabac_stream_release(io_config.output)
-            # return original_length
-            return 1
+            return GABAC_RETURN.FAILURE, np.Infinity, np.Infinity
+
+        # if libgabac.gabac_stream_create_buffer(
+        #     io_config.log, 
+        #     None
+        # ):
+        #     libgabac.gabac_stream_release(io_config.input)
+        #     return GABAC_RETURN.FAILURE, np.Infinity, np.Infinity
 
         # Encode using config
         if libgabac.gabac_run(
@@ -287,19 +305,46 @@ class GabacConfiguration():
             libgabac.gabac_stream_release(io_config.input)
             libgabac.gabac_stream_release(io_config.output)
             libgabac.gabac_stream_release(io_config.log)
-            # return original_length
-            return 1
+            
+            return GABAC_RETURN.FAILURE, np.Infinity, np.Infinity
+
+        encoding_time = time.time() - start_time
 
         # Swap contents of output stream back into input stream to prepare decoding
         libgabac.gabac_stream_swap_block(io_config.output, in_block)
-        
         encoded_length = in_block.values_size * in_block.word_size
+        libgabac.gabac_stream_swap_block(io_config.input, in_block)
 
-        libgabac.gabac_data_block_release(in_block)
-        libgabac.gabac_stream_release(io_config.input)
-        libgabac.gabac_stream_release(io_config.output)
-        libgabac.gabac_stream_release(io_config.log)
+        print('Start decode')
+        if libgabac.gabac_run(
+            GABAC_OPERATION.DECODE, 
+            io_config,
+            ### With cchar
+            config_cchar,
+            len(config_cchar),   
+        ):
+            print('Cannot decode')
+            libgabac.gabac_data_block_release(in_block)
+            libgabac.gabac_stream_release(io_config.input)
+            libgabac.gabac_stream_release(io_config.output)
+            libgabac.gabac_stream_release(io_config.log)
+
+            return GABAC_RETURN.FAILURE, np.Infinity, np.Infinity
+
+        print('Finish decode')
+        libgabac.gabac_stream_swap_block(io_config.output, in_block)
+
+        if are_blocks_equal(in_block, copy_in_block):
+            print(encoded_length/original_length)
+            libgabac.gabac_data_block_release(in_block)
+            libgabac.gabac_stream_release(io_config.input)
+            libgabac.gabac_stream_release(io_config.output)
+            libgabac.gabac_stream_release(io_config.log)
+            return GABAC_RETURN.SUCCESS, encoded_length, encoding_time
+        else:
+            return GABAC_RETURN.FAILURE, np.Infinity, np.Infinity
 
         # return encoded_length
         # return encoded_length - original_length
-        return encoded_length/original_length
+        #return encoded_length/original_length
+
