@@ -87,6 +87,18 @@ int gabac_data_block_copy(
 );
 
 /**
+ * Checks if two data blocks contain the same data
+ * @param block1 First block
+ * @param block2 Second block
+ * @return 0 (false) if blocks are different, 1 (true) otherwise.
+ */
+int gabac_data_block_equals(
+        gabac_data_block *block1,
+        gabac_data_block *block2
+);
+
+
+/**
  * @brief Extract a single element from a data block
  * @param block
  * @param index Must be smaller than values_size

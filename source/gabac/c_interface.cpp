@@ -110,6 +110,16 @@ int gabac_data_block_resize(gabac_data_block *block, size_t size){
     return gabac_return_SUCCESS;
 }
 
+int gabac_data_block_equals(gabac_data_block *block1, gabac_data_block *block2){
+    if(block1->word_size != block2->word_size){
+        return false;
+    }
+    if(block1->values_size != block2->values_size){
+        return false;
+    }
+    return memcmp(block1->values, block2->values, block1->word_size * block1->values_size) == 0;
+}
+
 uint64_t gabac_data_block_get(const gabac_data_block *block, size_t index){
     switch (block->word_size) {
         case 1:
