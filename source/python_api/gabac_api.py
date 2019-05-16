@@ -241,6 +241,17 @@ libgabac.gabac_data_block_copy.argtypes = [
 libgabac.gabac_data_block_copy.restype = ct.c_int
 
 # Arguments
+#   gabac_data_block *block1,
+#   gabac_data_block *block2
+# Return
+#   int gabac_data_block_equals(
+libgabac.gabac_data_block_equals.argtypes = [
+    ct.POINTER(gabac_data_block) if STRONG_TYPE else ct.c_void_p,
+    ct.POINTER(gabac_data_block) if STRONG_TYPE else ct.c_void_p,
+]
+libgabac.gabac_data_block_equals.restype = ct.c_int
+
+# Arguments
 #   const gabac_data_block *block,
 #   size_t index
 # Return

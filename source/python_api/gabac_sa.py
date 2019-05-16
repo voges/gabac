@@ -7,6 +7,7 @@ import ctypes as ct
 from collections import OrderedDict
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 
 from gabac_api import libgabac
@@ -49,9 +50,13 @@ class SimulatedAnnealingForGabac(object):
         self,
         data,
         seq_transform_id,
+        ena_roundtrip=True,
         kmax=50,
         kt=1,
+        verbose=True,
     ):
+        self.verbose = verbose
+
         # Gabac-specific parameter
         self.data = data
         self.seq_transform_id = seq_transform_id
@@ -61,7 +66,12 @@ class SimulatedAnnealingForGabac(object):
         self.kt = kt
 
         # Init
-        self.gc = GabacConfiguration(self.seq_transform_id)
+        self.gc = GabacConfiguration(
+            self.seq_transform_id, 
+            ena_roundtrip=ena_roundtrip)
+
+        self.result = np.zeros((self.kmax + 1, 8))
+
         while True:
             first_config = self.gc.generate_random_config()
             return_val, enc_length, enc_time = self.gc.run_gabac(self.data, self.gc.json_to_cchar(first_config))
@@ -69,9 +79,21 @@ class SimulatedAnnealingForGabac(object):
                 break
 
         self.s0 = first_config
+        self.enc_length = enc_length
         self.E0 = enc_length / len(data)
+
+        self.result[0, :] = [
+            enc_length, 
+            enc_length, 
+            enc_length, 
+            self.E0,
+            self.E0,
+            self.E0,
+            enc_time,
+            enc_time]
         
-        print('E{:03d}: {:.3f}'.format(0, self.E0))
+        if self.verbose:
+            print('E{:03d}: {:.3f}'.format(0, self.E0))
 
     def _temperature(
         self,
@@ -81,12 +103,12 @@ class SimulatedAnnealingForGabac(object):
 
     def start(self):
         s = self.s0
+        el = self.enc_length
         E = self.E0
 
         best_s = s
+        best_el = el
         best_E = E
-
-        result = np.zeros((self.kmax, 3))
 
         for k in range(self.kmax):
             T = self._temperature(k)
@@ -94,8 +116,8 @@ class SimulatedAnnealingForGabac(object):
             while True:
                 new_s = self.gc.generate_random_neighbor(s)
 
-                with open('curr_config.json', 'w') as f:
-                    json.dump(new_s, f, indent=4)
+                # with open('curr_config.json', 'w') as f:
+                #     json.dump(new_s, f, indent=4)
 
                 return_val, enc_length, enc_time = self.gc.run_gabac(self.data, self.gc.json_to_cchar(new_s))
                 if return_val == GABAC_RETURN.SUCCESS:
@@ -105,46 +127,78 @@ class SimulatedAnnealingForGabac(object):
 
             dE = new_E - E
 
-            result[k, 0] = new_E
+            self.result[k+1, 0] = enc_length
+            self.result[k+1, 3] = new_E
+            self.result[k+1, 6] = enc_time
+            self.result[k+1, 7] = enc_time + self.result[k, 7]
 
             if dE > 0.0:
-                print('E{:3d}: {:.3f} dE {:.02e} '.format(
-                    k, new_E, dE
-                ), end='')
+                if self.verbose:
+                    print('E{:3d}: {:.3f} dE {:.02e} '.format(
+                        k, new_E, dE
+                    ), end='')
 
                 # if math.exp(-dE / T) < random.random():
                 if np.exp(dE/T) - 1 < random.random():
-                    print('accept', end='')
+                    if self.verbose:
+                        print('accept', end='')
+                    
                     s = new_s
+                    el = enc_length
                     E = new_E
 
                 else:
                     pass
 
-                print()
+                if self.verbose:
+                    print()
 
             else:
-                print('E{:3d}: {:.3f} dE {:.02e} (<) '.format(
-                    k, new_E, dE
-                ))
+                if self.verbose:
+                    print('E{:3d}: {:.3f} dE {:.02e} (<) '.format(
+                        k, new_E, dE
+                    ))
+
                 s = new_s
+                el = enc_length
                 E = new_E
 
-            result[k, 2] = E
+            self.result[k+1, 1] = el
+            self.result[k+1, 4] = E
 
             if E < best_E:
                 best_s = s
+                best_el = el
                 best_E = E
                 
-            result[k, 1] = best_E
+            self.result[k+1, 2] = best_el
+            self.result[k+1, 5] = best_E
 
-        self.result = result
         return best_s, best_E
 
     def show_plot(self):
-        plt.plot(np.arange(self.kmax), self.result[:,0], 'b')
-        plt.plot(np.arange(self.kmax), self.result[:,2], 'r')
-        plt.plot(np.arange(self.kmax), self.result[:,1], 'k')
+        plt.plot(np.arange(self.kmax + 1), self.result[:,3], 'b')
+        plt.plot(np.arange(self.kmax + 1), self.result[:,4], 'r')
+        plt.plot(np.arange(self.kmax + 1), self.result[:,5], 'k')
         plt.show()
-    
+
+    def result_as_csv(self, path):
+        df = pd.DataFrame(
+            data=self.result,
+            index=np.arange(self.kmax + 1),
+            columns=[
+                'encoded_length',
+                'current_encoded_length',
+                'best_encoded_length',
+                'encoded_ratio',
+                'current_encoded_ratio',
+                'best_encoded_ratio',
+                'encoding_time',
+                'total_encoding_time']
+            )
+        df.to_csv(
+            path,
+            index=False,
+            #header=None, 
+        )
 

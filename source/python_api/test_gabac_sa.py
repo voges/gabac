@@ -36,9 +36,12 @@ sa = SimulatedAnnealingForGabac(
     data, 
     # GABAC_TRANSFORM.RLE,
     # GABAC_TRANSFORM.EQUALITY,
-    GABAC_TRANSFORM.MATCH,
+    # GABAC_TRANSFORM.MATCH,
+    GABAC_TRANSFORM.NONE,
+    ena_roundtrip=False,
     kmax=200,
-    kt=1
+    kt=1,
+    verbose=False
 )
 
 s,E = sa.start()
@@ -47,6 +50,7 @@ print(E)
 print(json.dumps(s, indent=4))
 
 sa.show_plot()
+sa.result_as_csv('res.csv')
 
 # Best result kt=1 kmax=1000 : 0.9880580902099609
 # Best result kt=1 : 0.9880714416503906

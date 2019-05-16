@@ -77,23 +77,31 @@ class GabacConfiguration():
     rle_config_template["sequence_transformation_id"] = GABAC_TRANSFORM.RLE 
     rle_config_template["sequence_transformation_parameter"] = 255
 
+    none_config_template = copy.deepcopy(main_conf_template)
+    none_config_template["sequence_transformation_id"] = GABAC_TRANSFORM.NONE 
+    none_config_template["sequence_transformation_parameter"] = 0
+
     available_variant = {
+        GABAC_TRANSFORM.NONE : none_config_template,
         GABAC_TRANSFORM.EQUALITY : equality_config_template,
         GABAC_TRANSFORM.MATCH : match_config_template,
         GABAC_TRANSFORM.RLE : rle_config_template,
     }
 
     num_transformed_seq = {
+        GABAC_TRANSFORM.NONE : 1,
         GABAC_TRANSFORM.EQUALITY : 2,
         GABAC_TRANSFORM.MATCH : 3,
         GABAC_TRANSFORM.RLE : 2 }
 
     def __init__(
         self,
-        seq_transform_id
+        seq_transform_id,
+        ena_roundtrip=True,
     ):
 
         self.seq_transform_id = seq_transform_id
+        self.ena_roundtrip = ena_roundtrip
 
         self.variant_config_template = self.available_variant[seq_transform_id]
 
@@ -228,8 +236,8 @@ class GabacConfiguration():
     #         )
     #     )
 
-    @staticmethod
     def run_gabac(
+        self,
         data,
         config_cchar
     ):
@@ -257,10 +265,6 @@ class GabacConfiguration():
             return GABAC_RETURN.FAILURE, np.Infinity, np.Infinity
 
         original_length = in_block.values_size * in_block.word_size
-
-        original_values = in_block.values
-        original_values_size = in_block.values_size
-        original_word_size = in_block.word_size
 
         if libgabac.gabac_stream_create_buffer(
             io_config.input,
@@ -313,36 +317,39 @@ class GabacConfiguration():
         # Swap contents of output stream back into input stream to prepare decoding
         libgabac.gabac_stream_swap_block(io_config.output, in_block)
         encoded_length = in_block.values_size * in_block.word_size
-        libgabac.gabac_stream_swap_block(io_config.input, in_block)
 
-        print('Start decode')
-        if libgabac.gabac_run(
-            GABAC_OPERATION.DECODE, 
-            io_config,
-            ### With cchar
-            config_cchar,
-            len(config_cchar),   
-        ):
-            print('Cannot decode')
-            libgabac.gabac_data_block_release(in_block)
-            libgabac.gabac_stream_release(io_config.input)
-            libgabac.gabac_stream_release(io_config.output)
-            libgabac.gabac_stream_release(io_config.log)
+        if self.ena_roundtrip:
+            libgabac.gabac_stream_swap_block(io_config.input, in_block)
 
-            return GABAC_RETURN.FAILURE, np.Infinity, np.Infinity
+            if libgabac.gabac_run(
+                GABAC_OPERATION.DECODE, 
+                io_config,
+                config_cchar,
+                len(config_cchar),   
+            ):
+                libgabac.gabac_data_block_release(in_block)
+                libgabac.gabac_stream_release(io_config.input)
+                libgabac.gabac_stream_release(io_config.output)
+                libgabac.gabac_stream_release(io_config.log)
 
-        print('Finish decode')
-        libgabac.gabac_stream_swap_block(io_config.output, in_block)
+                return GABAC_RETURN.FAILURE, np.Infinity, np.Infinity
 
-        if are_blocks_equal(in_block, copy_in_block):
-            print(encoded_length/original_length)
+            libgabac.gabac_stream_swap_block(io_config.output, in_block)
+
+            if libgabac.gabac_data_block_equals(in_block, copy_in_block):
+                libgabac.gabac_data_block_release(in_block)
+                libgabac.gabac_stream_release(io_config.input)
+                libgabac.gabac_stream_release(io_config.output)
+                libgabac.gabac_stream_release(io_config.log)
+                return GABAC_RETURN.SUCCESS, encoded_length, encoding_time
+            else:
+                return GABAC_RETURN.FAILURE, np.Infinity, np.Infinity
+        else:
             libgabac.gabac_data_block_release(in_block)
             libgabac.gabac_stream_release(io_config.input)
             libgabac.gabac_stream_release(io_config.output)
             libgabac.gabac_stream_release(io_config.log)
             return GABAC_RETURN.SUCCESS, encoded_length, encoding_time
-        else:
-            return GABAC_RETURN.FAILURE, np.Infinity, np.Infinity
 
         # return encoded_length
         # return encoded_length - original_length
