@@ -6,6 +6,7 @@
 
 #include "gabac/data_block.h"
 
+#include <limits>
 #include <utility>
 
 #include "gabac/block_stepper.h"
@@ -86,6 +87,29 @@ DataBlock::DataBlock(uint8_t *d, size_t size, uint8_t word_size) : wordSize(word
     this->data.resize(s);
     this->data.shrink_to_fit();
     std::memcpy(this->data.data(), d, s);
+}
+
+uint64_t DataBlock::getMaximum() const {
+    BlockStepper r = getReader();
+    uint64_t max = std::numeric_limits<uint64_t>::min();
+    while (r.isValid()) {
+        uint64_t symbol = r.get();
+        max = std::max(max, symbol);
+        r.inc();
+    }
+    return max;
+}
+
+uint8_t DataBlock::getMaxWordSize() const {
+    uint8_t w = 1;
+    while(w != 8) {
+        w *= 2;
+        if(getRawSize() % w) {
+            w /= 2;
+            break;
+        }
+    }
+    return w;
 }
 
 }  // namespace gabac

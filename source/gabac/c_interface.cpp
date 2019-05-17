@@ -110,14 +110,24 @@ int gabac_data_block_resize(gabac_data_block *block, size_t size){
     return gabac_return_SUCCESS;
 }
 
-int gabac_data_block_equals(gabac_data_block *block1, gabac_data_block *block2){
-    if(block1->word_size != block2->word_size){
-        return false;
-    }
-    if(block1->values_size != block2->values_size){
-        return false;
-    }
-    return memcmp(block1->values, block2->values, block1->word_size * block1->values_size) == 0;
+int gabac_data_block_equals(
+        gabac_data_block *block1,
+        gabac_data_block *block2
+){
+    return gabac::DataBlock(block1->values, block1->values_size, block1->word_size)
+    == gabac::DataBlock(block2->values, block2->values_size, block2->word_size);
+}
+
+uint64_t gabac_data_block_max(
+        gabac_data_block *block
+) {
+    return gabac::DataBlock(block->values, block->values_size, block->word_size).getMaximum();
+}
+
+uint8_t gabac_data_block_max_wordsize(
+        gabac_data_block *block
+) {
+    return gabac::DataBlock(block->values, block->values_size, block->word_size).getMaxWordSize();
 }
 
 uint64_t gabac_data_block_get(const gabac_data_block *block, size_t index){
@@ -376,4 +386,41 @@ int gabac_run(
     catch (gabac::Exception& e) {
         return gabac_return_FAILURE;
     }
+}
+
+
+int gabac_config_is_general(const char* inconf, size_t inconf_size, uint64_t max, uint8_t wsize) {
+    gabac::EncodingConfiguration conf(std::string(inconf, inconf_size));
+    return conf.isGeneral(max, wsize);
+}
+
+int gabac_config_generalize_create(const char* inconf, size_t inconf_size, uint64_t max, uint8_t wsize, char** outconf, size_t* outconf_size) {
+    gabac::EncodingConfiguration conf(std::string(inconf, inconf_size));
+    auto nconf = conf.generalize(max, wsize);
+    auto str = nconf.toJsonString();
+    *outconf = static_cast<char*>(malloc(sizeof(char) * (str.size() + 1)));
+    *outconf_size = str.size();
+    memcpy(*outconf, str.c_str(), *outconf_size + 1);
+    return gabac_return_SUCCESS;
+}
+
+int gabac_config_is_optimal(const char* inconf, size_t inconf_size, uint64_t max, uint8_t wsize) {
+    gabac::EncodingConfiguration conf(std::string(inconf, inconf_size));
+    return conf.isGeneral(max, wsize);
+}
+
+int gabac_config_optimize_create(const char* inconf, size_t inconf_size, uint64_t max, uint8_t wsize, char** outconf, size_t* outconf_size) {
+    gabac::EncodingConfiguration conf(std::string(inconf, inconf_size));
+    auto nconf = conf.optimize(max, wsize);
+    auto str = nconf.toJsonString();
+    *outconf = static_cast<char*>(malloc(sizeof(char) * (str.size() + 1)));
+    *outconf_size = str.size();
+    memcpy(*outconf, str.c_str(), *outconf_size + 1);
+    return gabac_return_SUCCESS;
+}
+
+int gabac_config_free(char** outconf) {
+    free(*outconf);
+    *outconf = nullptr;
+    return gabac_return_SUCCESS;
 }

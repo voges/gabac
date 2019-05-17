@@ -61,6 +61,18 @@ class DataBlock
     uint64_t get(size_t index) const;
 
     /**
+     * Calculates the biggest symbol in this block
+     * @return Maximum
+     */
+    uint64_t getMaximum() const;
+
+    /**
+     * Calculates the biggest possible word size for this block
+     * @return Maximum
+     */
+    uint8_t getMaxWordSize() const;
+
+    /**
      * @brief Pack symbol into stream.
      * @param index Position in stream
      * @param val Value (will be narrowed to word size)

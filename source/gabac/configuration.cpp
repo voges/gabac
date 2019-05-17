@@ -147,6 +147,282 @@ std::string TransformedSequenceConfiguration::toPrintableString() const{
     return s.str();
 }
 
+bool TransformedSequenceConfiguration::operator==(const TransformedSequenceConfiguration& conf) const {
+    return conf.diffCodingEnabled == this->diffCodingEnabled
+    && conf.lutOrder == this->lutOrder
+    && conf.lutTransformationEnabled == this->lutTransformationEnabled
+    && conf.binarizationId == this->binarizationId
+    && conf.binarizationParameters == this->binarizationParameters
+    && conf.contextSelectionId == this->contextSelectionId
+    && conf.lutBits == this->lutBits;
+}
+bool TransformedSequenceConfiguration::operator!=(const TransformedSequenceConfiguration& conf) const {
+    return !(*this == conf);
+}
+
+void generalizeLUT(gabac::EncodingConfiguration& ret, uint64_t max, unsigned index){
+    const size_t MAX_LUT_SIZE = 1u << 20u;
+    if (!ret.transformedSequenceConfigurations[index].lutTransformationEnabled) {
+        return;
+    }
+
+    // Calculate how many bits we need to represent the maximum value
+    unsigned bits = uint8_t(std::ceil(std::log2(max + 1)));
+
+    // Lut bits must be at least the number of calculated bits
+    ret.transformedSequenceConfigurations[index].lutBits =
+            std::max(bits, ret.transformedSequenceConfigurations[index].lutBits);
+
+    // Maximum value too high for LUT. Indices higher 0 encode lengths, these can never exceed
+    // The Lut maximum for order 0, as this would require 1+2+3+..+8000000 symbols, which is at least 32TB
+    if (max > MAX_LUT_SIZE && index == 0) {
+        ret.transformedSequenceConfigurations[index].lutTransformationEnabled = false;
+    } else if (max > size_t(std::sqrt(MAX_LUT_SIZE))) {
+        // Too high for order 1
+        ret.transformedSequenceConfigurations[index].lutOrder = 0;
+    } else if (max > size_t(std::pow(MAX_LUT_SIZE, 1.0 / 3.0))) {
+        // Too high for order 2
+        ret.transformedSequenceConfigurations[index].lutOrder =
+                std::min(1u, ret.transformedSequenceConfigurations[0].lutOrder);
+    }
+}
+
+void optimizeLUT(gabac::EncodingConfiguration& ret, uint64_t max, unsigned index){
+    if (!ret.transformedSequenceConfigurations[index].lutTransformationEnabled) {
+        return;
+    }
+
+    // Lut bits has an optimal value
+    ret.transformedSequenceConfigurations[index].lutBits = uint8_t(std::ceil(std::log2(max + 1)));
+}
+
+
+void generalizeBin(gabac::EncodingConfiguration& c1, uint64_t max, unsigned index){
+    unsigned bits = 0;
+    const unsigned TU_MAX = gabac::getBinarization(gabac::BinarizationId::EG).paramMax;
+    switch (c1.transformedSequenceConfigurations[index].binarizationId) {
+        case gabac::BinarizationId::BI:
+            bits = uint8_t(std::ceil(std::log2(max + 1)));
+
+            // Correct too few bits for BI binarization
+            bits = std::max(bits, c1.transformedSequenceConfigurations[index].binarizationParameters[0]);
+            c1.transformedSequenceConfigurations[index].binarizationParameters = {bits};
+            break;
+        case gabac::BinarizationId::TU:
+            if (max > TU_MAX) {
+
+                // Correct too high values for TU: switch to TEG
+                // Set invalid parameters and call recursively to fix it.
+                c1.transformedSequenceConfigurations[index].binarizationId = gabac::BinarizationId::TEG;
+                c1.transformedSequenceConfigurations[index].binarizationParameters = {32};
+
+                // Check newly created binarization
+                generalizeBin(c1, max, index);
+            }
+            break;
+        case gabac::BinarizationId::EG:
+            // Correct too high values for EG: switch to BI instead
+            if (max > gabac::getBinarization(gabac::BinarizationId::EG).max(0)) {
+
+                // Set invalid parameters and call recursively to fix it.
+                c1.transformedSequenceConfigurations[index].binarizationParameters = {0};
+                c1.transformedSequenceConfigurations[index].binarizationId = gabac::BinarizationId::BI;
+                generalizeBin(c1, max, index);
+            }
+            break;
+        case gabac::BinarizationId::SEG:
+            // Guaranteed to work if [-max, max] in range, which is automatically the case
+            // if the positive range is working
+            if(max > gabac::getBinarization(gabac::BinarizationId::SEG).max(0)) {
+                c1.transformedSequenceConfigurations[index].binarizationParameters = {0};
+                c1.transformedSequenceConfigurations[index].binarizationId = gabac::BinarizationId::BI;
+                generalizeBin(c1, max, index);
+            }
+            break;
+        case gabac::BinarizationId::TEG:
+            // Check if parameter is in TU range
+            if(TU_MAX < c1.transformedSequenceConfigurations[index].binarizationParameters[0]){
+                c1.transformedSequenceConfigurations[index].binarizationParameters = {TU_MAX};
+            }
+            // Guaranteed to work if [-max, max] in range, which is automatically the case
+            // if the positive range is working
+            if(max > gabac::getBinarization(gabac::BinarizationId::TEG).max(0)) {
+                c1.transformedSequenceConfigurations[index].binarizationParameters = {0};
+                c1.transformedSequenceConfigurations[index].binarizationId = gabac::BinarizationId::BI;
+                generalizeBin(c1, max, index);
+            }
+
+            break;
+        case gabac::BinarizationId::STEG:
+            // Check if parameter is in TU range
+            if(TU_MAX < c1.transformedSequenceConfigurations[index].binarizationParameters[0]){
+                c1.transformedSequenceConfigurations[index].binarizationParameters = {TU_MAX};
+            }
+            // Guaranteed to work if [-max, max] in range, which is automatically the case
+            // if the positive range is working
+            if(max > gabac::getBinarization(gabac::BinarizationId::STEG).max(0)) {
+                c1.transformedSequenceConfigurations[index].binarizationParameters = {0};
+                c1.transformedSequenceConfigurations[index].binarizationId = gabac::BinarizationId::BI;
+                generalizeBin(c1, max, index);
+            }
+            break;
+        default:
+            return;
+    }
+}
+
+void optimizeBin(gabac::EncodingConfiguration& c1, uint64_t max, unsigned index){
+    unsigned bits = 0;
+    switch (c1.transformedSequenceConfigurations[index].binarizationId) {
+        case gabac::BinarizationId::BI:
+            bits = uint8_t(std::ceil(std::log2(max + 1)));
+
+            // Use optimal value for bits
+            c1.transformedSequenceConfigurations[index].binarizationParameters = {bits};
+            break;
+        case gabac::BinarizationId::TEG:
+            // TEG 0 is not allowed in the standard and EG is faster.
+            if(c1.transformedSequenceConfigurations[index].binarizationParameters[0] == 0) {
+                c1.transformedSequenceConfigurations[index].binarizationParameters = {0};
+                c1.transformedSequenceConfigurations[index].binarizationId = gabac::BinarizationId::EG;
+                optimizeBin(c1, max, index);
+            } else if (c1.transformedSequenceConfigurations[index].binarizationParameters[0] > max) {
+                // No reason to have a parameter this large
+                c1.transformedSequenceConfigurations[index].binarizationParameters = {unsigned(max)};
+            }
+            break;
+        case gabac::BinarizationId::STEG:
+            // STEG 0 is not allowed in the standard and SEG is faster.
+            if(c1.transformedSequenceConfigurations[index].binarizationParameters[0] == 0) {
+                c1.transformedSequenceConfigurations[index].binarizationParameters = {0};
+                c1.transformedSequenceConfigurations[index].binarizationId = gabac::BinarizationId::SEG;
+                optimizeBin(c1, max, index);
+            } else if (c1.transformedSequenceConfigurations[index].binarizationParameters[0] > max) {
+                // No reason to have a parameter this large
+                c1.transformedSequenceConfigurations[index].binarizationParameters = {unsigned(max)};
+            }
+            break;
+        default:
+            return;
+    }
+}
+
+gabac::EncodingConfiguration EncodingConfiguration::optimize(uint64_t max, unsigned) const{
+    // Start with the current configuration
+    gabac::EncodingConfiguration ret = *this;
+
+    optimizeLUT(ret, max, 0);
+
+    // Update binarization
+    optimizeBin(ret, max, 0);
+
+    // Special cases for single transforms
+    switch (ret.sequenceTransformationId) {
+        case gabac::SequenceTransformationId::equality_coding:
+
+            // Just single bits is the optimal configuration
+            ret.transformedSequenceConfigurations[1].lutBits = 1;
+            optimizeLUT(ret, 1, 1);
+            optimizeBin(ret, 1, 1);
+            break;
+        case gabac::SequenceTransformationId::match_coding:
+
+            // Optimal configuration is the window size
+            ret.transformedSequenceConfigurations[1].lutBits =
+                    uint8_t(std::ceil(std::log2(ret.sequenceTransformationParameter + 1)));
+            optimizeLUT(ret, ret.sequenceTransformationParameter, 1);
+            optimizeBin(ret, ret.sequenceTransformationParameter, 1);
+
+            // Stream 3 contains lengths, these can be up to 32 bits
+            ret.transformedSequenceConfigurations[2].lutBits = 32;
+            optimizeLUT(ret, std::numeric_limits<uint32_t>::max(), 2);
+            optimizeBin(ret, std::numeric_limits<uint32_t>::max(), 2);
+            break;
+        case gabac::SequenceTransformationId::rle_coding:
+
+            // Here we have 32 bit lengths again
+            ret.transformedSequenceConfigurations[1].lutBits = 32;
+            optimizeLUT(ret, std::numeric_limits<uint32_t>::max(), 1);
+            optimizeBin(ret, std::numeric_limits<uint32_t>::max(), 1);
+            break;
+        default:
+            break;
+    }
+
+    return ret;
+
+}
+
+gabac::EncodingConfiguration EncodingConfiguration::generalize(uint64_t max, unsigned wordsize) const{
+
+    // Start with the current configuration
+    gabac::EncodingConfiguration ret = *this;
+
+    // Word size might be too big
+    ret.wordSize = std::min(ret.wordSize, wordsize);
+
+    generalizeLUT(ret, max, 0);
+
+    // Update binarization
+    generalizeBin(ret, max, 0);
+
+    // Special cases for single transforms
+    switch (ret.sequenceTransformationId) {
+        case gabac::SequenceTransformationId::equality_coding:
+
+            // Just single byte/bit flags
+            ret.transformedSequenceConfigurations[1].lutBits = std::max(1u,ret.transformedSequenceConfigurations[1].lutBits);
+            generalizeLUT(ret, 1, 1);
+            generalizeBin(ret, 1, 1);
+            break;
+        case gabac::SequenceTransformationId::match_coding:
+
+            // Stream 2 contains only indices in the range of the window size
+            // So we now a worst case for the values and can calculate the
+            // lut bits and binarizations
+            ret.transformedSequenceConfigurations[1].lutBits =
+                    std::max(uint8_t(std::ceil(std::log2(ret.sequenceTransformationParameter + 1))), uint8_t (ret.transformedSequenceConfigurations[1].lutBits));
+
+            generalizeLUT(ret, ret.sequenceTransformationParameter, 1);
+            generalizeBin(ret, ret.sequenceTransformationParameter, 1);
+
+            // Stream 3 contains lengths, these can be up to 32 bits
+            ret.transformedSequenceConfigurations[2].lutBits = std::max(32u, ret.transformedSequenceConfigurations[2].lutBits);
+            generalizeLUT(ret, std::numeric_limits<uint32_t>::max(), 2);
+            generalizeBin(ret, std::numeric_limits<uint32_t>::max(), 2);
+            break;
+        case gabac::SequenceTransformationId::rle_coding:
+
+            // Here we have 32 bit lengths again
+            ret.transformedSequenceConfigurations[1].lutBits = std::max(32u, ret.transformedSequenceConfigurations[1].lutBits);
+            generalizeLUT(ret, std::numeric_limits<uint32_t>::max(), 1);
+            generalizeBin(ret, std::numeric_limits<uint32_t>::max(), 1);
+            break;
+        default:
+            break;
+    }
+
+    return ret;
+
+}
+
+bool EncodingConfiguration::operator==(const EncodingConfiguration& conf) const {
+    return conf.wordSize == this->wordSize
+    && conf.sequenceTransformationId == this->sequenceTransformationId
+    && conf.sequenceTransformationParameter == this->sequenceTransformationParameter
+    && conf.transformedSequenceConfigurations == this->transformedSequenceConfigurations;
+}
+bool EncodingConfiguration::operator!=(const EncodingConfiguration& conf) const {
+    return !(conf == *this);
+}
+
+bool EncodingConfiguration::isGeneral (uint64_t max, unsigned wordsize) const {
+    return *this == this->generalize(max, wordsize);
+}
+bool EncodingConfiguration::isOptimal (uint64_t max, unsigned wordsize) const {
+    return *this == this->optimize(max, wordsize);
+}
+
 void IOConfiguration::validate() const{
     if (!inputStream) {
         GABAC_DIE("Invalid input stream");
@@ -157,7 +433,7 @@ void IOConfiguration::validate() const{
     if (!logStream) {
         GABAC_DIE("Invalid logging output stream");
     }
-    if (unsigned(this->level) > unsigned(IOConfiguration::LogLevel::FATAL)){
+    if (unsigned(this->level) > unsigned(IOConfiguration::LogLevel::FATAL)) {
         GABAC_DIE("Invalid logging level");
     }
 }
