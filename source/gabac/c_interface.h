@@ -87,6 +87,36 @@ int gabac_data_block_copy(
 );
 
 /**
+ * Checks if two data blocks contain the same data
+ * @param block1 First block
+ * @param block2 Second block
+ * @return 0 (false) if blocks are different, 1 (true) otherwise.
+ */
+int gabac_data_block_equals(
+        gabac_data_block *block1,
+        gabac_data_block *block2
+);
+
+/**
+ * Returns the maximum symbol in a data block
+ * @param block
+ * @return Maximum
+ */
+uint64_t gabac_data_block_max(
+        gabac_data_block *block
+);
+
+/**
+ * Returns the maximum possible word size for a data block
+ * @param block
+ * @return Maximum
+ */
+uint8_t gabac_data_block_max_wordsize(
+        gabac_data_block *block
+);
+
+
+/**
  * @brief Extract a single element from a data block
  * @param block
  * @param index Must be smaller than values_size
@@ -344,6 +374,61 @@ int gabac_run(
 );
 
 /* Operations end */
+
+/* Configuration */
+
+/**
+ * Checks if a configuration is valid for all streams in the passed specification
+ * @param inconf Configuration string
+ * @param inconf_size length of string
+ * @param max Maximum stream value
+ * @param wsize Maximum word size
+ * @return True if it is general
+ */
+int gabac_config_is_general(const char* inconf, size_t inconf_size, uint64_t max, uint8_t wsize);
+
+/**
+ * Generalizes a configuration to a complete set of streams
+ * @param inconf String of conf
+ * @param inconf_size length of string
+ * @param max Maximum stream value
+ * @param wsize Maximum word size
+ * @param outconf Where to put the new config. You have to free this return value.
+ * @param outconf_size Where to put size of new config string
+ * @return success
+ */
+int gabac_config_generalize_create(const char* inconf, size_t inconf_size, uint64_t max, uint8_t wsize, char** outconf, size_t* outconf_size);
+
+/**
+ * Checks if a configuration has optimal tweaks applied for all streams in the passed specification
+ * @param inconf Configuration string
+ * @param inconf_size length of string
+ * @param max Maximum stream value
+ * @param wsize Maximum word size
+ * @return True if it is optimal
+ */
+int gabac_config_is_optimal(const char* inconf, size_t inconf_size, uint64_t max, uint8_t wsize);
+
+/**
+ * Optimizes a configuration with small tweaks.
+ * @param inconf String of conf
+ * @param inconf_size length of string
+ * @param max Maximum stream value
+ * @param wsize Maximum word size
+ * @param outconf Where to put the new config. You have to free this return value.
+ * @param outconf_size Where to put size of new config string
+ * @return success
+ */
+int gabac_config_optimize_create(const char* inconf, size_t inconf_size, uint64_t max, uint8_t wsize, char** outconf, size_t* outconf_size);
+
+/**
+ * Convinience function to free a configuration string returned by other functions
+ * @param outconf
+ * @return
+ */
+int gabac_config_free(char** outconf);
+
+/* Configuration End */
 
 #ifdef __cplusplus
 }

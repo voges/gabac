@@ -37,6 +37,20 @@ struct TransformedSequenceConfiguration
      * @return Text
      */
     std::string toPrintableString() const;
+
+    /**
+     * Compare
+     * @param conf
+     * @return
+     */
+    bool operator==(const TransformedSequenceConfiguration& conf) const;
+
+    /**
+     * Compare
+     * @param conf
+     * @return
+     */
+    bool operator!=(const TransformedSequenceConfiguration& conf) const;
 };
 
 /**
@@ -74,6 +88,59 @@ class EncodingConfiguration
      * @return Text
      */
     std::string toPrintableString() const;
+
+    /**
+     * Will modify this configuration so that it is guaranteed to work with the parameters passed.
+     * It is also gueranteed that it will work with all streams it was working before, even outside
+     * of the stream specification passed.
+     * @param max Maximum value in the stream
+     * @param wordsize Maximum word size in the stream
+     * @warning You can still break gabac if there is a sequence of more than 4GBs of the same symbol while being in
+     * match coding or run length coding. Moreover the modified config is probably not optimal, but it will work.
+     * @return Adapted configuration
+     */
+    gabac::EncodingConfiguration generalize (uint64_t max, unsigned wordsize) const;
+
+    /**
+     * Applies generalize() and checks if it changed the configuration, i.a. if it was generally applicable before.
+     * @param max Maximum symbol
+     * @param wordsize Maximum word size
+     * @return True if working with all streams in specification
+     */
+    bool isGeneral (uint64_t max, unsigned wordsize) const;
+
+    /**
+     * Will apply some small parameter tweaks that are guaranteed to improve performance / speed regardless
+     * of the data in the stream. Other than generalize() some streams might stop working if they are outside
+     * of the specification. Streams inside the specifications are guaranteed to work the same way they did before
+     * or better.
+     * @param max Maximum symbol allowed in the stream
+     * @param wordsize Maximum allowed word size
+     * @return An improved configuration
+     */
+    gabac::EncodingConfiguration optimize (uint64_t max, unsigned wordsize) const;
+
+    /**
+     * Applies optimize() and checks if it changed the configuration, i.a. if it was optimal before.
+     * @param max Maximum symbol
+     * @param wordsize Maximum word size
+     * @return True if optimal
+     */
+    bool isOptimal (uint64_t max, unsigned wordsize) const;
+
+    /**
+     * Compare
+     * @param conf
+     * @return
+     */
+    bool operator==(const EncodingConfiguration& conf) const;
+
+    /**
+     * Compare
+     * @param conf
+     * @return
+     */
+    bool operator!=(const EncodingConfiguration& conf) const;
 
     unsigned int wordSize;  /**< @brief How many bytes are considered one symbol */
     gabac::SequenceTransformationId sequenceTransformationId;  /**< @brief Which transformation to apply */
