@@ -10,48 +10,12 @@ from gabac_api import GABAC_BINARIZATION, GABAC_CONTEXT_SELECT, GABAC_LOG_LEVEL,
 from gabac_api import GABAC_OPERATION, GABAC_RETURN, GABAC_STREAM_MODE, GABAC_TRANSFORM
 from gabac_api import gabac_data_block
 from gabac_api import gabac_io_config
+from gabac_api import libc
+from gabac_api import array, print_array, print_block, get_block_values
 
 process = subprocess.Popen("git rev-parse --show-toplevel".split(), stdout=subprocess.PIPE)
 output, error = process.communicate()
 root_path = output.strip().decode("utf-8")
-
-libc = ct.CDLL("libc.so.6")
-
-def array(dtype, data):
-    if isinstance(data, int):
-        arr_dtype = data * dtype
-        return arr_dtype()
-    elif isinstance(data, (list, tuple, bytes)):
-        arr_dtype = dtype * len(data)
-        return arr_dtype(*data)
-    elif isinstance(data, str):
-        arr_dtype = dtype * len(data)
-        return arr_dtype(*data.encode())
-    elif isinstance(data, dict):
-        raise TypeError("Not yet implemented for type dictionary")
-    else:
-        raise TypeError("Incorrect datatype of data")
-
-def print_array(arr):
-    for val in arr:
-        if isinstance(val, bytes):
-            print("{}".format(val.decode()), end='')
-        else:
-            print("{}".format(val), end='')
-    print()
-
-def print_block(block):
-    for i in range(block.values_size):
-        # print("{:02d}".format(libgabac.gabac_data_block_get(ct.byref(block), i)), end='')
-        libc.printf(b"%lu ", libgabac.gabac_data_block_get(ct.byref(block), i))
-    # print()
-    libc.printf(b"\n")
-
-def get_block_values(block):
-    values = ""
-    for i in range(block.values_size):
-        values += "{:02d}".format(libgabac.gabac_data_block_get(ct.byref(block), i))
-    return values
 
 class PythonApiTest(unittest.TestCase):
     input_data1 = array(
