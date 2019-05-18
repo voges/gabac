@@ -193,13 +193,15 @@ void optimizeLUT(gabac::EncodingConfiguration& ret, uint64_t max, unsigned index
     }
 
     // Lut bits has an optimal value
-    ret.transformedSequenceConfigurations[index].lutBits = uint8_t(std::ceil(std::log2(max + 1)));
+    ret.transformedSequenceConfigurations[index].lutBits =
+            std::min(uint8_t(std::ceil(std::log2(max + 1))),
+                    uint8_t (ret.transformedSequenceConfigurations[index].lutBits));
 }
 
 
 void generalizeBin(gabac::EncodingConfiguration& c1, uint64_t max, unsigned index){
     unsigned bits = 0;
-    const unsigned TU_MAX = gabac::getBinarization(gabac::BinarizationId::EG).paramMax;
+    const unsigned TU_MAX = gabac::getBinarization(gabac::BinarizationId::TU).paramMax;
     switch (c1.transformedSequenceConfigurations[index].binarizationId) {
         case gabac::BinarizationId::BI:
             bits = uint8_t(std::ceil(std::log2(max + 1)));
@@ -275,7 +277,8 @@ void optimizeBin(gabac::EncodingConfiguration& c1, uint64_t max, unsigned index)
     unsigned bits = 0;
     switch (c1.transformedSequenceConfigurations[index].binarizationId) {
         case gabac::BinarizationId::BI:
-            bits = uint8_t(std::ceil(std::log2(max + 1)));
+            bits = std::min(uint8_t(std::ceil(std::log2(max + 1))),
+                    uint8_t (c1.transformedSequenceConfigurations[index].binarizationParameters[0]));
 
             // Use optimal value for bits
             c1.transformedSequenceConfigurations[index].binarizationParameters = {bits};
@@ -321,27 +324,28 @@ gabac::EncodingConfiguration EncodingConfiguration::optimize(uint64_t max, unsig
         case gabac::SequenceTransformationId::equality_coding:
 
             // Just single bits is the optimal configuration
-            ret.transformedSequenceConfigurations[1].lutBits = 1;
+            ret.transformedSequenceConfigurations[1].lutBits = std::min(1u, ret.transformedSequenceConfigurations[1].lutBits);
             optimizeLUT(ret, 1, 1);
             optimizeBin(ret, 1, 1);
             break;
         case gabac::SequenceTransformationId::match_coding:
 
             // Optimal configuration is the window size
-            ret.transformedSequenceConfigurations[1].lutBits =
-                    uint8_t(std::ceil(std::log2(ret.sequenceTransformationParameter + 1)));
+            ret.transformedSequenceConfigurations[1].lutBits = std::min(uint8_t (ret.transformedSequenceConfigurations[1].lutBits),
+                    uint8_t(std::ceil(std::log2(ret.sequenceTransformationParameter + 1))));
             optimizeLUT(ret, ret.sequenceTransformationParameter, 1);
             optimizeBin(ret, ret.sequenceTransformationParameter, 1);
 
             // Stream 3 contains lengths, these can be up to 32 bits
-            ret.transformedSequenceConfigurations[2].lutBits = 32;
+            ret.transformedSequenceConfigurations[2].lutBits = std::min(32u, ret.transformedSequenceConfigurations[2].lutBits);
             optimizeLUT(ret, std::numeric_limits<uint32_t>::max(), 2);
             optimizeBin(ret, std::numeric_limits<uint32_t>::max(), 2);
             break;
         case gabac::SequenceTransformationId::rle_coding:
 
             // Here we have 32 bit lengths again
-            ret.transformedSequenceConfigurations[1].lutBits = 32;
+            ret.transformedSequenceConfigurations[1].lutBits =
+                    std::min(32u, ret.transformedSequenceConfigurations[1].lutBits);
             optimizeLUT(ret, std::numeric_limits<uint32_t>::max(), 1);
             optimizeBin(ret, std::numeric_limits<uint32_t>::max(), 1);
             break;

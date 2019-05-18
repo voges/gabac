@@ -406,7 +406,7 @@ int gabac_config_generalize_create(const char* inconf, size_t inconf_size, uint6
 
 int gabac_config_is_optimal(const char* inconf, size_t inconf_size, uint64_t max, uint8_t wsize) {
     gabac::EncodingConfiguration conf(std::string(inconf, inconf_size));
-    return conf.isGeneral(max, wsize);
+    return conf.isOptimal(max, wsize);
 }
 
 int gabac_config_optimize_create(const char* inconf, size_t inconf_size, uint64_t max, uint8_t wsize, char** outconf, size_t* outconf_size) {

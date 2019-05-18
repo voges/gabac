@@ -252,12 +252,53 @@ int example_run(void) {
     return -1;
 }
 
+/* Example how to use the gabac run interface */
+int example_config(void) {
+    const char conf[] = "{\n"
+    "    \"sequence_transformation_id\": 0,\n"
+    "    \"sequence_transformation_parameter\": 0,\n"
+    "    \"transformed_sequences\": [\n"
+    "        {\n"
+    "            \"binarization_id\": 4,\n"
+    "            \"binarization_parameters\": [\n"
+    "                3\n"
+    "            ],\n"
+    "            \"context_selection_id\": 1,\n"
+    "            \"diff_coding_enabled\": false,\n"
+    "            \"lut_transformation_bits\": 8,\n"
+    "            \"lut_transformation_enabled\": true,\n"
+    "            \"lut_transformation_order\": 1\n"
+    "        }\n"
+    "    ],\n"
+    "    \"word_size\": 1\n"
+    "}";
+    printf("Original: \n%s\n", conf);
+
+    printf("Optimal: %d\n", gabac_config_is_optimal(conf, sizeof(conf), 128, 1));
+    printf("General: %d\n", gabac_config_is_general(conf, sizeof(conf), 128, 1));
+
+    char* nconf;
+    size_t nconf_size;
+
+    gabac_config_optimize_create(conf, sizeof(conf), 128, 1, &nconf, &nconf_size);
+    printf("Suggested optimization: \n%s\n", nconf);
+    gabac_config_free(&nconf);
+
+    gabac_config_generalize_create(conf, sizeof(conf), 128, 1, &nconf, &nconf_size);
+    printf("Suggested generalization: \n%s\n", nconf);
+    gabac_config_free(&nconf);
+    return 0;
+}
+
 int main()
 {
     if(example_transformations()){
         return -1;
     }
     if(example_run()){
+        return -1;
+    }
+    if(example_config()){
         return -1;
     }
     return 0;
