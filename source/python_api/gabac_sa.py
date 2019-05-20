@@ -1,10 +1,10 @@
 import os
-import copy
-import json
+# import copy
+# import json
 import random
-import math
-import ctypes as ct
-from collections import OrderedDict
+# import math
+# import ctypes as ct
+# from collections import OrderedDict
 
 import numpy as np
 import pandas as pd
@@ -68,7 +68,8 @@ class SimulatedAnnealingForGabac(object):
         # Init
         self.gc = GabacConfiguration(
             self.seq_transform_id, 
-            ena_roundtrip=ena_roundtrip)
+            ena_roundtrip=ena_roundtrip
+        )
 
         self.result = np.zeros((self.kmax + 1, 8))
 
@@ -80,7 +81,7 @@ class SimulatedAnnealingForGabac(object):
 
         self.s0 = first_config
         self.enc_length = enc_length
-        self.E0 = enc_length / len(data)
+        self.E0 = enc_length / len(self.data)
 
         self.result[0, :] = [
             enc_length, 
