@@ -442,7 +442,24 @@ def gabac_run(
     if return_code == GABAC_RETURN.FAILURE:
         sys.exit("error: gabac_run() failed")
 
+# gabac_config_is_general
+# Arguments
+#   const char* inconf, 
+#   size_t inconf_size, 
+#   uint64_t max, 
+#   uint8_t wsize
+# Return
+#   int gabac_config_is_general();
+libgabac.gabac_config_is_general.argtypes = [
+    ct.c_char_p if STRONG_TYPE else ct.c_void_p,
+    ct.c_size_t,
+    ct.c_uint64,
+    ct.c_uint8
+]
+
+###=============================================================================================================
 ### Additional functions
+
 def array(dtype, data):
     if isinstance(data, int):
         arr_dtype = data * dtype

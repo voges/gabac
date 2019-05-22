@@ -1,6 +1,6 @@
 import os
 # import copy
-# import json
+import json
 import random
 # import math
 # import ctypes as ct
@@ -50,12 +50,14 @@ class SimulatedAnnealingForGabac(object):
         self,
         data,
         seq_transform_id,
-        ena_roundtrip=True,
         kmax=50,
         kt=1,
+        ena_roundtrip=True,
         verbose=True,
+        debug=False,
     ):
         self.verbose = verbose
+        self.debug = debug
 
         # Gabac-specific parameter
         self.data = data
@@ -68,6 +70,7 @@ class SimulatedAnnealingForGabac(object):
         # Init
         self.gc = GabacConfiguration(
             self.seq_transform_id, 
+            data,
             ena_roundtrip=ena_roundtrip
         )
 
@@ -117,8 +120,9 @@ class SimulatedAnnealingForGabac(object):
             while True:
                 new_s = self.gc.generate_random_neighbor(s)
 
-                # with open('curr_config.json', 'w') as f:
-                #     json.dump(new_s, f, indent=4)
+                if self.debug:
+                    with open('curr_config.json', 'w') as f:
+                        json.dump(new_s, f, indent=4)
 
                 return_val, enc_length, enc_time = self.gc.run_gabac(self.data, self.gc.json_to_cchar(new_s))
                 if return_val == GABAC_RETURN.SUCCESS:
@@ -199,7 +203,7 @@ class SimulatedAnnealingForGabac(object):
             )
         df.to_csv(
             path,
-            index=False,
+            #index=False,
             #header=None, 
         )
 

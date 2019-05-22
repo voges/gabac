@@ -21,9 +21,9 @@ def main(args):
             sa = SimulatedAnnealingForGabac(
                 data, 
                 trans_id,
-                ena_roundtrip=False,
                 kmax=200,
                 kt=1,
+                ena_roundtrip=False,
                 verbose=False
             )
 
