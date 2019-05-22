@@ -32,10 +32,12 @@ class GeneticAlgorithmForGabac(object):
         num_populations=100,
         num_generations=100,
         ena_roundtrip=True,
-        verbose=True
+        verbose=True,
+        debug=False,
     ):
 
         self.verbose = verbose
+        self.debug = debug
 
         # Gabac-specific parameter
         self.data = data
@@ -76,10 +78,16 @@ class GeneticAlgorithmForGabac(object):
     def evaluate_fitness(self):
         
         for idx, config in enumerate(self.populations):
-            with open('curr_config.json', 'w') as f:
-                json.dump(config, f, indent=4)
+
+            if self.debug:
+                with open('curr_config.json', 'w') as f:
+                    json.dump(config, f, indent=4)
+                
             __, enc_length, enc_time = self.gc.run_gabac(self.data, self.gc.json_to_cchar(config))
             enc_ratio = enc_length / len(self.data)
+
+            if enc_ratio > 20:
+                raise ValueError
 
             self.fitness[idx, :] = [enc_length, enc_ratio, enc_time]
 
@@ -104,6 +112,11 @@ class GeneticAlgorithmForGabac(object):
                 for idx in range(self.num_populations):
                     self.populations[idx] = self.gc.generate_random_config()
             else:
+
+                if self.debug:
+                    with open('prev_config.json', 'w') as f:
+                        json.dump(local_max_config, f, indent=4)
+
                 for idx in range(self.num_populations):
                     self.populations[idx] = self.gc.mutate_nparams(local_max_config, self.mutation_nparam)
 
@@ -136,7 +149,7 @@ class GeneticAlgorithmForGabac(object):
         plt.plot(np.arange(self.num_generations), self.result[:,3], 'k')
         plt.show()
 
-    def result_as_csv(self, path):
+    def result_as_csv(self, path, filename):
         df = pd.DataFrame(
             data=self.result,
             index=np.arange(self.num_generations),
@@ -148,9 +161,13 @@ class GeneticAlgorithmForGabac(object):
                 'encoding_time',
                 'total_encoding_time']
             )
+
+        df['filename'] = pd.Series([filename] * self.num_generations, index=df.index)
+        df['iter'] = pd.Series([i_gen * self.num_populations for i_gen in range(1, self.num_generations+1)], index=df.index)
+
         df.to_csv(
             path,
-            #index=False,
+            index=False,
             #header=None, 
         )
         

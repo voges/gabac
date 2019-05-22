@@ -39,4 +39,6 @@ new_config = gc.mutate_nparams(init_config, nparams=2)
 with open('curr_config.json', 'r') as f:
     config = json.load(f)
 
-gc.run_gabac(data, gc.json_to_cchar(config))
+gc.adjust_config(config)
+
+print(json.dumps(config, indent=4))

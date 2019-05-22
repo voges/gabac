@@ -26,7 +26,7 @@ class GabacConfiguration():
             False, 
             True
         ],
-        lut_transformation_parameter = 0,
+        lut_transformation_parameter = [0, 1],
         diff_coding_enabled = [
             False, 
             True
@@ -40,7 +40,8 @@ class GabacConfiguration():
             GABAC_BINARIZATION.TEG
         ],
         # binarization_parameters = [ v.item() for v in np.power(2, np.arange(5)) ],
-        binarization_parameters = [ v.item() for v in np.arange(32) ],
+        # binarization_parameters = [ v.item() for v in np.arange(32) ],
+        binarization_parameters = [1, 2, 3, 5, 7, 9, 15, 30, 255 ],
         context_selection_id = [
             GABAC_CONTEXT_SELECT.BYPASS,
             GABAC_CONTEXT_SELECT.ADAPTIVE_ORDER_0,
@@ -181,6 +182,8 @@ class GabacConfiguration():
             except:
                 param_value = random.choice(self.variant_config_template[chosen_param])
 
+                self.adjust_config(new_config)
+
                 if new_config[chosen_param] != param_value:
                     new_config[chosen_param] = param_value
 
@@ -214,7 +217,7 @@ class GabacConfiguration():
                 if chosen_param[0] in self.transformed_seq_parameter_value_as_list:
                     param_value = [param_value]
 
-                self.adjust_config(new_config)
+                self.adjust_config(temp_config)
 
                 if param_value != new_config["transformed_sequences"][chosen_param[1]][chosen_param[0]]:
                     new_config["transformed_sequences"][chosen_param[1]][chosen_param[0]] = param_value
@@ -231,6 +234,8 @@ class GabacConfiguration():
 
             except:
                 param_value = random.choice(self.variant_config_template[chosen_param])
+
+                self.adjust_config(temp_config)
 
                 if new_config[chosen_param] != param_value:
                     new_config[chosen_param] = param_value

@@ -76,11 +76,14 @@ class SimulatedAnnealingForGabac(object):
 
         self.result = np.zeros((self.kmax + 1, 8))
 
-        while True:
-            first_config = self.gc.generate_random_config()
-            return_val, enc_length, enc_time = self.gc.run_gabac(self.data, self.gc.json_to_cchar(first_config))
-            if return_val == GABAC_RETURN.SUCCESS:
-                break
+        # while True:
+        #     first_config = self.gc.generate_random_config()
+        #     return_val, enc_length, enc_time = self.gc.run_gabac(self.data, self.gc.json_to_cchar(first_config))
+        #     if return_val == GABAC_RETURN.SUCCESS:
+        #         break
+
+        first_config = self.gc.generate_random_config()
+        return_val, enc_length, enc_time = self.gc.run_gabac(self.data, self.gc.json_to_cchar(first_config))
 
         self.s0 = first_config
         self.enc_length = enc_length
@@ -118,14 +121,22 @@ class SimulatedAnnealingForGabac(object):
             T = self._temperature(k)
 
             while True:
-                new_s = self.gc.generate_random_neighbor(s)
+                new_s = self.gc.mutate_nparams(s, nparams=1)
 
                 if self.debug:
+                    with open('prev_config.json', 'w') as f:
+                        json.dump(s, f, indent=4)
+
                     with open('curr_config.json', 'w') as f:
                         json.dump(new_s, f, indent=4)
 
                 return_val, enc_length, enc_time = self.gc.run_gabac(self.data, self.gc.json_to_cchar(new_s))
-                if return_val == GABAC_RETURN.SUCCESS:
+                # if return_val == GABAC_RETURN.SUCCESS:
+
+                # if return_val == GABAC_RETURN.FAILURE:
+                #     raise ValueError
+
+                if True:
                     break
 
             new_E = enc_length/len(self.data)
@@ -187,7 +198,7 @@ class SimulatedAnnealingForGabac(object):
         plt.plot(np.arange(self.kmax + 1), self.result[:,5], 'k')
         plt.show()
 
-    def result_as_csv(self, path):
+    def result_as_csv(self, path, filename):
         df = pd.DataFrame(
             data=self.result,
             index=np.arange(self.kmax + 1),
@@ -201,9 +212,13 @@ class SimulatedAnnealingForGabac(object):
                 'encoding_time',
                 'total_encoding_time']
             )
+
+        df['filename'] = pd.Series([ filename for _ in range(self.kmax + 1) ], index=df.index)
+        df['iter'] = pd.Series([curr_iter for curr_iter in range(self.kmax + 1)], index=df.index)
+
         df.to_csv(
             path,
-            #index=False,
+            index=False,
             #header=None, 
         )
 

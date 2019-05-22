@@ -4,13 +4,14 @@ import argparse
 
 from gabac_api import GABAC_TRANSFORM
 from gabac_sa import SimulatedAnnealingForGabac
+from gabac_ga import GeneticAlgorithmForGabac
 
 def main(args):
     avail_transform = {
         "NONE"      : GABAC_TRANSFORM.NONE,
         "RLE"       : GABAC_TRANSFORM.RLE,
         "EQUALITY"  : GABAC_TRANSFORM.EQUALITY,
-        "MATCH"     : GABAC_TRANSFORM.MATCH
+        #"MATCH"     : GABAC_TRANSFORM.MATCH
     }
 
     with open(args.input, 'rb') as f:
@@ -21,10 +22,11 @@ def main(args):
             sa = SimulatedAnnealingForGabac(
                 data, 
                 trans_id,
-                kmax=200,
+                kmax=100,
                 kt=1,
-                ena_roundtrip=False,
-                verbose=False
+                ena_roundtrip=True,
+                verbose=False,
+                debug=False
             )
 
             s,E = sa.start()
@@ -33,7 +35,30 @@ def main(args):
                 json.dump(s, f, indent=4)
 
             sa.result_as_csv(
-                os.path.join(args.result, os.path.basename(args.input) + '_' + trans_name + '.csv')
+                os.path.join(args.result, os.path.basename(args.input) + '_' + trans_name + '.csv'),
+                os.path.basename(args.input)
+            )
+    elif args.algorithm.lower() in ['ga', 'genetic_algorithm']:
+        for trans_name, trans_id in avail_transform.items():
+            sa = GeneticAlgorithmForGabac(
+                data, 
+                trans_id,
+                mutation_nparam=2,
+                num_populations=10,
+                num_generations=10,
+                ena_roundtrip=True,
+                verbose=False,
+                debug=False
+            )
+
+            s,E = sa.start()
+
+            with open(os.path.join(args.result, os.path.basename(args.input) + '_' + trans_name + '.json'), 'w') as f:
+                json.dump(s, f, indent=4)
+
+            sa.result_as_csv(
+                os.path.join(args.result, os.path.basename(args.input) + '_' + trans_name + '.csv'),
+                os.path.basename(args.input)
             )
 
 if __name__ == "__main__":
