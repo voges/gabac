@@ -34,15 +34,15 @@ with open(os.path.join(root_path, 'tmp', 'gabac', 'mpeg-g-descriptor-streams', '
 
 sa = SimulatedAnnealingForGabac(
     data, 
-    # GABAC_TRANSFORM.RLE,
-    GABAC_TRANSFORM.EQUALITY,
-    # GABAC_TRANSFORM.MATCH,
+    GABAC_TRANSFORM.RLE,
+    #GABAC_TRANSFORM.EQUALITY,
+    #GABAC_TRANSFORM.MATCH,
     #GABAC_TRANSFORM.NONE,
     kmax=100,
     kt=1,
     ena_roundtrip=True,
     verbose=True,
-    debug=False
+    debug=True
 )
 
 s,E = sa.start()
