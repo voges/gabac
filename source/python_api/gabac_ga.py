@@ -86,13 +86,14 @@ class GeneticAlgorithmForGabac(object):
             __, enc_length, enc_time = self.gc.run_gabac(self.data, self.gc.json_to_cchar(config))
             enc_ratio = enc_length / len(self.data)
 
-            if enc_ratio > 20:
-                raise ValueError
+            # if enc_ratio > 20:
+            #     raise ValueError
 
             self.fitness[idx, :] = [enc_length, enc_ratio, enc_time]
 
             # print("Gen {:03d} idx {:03d} size {:.3f}".format(curr_gen, idx, self.fitness[idx]))
-            print("Idx {:03d} size {:.3f}".format(idx, self.fitness[idx, 1]))
+            if self.debug:
+                print("Idx {:03d} size {:.3f}".format(idx, self.fitness[idx, 1]))
 
     def start(self):
         self.init()

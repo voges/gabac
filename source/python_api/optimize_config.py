@@ -24,7 +24,7 @@ def main(args):
                 trans_id,
                 kmax=100,
                 kt=1,
-                ena_roundtrip=True,
+                ena_roundtrip=False,
                 verbose=False,
                 debug=False
             )
@@ -46,7 +46,7 @@ def main(args):
                 mutation_nparam=2,
                 num_populations=10,
                 num_generations=10,
-                ena_roundtrip=True,
+                ena_roundtrip=False,
                 verbose=False,
                 debug=False
             )

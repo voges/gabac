@@ -40,8 +40,8 @@ class GabacConfiguration():
             GABAC_BINARIZATION.TEG
         ],
         # binarization_parameters = [ v.item() for v in np.power(2, np.arange(5)) ],
-        #binarization_parameters = [ v.item() for v in np.arange(32) ],
-        binarization_parameters = [1, 2, 3, 5, 7, 9, 15, 30, 255 ],
+        binarization_parameters = [ v.item() for v in np.arange(32) ],
+        #binarization_parameters = [1, 2, 3, 5, 7, 9, 15, 30, 255 ],
         context_selection_id = [
             GABAC_CONTEXT_SELECT.BYPASS,
             GABAC_CONTEXT_SELECT.ADAPTIVE_ORDER_0,
