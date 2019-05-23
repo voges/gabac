@@ -8,9 +8,9 @@ from gabac_ga import GeneticAlgorithmForGabac
 
 def main(args):
     avail_transform = {
-        "NONE"      : GABAC_TRANSFORM.NONE,
+        #"NONE"      : GABAC_TRANSFORM.NONE,
         "RLE"       : GABAC_TRANSFORM.RLE,
-        "EQUALITY"  : GABAC_TRANSFORM.EQUALITY,
+        #"EQUALITY"  : GABAC_TRANSFORM.EQUALITY,
         #"MATCH"     : GABAC_TRANSFORM.MATCH
     }
 

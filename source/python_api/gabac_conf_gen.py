@@ -40,7 +40,7 @@ class GabacConfiguration():
             GABAC_BINARIZATION.TEG
         ],
         # binarization_parameters = [ v.item() for v in np.power(2, np.arange(5)) ],
-        # binarization_parameters = [ v.item() for v in np.arange(32) ],
+        #binarization_parameters = [ v.item() for v in np.arange(32) ],
         binarization_parameters = [1, 2, 3, 5, 7, 9, 15, 30, 255 ],
         context_selection_id = [
             GABAC_CONTEXT_SELECT.BYPASS,
@@ -222,15 +222,18 @@ class GabacConfiguration():
                 if param_value != new_config["transformed_sequences"][chosen_param[1]][chosen_param[0]]:
                     new_config["transformed_sequences"][chosen_param[1]][chosen_param[0]] = param_value
 
-                    new_config_cchar = self.json_to_cchar(new_config)
-                    if libgabac.gabac_config_is_general(
-                        new_config_cchar, 
-                        len(new_config_cchar),
-                        self.max_val,
-                        1,
-                    ):
-                        i_param += 1
-                        new_config = temp_config
+                    # new_config_cchar = self.json_to_cchar(new_config)
+                    # if libgabac.gabac_config_is_general(
+                    #     new_config_cchar, 
+                    #     len(new_config_cchar),
+                    #     self.max_val,
+                    #     1,
+                    # ):
+                    #     i_param += 1
+                    #     new_config = temp_config
+
+                    i_param += 1
+                    new_config = temp_config
 
             except:
                 param_value = random.choice(self.variant_config_template[chosen_param])
@@ -240,15 +243,18 @@ class GabacConfiguration():
                 if new_config[chosen_param] != param_value:
                     new_config[chosen_param] = param_value
 
-                    new_config_cchar = self.json_to_cchar(new_config)
-                    if libgabac.gabac_config_is_general(
-                        new_config_cchar, 
-                        len(new_config_cchar),
-                        self.max_val,
-                        1,
-                    ):
-                        i_param += 1
-                        new_config = temp_config
+                    # new_config_cchar = self.json_to_cchar(new_config)
+                    # if libgabac.gabac_config_is_general(
+                    #     new_config_cchar, 
+                    #     len(new_config_cchar),
+                    #     self.max_val,
+                    #     1,
+                    # ):
+                    #     i_param += 1
+                    #     new_config = temp_config
+
+                    i_param += 1
+                    new_config = temp_config
 
         return new_config
 
@@ -285,12 +291,14 @@ class GabacConfiguration():
             self.adjust_config(conf)
 
             conf_cchar = self.json_to_cchar(conf)
-            is_new_config_valid = libgabac.gabac_config_is_general(
-                conf_cchar, 
-                len(conf_cchar),
-                self.max_val,
-                1,
-            )
+            # is_new_config_valid = libgabac.gabac_config_is_general(
+            #     conf_cchar, 
+            #     len(conf_cchar),
+            #     self.max_val,
+            #     1,
+            # )
+        
+            is_new_config_valid = True
         return conf
 
     def json_to_cchar(
