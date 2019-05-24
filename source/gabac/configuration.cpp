@@ -183,7 +183,7 @@ void generalizeLUT(gabac::EncodingConfiguration& ret, uint64_t max, unsigned ind
     } else if (max > size_t(std::pow(MAX_LUT_SIZE, 1.0 / 3.0))) {
         // Too high for order 2
         ret.transformedSequenceConfigurations[index].lutOrder =
-                std::min(1u, ret.transformedSequenceConfigurations[0].lutOrder);
+                std::min(1u, ret.transformedSequenceConfigurations[index].lutOrder);
     }
 }
 
