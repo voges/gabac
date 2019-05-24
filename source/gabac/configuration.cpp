@@ -171,7 +171,7 @@ void generalizeLUT(gabac::EncodingConfiguration& ret, uint64_t max, unsigned ind
 
     // Lut bits must be at least the number of calculated bits
     ret.transformedSequenceConfigurations[index].lutBits =
-            std::max(bits, ret.transformedSequenceConfigurations[index].lutBits);
+            std::min(std::max(bits, ret.transformedSequenceConfigurations[index].lutBits), 32u);
 
     // Maximum value too high for LUT. Indices higher 0 encode lengths, these can never exceed
     // The Lut maximum for order 0, as this would require 1+2+3+..+8000000 symbols, which is at least 32TB
@@ -196,6 +196,7 @@ void optimizeLUT(gabac::EncodingConfiguration& ret, uint64_t max, unsigned index
     ret.transformedSequenceConfigurations[index].lutBits =
             std::min(uint8_t(std::ceil(std::log2(max + 1))),
                     uint8_t (ret.transformedSequenceConfigurations[index].lutBits));
+    ret.transformedSequenceConfigurations[index].lutBits = std::min(ret.transformedSequenceConfigurations[index].lutBits, 32u);
 }
 
 
@@ -206,8 +207,8 @@ void generalizeBin(gabac::EncodingConfiguration& c1, uint64_t max, unsigned inde
         case gabac::BinarizationId::BI:
             bits = uint8_t(std::ceil(std::log2(max + 1)));
 
-            // Correct too few bits for BI binarization
-            bits = std::max(bits, c1.transformedSequenceConfigurations[index].binarizationParameters[0]);
+            // Correct too few bits for BI binarization, or too many
+            bits = std::min(std::max(bits, c1.transformedSequenceConfigurations[index].binarizationParameters[0]), 32u);
             c1.transformedSequenceConfigurations[index].binarizationParameters = {bits};
             break;
         case gabac::BinarizationId::TU:
@@ -220,6 +221,8 @@ void generalizeBin(gabac::EncodingConfiguration& c1, uint64_t max, unsigned inde
 
                 // Check newly created binarization
                 generalizeBin(c1, max, index);
+            } else {
+                c1.transformedSequenceConfigurations[index].binarizationParameters = {std::max(unsigned (max), c1.transformedSequenceConfigurations[index].binarizationParameters[0])};
             }
             break;
         case gabac::BinarizationId::EG:
@@ -281,7 +284,10 @@ void optimizeBin(gabac::EncodingConfiguration& c1, uint64_t max, unsigned index)
                     uint8_t (c1.transformedSequenceConfigurations[index].binarizationParameters[0]));
 
             // Use optimal value for bits
-            c1.transformedSequenceConfigurations[index].binarizationParameters = {bits};
+            c1.transformedSequenceConfigurations[index].binarizationParameters = {std::min(unsigned (bits), 32u)};
+            break;
+        case gabac::BinarizationId::TU:
+            c1.transformedSequenceConfigurations[index].binarizationParameters = {std::min(unsigned (max), 32u)};
             break;
         case gabac::BinarizationId::TEG:
             // TEG 0 is not allowed in the standard and EG is faster.
@@ -313,6 +319,10 @@ void optimizeBin(gabac::EncodingConfiguration& c1, uint64_t max, unsigned index)
 gabac::EncodingConfiguration EncodingConfiguration::optimize(uint64_t max, unsigned) const{
     // Start with the current configuration
     gabac::EncodingConfiguration ret = *this;
+
+    if(max > std::numeric_limits<uint32_t>::max()) {
+        GABAC_DIE("Gabac does not support values that are not representable in 32 bits.");
+    }
 
     optimizeLUT(ret, max, 0);
 
@@ -346,8 +356,8 @@ gabac::EncodingConfiguration EncodingConfiguration::optimize(uint64_t max, unsig
             // Here we have 32 bit lengths again
             ret.transformedSequenceConfigurations[1].lutBits =
                     std::min(32u, ret.transformedSequenceConfigurations[1].lutBits);
-            optimizeLUT(ret, std::numeric_limits<uint32_t>::max(), 1);
-            optimizeBin(ret, std::numeric_limits<uint32_t>::max(), 1);
+            optimizeLUT(ret, ret.sequenceTransformationParameter, 1);
+            optimizeBin(ret, ret.sequenceTransformationParameter, 1);
             break;
         default:
             break;
@@ -361,6 +371,10 @@ gabac::EncodingConfiguration EncodingConfiguration::generalize(uint64_t max, uns
 
     // Start with the current configuration
     gabac::EncodingConfiguration ret = *this;
+
+    if(max > std::numeric_limits<uint32_t>::max()) {
+        GABAC_DIE("Gabac does not support values that are not representable in 32 bits.");
+    }
 
     // Word size might be too big
     ret.wordSize = std::min(ret.wordSize, wordsize);
@@ -399,8 +413,8 @@ gabac::EncodingConfiguration EncodingConfiguration::generalize(uint64_t max, uns
 
             // Here we have 32 bit lengths again
             ret.transformedSequenceConfigurations[1].lutBits = std::max(32u, ret.transformedSequenceConfigurations[1].lutBits);
-            generalizeLUT(ret, std::numeric_limits<uint32_t>::max(), 1);
-            generalizeBin(ret, std::numeric_limits<uint32_t>::max(), 1);
+            generalizeLUT(ret, ret.sequenceTransformationParameter, 1);
+            generalizeBin(ret, ret.sequenceTransformationParameter, 1);
             break;
         default:
             break;
@@ -421,10 +435,18 @@ bool EncodingConfiguration::operator!=(const EncodingConfiguration& conf) const 
 }
 
 bool EncodingConfiguration::isGeneral (uint64_t max, unsigned wordsize) const {
-    return *this == this->generalize(max, wordsize);
+    try {
+        return *this == this->generalize(max, wordsize);
+    } catch (...) {
+        return false;
+    }
 }
 bool EncodingConfiguration::isOptimal (uint64_t max, unsigned wordsize) const {
-    return *this == this->optimize(max, wordsize);
+    try {
+        return *this == this->optimize(max, wordsize);
+    } catch (...) {
+        return false;
+    }
 }
 
 void IOConfiguration::validate() const{
