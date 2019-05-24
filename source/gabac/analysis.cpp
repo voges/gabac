@@ -429,6 +429,11 @@ void analyze(const IOConfiguration& ioconf, const AnalysisConfiguration& aconf){
             continue;
         }
 
+        if(w == 8  && info.stack.top().streams.front().getMaximum() > std::numeric_limits<uint32_t>::max()) {
+            ioconf.log(gabac::IOConfiguration::LogLevel::WARNING) << "Too large values for wordsize 8" << std::endl;
+            continue;
+        }
+
         info.stack.top().streams.front().setWordSize((uint8_t) w);
         info.currConfig.wordSize = w;
 

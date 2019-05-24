@@ -367,6 +367,7 @@ gabac::EncodingConfiguration EncodingConfiguration::optimize(uint64_t max, unsig
 
 }
 
+
 gabac::EncodingConfiguration EncodingConfiguration::generalize(uint64_t max, unsigned wordsize) const{
 
     // Start with the current configuration
@@ -437,6 +438,14 @@ bool EncodingConfiguration::operator!=(const EncodingConfiguration& conf) const 
 bool EncodingConfiguration::isGeneral (uint64_t max, unsigned wordsize) const {
     try {
         return *this == this->generalize(max, wordsize);
+    } catch (...) {
+        return false;
+    }
+}
+
+bool EncodingConfiguration::isSubGeneral (uint64_t max, unsigned sub) const {
+    try {
+        return this->transformedSequenceConfigurations[sub] == this->generalize(max, this->wordSize).transformedSequenceConfigurations[sub];
     } catch (...) {
         return false;
     }

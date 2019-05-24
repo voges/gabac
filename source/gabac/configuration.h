@@ -110,6 +110,14 @@ class EncodingConfiguration
     bool isGeneral (uint64_t max, unsigned wordsize) const;
 
     /**
+     * Checks if a subsequence is general
+     * @param max Maximum symbol
+     * @param sub Subsequence id
+     * @return true if general
+     */
+    bool isSubGeneral (uint64_t max, unsigned sub) const;
+
+    /**
      * Will apply some small parameter tweaks that are guaranteed to improve performance / speed regardless
      * of the data in the stream. Other than generalize() some streams might stop working if they are outside
      * of the specification. Streams inside the specifications are guaranteed to work the same way they did before
