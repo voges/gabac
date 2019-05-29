@@ -154,8 +154,8 @@ class SimulatedAnnealingForGabac(object):
                         k, new_E, dE
                     ), end='')
 
-                # if math.exp(-dE / T) < random.random():
-                if np.exp(dE/T) - 1 < random.random():
+                if np.exp(-dE / T) < random.random():
+                #if np.exp(dE/T) - 1 < random.random():
                     if self.verbose:
                         print('accept', end='')
                     
