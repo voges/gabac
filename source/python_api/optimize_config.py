@@ -24,6 +24,7 @@ def main(args):
                 trans_id,
                 kmax=100,
                 kt=1,
+                mutation_nparam=2,
                 ena_roundtrip=False,
                 verbose=False,
                 debug=False

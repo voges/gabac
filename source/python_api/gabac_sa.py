@@ -52,6 +52,7 @@ class SimulatedAnnealingForGabac(object):
         seq_transform_id,
         kmax=50,
         kt=1,
+        mutation_nparam=None,
         ena_roundtrip=True,
         verbose=True,
         debug=False,
@@ -66,6 +67,7 @@ class SimulatedAnnealingForGabac(object):
         # Hyperparameters
         self.kmax = kmax
         self.kt = kt
+        self.mutation_nparam = mutation_nparam
 
         # Init
         self.gc = GabacConfiguration(
@@ -121,7 +123,7 @@ class SimulatedAnnealingForGabac(object):
             T = self._temperature(k)
 
             while True:
-                new_s = self.gc.mutate_nparams(s, nparams=1)
+                new_s = self.gc.mutate_nparams(s, nparams=self.mutation_nparam)
 
                 if self.debug:
                     with open('prev_config.json', 'w') as f:
