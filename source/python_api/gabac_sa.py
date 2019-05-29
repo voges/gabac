@@ -124,6 +124,7 @@ class SimulatedAnnealingForGabac(object):
 
             while True:
                 new_s = self.gc.mutate_nparams(s, nparams=self.mutation_nparam)
+                #new_s = self.gc.generate_random_neighbor(s)
 
                 if self.debug:
                     with open('prev_config.json', 'w') as f:
@@ -152,20 +153,22 @@ class SimulatedAnnealingForGabac(object):
 
             if dE > 0.0:
                 if self.verbose:
-                    print('E{:3d}: {:.3f} dE {:.02e} '.format(
-                        k, new_E, dE
+                    print('E{:3d}: {:.3f} dE {:.02e} T {:.2e} '.format(
+                        k, new_E, dE, T
                     ), end='')
 
-                if np.exp(-dE / T) < random.random():
+                if np.exp(-dE / T) > random.random():
                 #if np.exp(dE/T) - 1 < random.random():
                     if self.verbose:
-                        print('accept', end='')
+                        print('{:.2f} accept'.format(np.exp(-dE / T)), end='')
                     
                     s = new_s
                     el = enc_length
                     E = new_E
 
                 else:
+                    if self.verbose:
+                        print('{:.2f}'.format(np.exp(-dE / T)), end='')
                     pass
 
                 if self.verbose:
