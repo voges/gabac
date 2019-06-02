@@ -385,6 +385,10 @@ gabac::EncodingConfiguration EncodingConfiguration::generalize(uint64_t max, uns
     // Update binarization
     generalizeBin(ret, max, 0);
 
+    if(ret.wordSize == 8) {
+        ret.transformedSequenceConfigurations[0].diffCodingEnabled = false;
+    }
+
     // Special cases for single transforms
     switch (ret.sequenceTransformationId) {
         case gabac::SequenceTransformationId::equality_coding:
