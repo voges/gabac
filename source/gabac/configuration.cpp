@@ -379,15 +379,15 @@ gabac::EncodingConfiguration EncodingConfiguration::generalize(uint64_t max, uns
 
     // Word size might be too big
     ret.wordSize = std::min(ret.wordSize, wordsize);
+    
+    if(ret.wordSize == 8) {
+        ret.transformedSequenceConfigurations[0].diffCodingEnabled = false;
+    }
 
     generalizeLUT(ret, max, 0);
 
     // Update binarization
     generalizeBin(ret, max, 0);
-
-    if(ret.wordSize == 8) {
-        ret.transformedSequenceConfigurations[0].diffCodingEnabled = false;
-    }
 
     // Special cases for single transforms
     switch (ret.sequenceTransformationId) {
