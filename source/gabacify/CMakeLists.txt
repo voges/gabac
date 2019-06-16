@@ -61,11 +61,6 @@ message(STATUS "Additional C++ compiler flags for build type 'MinSizeRel': ${CMA
 message(STATUS "Selected build type: ${CMAKE_BUILD_TYPE}")
 
 
-#==============================================================================
-# Boost
-#==============================================================================
-
-find_package(Boost 1.54.0 REQUIRED COMPONENTS program_options)
 
 #==============================================================================
 # gabacify
@@ -99,5 +94,4 @@ add_executable(${gabacify} EXCLUDE_FROM_ALL ${gabacify_source_files} ${gabacify_
 target_include_directories(${gabacify} PRIVATE ${gabacify_include_dir})
 target_include_directories(${gabacify} PRIVATE ${PARENT_DIR}/gabac})
 target_link_libraries(${gabacify} gabac)
-target_link_libraries(${gabacify} Boost::program_options)
 

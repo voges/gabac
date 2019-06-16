@@ -2,11 +2,10 @@
 
 #include <gabac/gabac.h>
 
+#include <cli11/CLI11.hpp>
+
 #include <cassert>
 #include <fstream>
-
-#include <boost/program_options.hpp>
-
 
 namespace gabacify {
 
@@ -36,76 +35,30 @@ void ProgramOptions::processCommandLine(
         int argc,
         char *argv[]
 ){
+
+    CLI::App app{"Gabacify - GABAC entropy encoder application"};
+
+    app.add_option("-c,--configuration_file_path", this->configurationFilePath, "Configuration file path");
+
+    this->logLevel = "info";
+    app.add_option("-l,--log_level", this->logLevel, "Log level: 'trace', 'info' (default), 'debug', 'warning', 'error', or 'fatal'");
+
+    app.add_option("-i,--input_file_path", this->inputFilePath, "Input file path");
+    app.add_option("-o,--output_file_path", this->outputFilePath, "Output file path");
+    app.add_option("task,-t,--task", this->task, "Task ('encode' or 'decode' or 'analyze')")->required(true);
+
+    this->blocksize = 0;
+    app.add_option("-b,--block_size", this->blocksize, "Block size - 0 means infinite");
+
+    app.positionals_at_end(false);
+
     try {
-        namespace po = boost::program_options;
-
-        // Declare the supported options
-        po::options_description options("Options");
-        options.add_options()
-                (
-                        "configuration_file_path,c",
-                        po::value<std::string>(&(this->configurationFilePath)),
-                        "Configuration file path"
-                )
-                (
-                        "help,h",
-                        "Help"
-                )
-                (
-                        "log_level,l",
-                        po::value<std::string>(&(this->logLevel))->default_value("info"),
-                        "Log level: 'trace', 'info' (default), 'debug', 'warning', 'error', or 'fatal'"
-                )
-                (
-                        "input_file_path,i",
-                        po::value<std::string>(&(this->inputFilePath)),
-                        "Input file path"
-                )
-                (
-                        "output_file_path,o",
-                        po::value<std::string>(&(this->outputFilePath)),
-                        "Output file path"
-                )
-                (
-                        "task",
-                        po::value<std::string>(&(this->task))->required(),
-                        "Task ('encode' or 'decode' or 'analyze')"
-                )
-                (
-                        "block_size,b",
-                        po::value<size_t>(&(this->blocksize))->default_value(0),
-                        "Size per block. Put 0 for one infinite size block"
-                );
-
-        // Declare 'task' as positional
-        po::positional_options_description positional;
-        positional.add("task", -1);
-
-        // Parse the command line
-        po::variables_map optionsMap;
-        po::store(po::command_line_parser(argc, argv).options(options).positional(positional).run(), optionsMap);
-
-        // First thing to do is to print the help
-        if (optionsMap.count("help") || optionsMap.count("h")) {
-            std::stringstream optionsStringStream;
-            optionsStringStream << options;
-            std::string optionsLine;
-            while (std::getline(optionsStringStream, optionsLine)) {
-                // GABACIFY_LOG_INFO << optionsLine;
-            }
-            exit(0);  // Just get out here, quickly
-        }
-
-        // po::notify() will // throw on erroneous program options, that's why we
-        // call it after printing the help
-        po::notify(optionsMap);
-
-        // Validate the parsed options
-        validate();
+        app.parse(argc, argv);
+    } catch (const CLI::ParseError &e) {
+        GABAC_DIE("Program options error: " +  std::to_string(app.exit(e)));
     }
-    catch (const boost::program_options::error& e) {
-        GABAC_DIE("Program options error: " + std::string(e.what()));
-    }
+
+    validate();
 }
 
 
