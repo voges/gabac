@@ -82,7 +82,7 @@ DataBlock::DataBlock(std::string *vec) : wordSize(1){
     vec->clear();
 }
 
-DataBlock::DataBlock(uint8_t *d, size_t size, uint8_t word_size) : wordSize(word_size){
+DataBlock::DataBlock(const uint8_t *d, size_t size, uint8_t word_size) : wordSize(word_size){
     size_t s = size * word_size;
     this->data.resize(s);
     this->data.shrink_to_fit();

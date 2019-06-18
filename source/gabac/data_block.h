@@ -383,7 +383,7 @@ class DataBlock
      * @param size Number of elements
      * @param word_size Size of one element
      */
-    explicit DataBlock(uint8_t *d, size_t size, uint8_t word_size);
+    explicit DataBlock(const uint8_t *d, size_t size, uint8_t word_size);
 };
 
 
