@@ -165,7 +165,7 @@ def main(args):
         num_procs = args.num_processes
 
     total_tests_per_exp = 200
-    npops = [10, 20, 25, 50]
+    npops = [4, 5, 10, 20, 25, 50]
     ngens = [total_tests_per_exp // npop for npop in npops]
     nparams =  range(1, 6)
 
@@ -207,7 +207,7 @@ def main(args):
                     subexp_param, 
                     [
                         os.path.join(data_path, fname), 
-                        os.path.join(result_path,"ngen_{ngen}_npop_{npop}_nparam_{nparam}".format(ngen=ngen, npop=npop, nparam=nparam))
+                        os.path.join(result_path, "ngen_{ngen}_npop_{npop}_nparam_{nparam}".format(ngen=ngen, npop=npop, nparam=nparam))
                     ]
                 ])
 

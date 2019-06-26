@@ -39,6 +39,7 @@ def main(args):
                 os.path.join(args.result, os.path.basename(args.input) + '_' + trans_name + '.csv'),
                 os.path.basename(args.input)
             )
+            
     elif args.algorithm.lower() in ['ga', 'genetic_algorithm']:
         for trans_name, trans_id in avail_transform.items():
             sa = GeneticAlgorithmForGabac(

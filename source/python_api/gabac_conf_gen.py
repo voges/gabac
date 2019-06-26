@@ -331,7 +331,6 @@ class GabacConfiguration():
 
         io_config = gabac_io_config()
         in_block = gabac_data_block()
-        copy_in_block = gabac_data_block()
 
         logfilename = array(ct.c_char, "log.txt")
 
@@ -345,11 +344,14 @@ class GabacConfiguration():
         ):
             return GABAC_RETURN.FAILURE, np.Infinity, np.Infinity
 
-        if libgabac.gabac_data_block_copy(
-            copy_in_block,
-            in_block
-        ):
-            return GABAC_RETURN.FAILURE, np.Infinity, np.Infinity
+        if self.ena_roundtrip:
+            copy_in_block = gabac_data_block()
+
+            if libgabac.gabac_data_block_copy(
+                copy_in_block,
+                in_block
+            ):
+                return GABAC_RETURN.FAILURE, np.Infinity, np.Infinity
 
         #original_length = in_block.values_size * in_block.word_size
 
