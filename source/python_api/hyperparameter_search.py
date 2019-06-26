@@ -20,38 +20,38 @@ from gabac_api import GABAC_TRANSFORM
 from gabac_sa import SimulatedAnnealingForGabac
 from gabac_ga import GeneticAlgorithmForGabac
 
-def dummy_ga(exp_desc, subexp_desc, paths, *args):
+# def dummy_ga(exp_desc, subexp_desc, paths, *args):
 
-    ngen, npop, nparam = exp_desc
+#     ngen, npop, nparam = exp_desc
 
-    trans_name, trans_id = subexp_desc
+#     trans_name, trans_id = subexp_desc
 
-    input_file, result_path = paths
+#     input_file, result_path = paths
 
-    # print("ngen:{ngen}_npop_{npop}_nparam_{nparam} {trans_name}-{trans_id} {fname}".format(ngen=ngen, npop=npop, nparam=nparam, trans_name=trans_name, trans_id=trans_id, fname=fname))
+#     # print("ngen:{ngen}_npop_{npop}_nparam_{nparam} {trans_name}-{trans_id} {fname}".format(ngen=ngen, npop=npop, nparam=nparam, trans_name=trans_name, trans_id=trans_id, fname=fname))
 
-    path_to_subexp = os.path.join(
-        result_path,
-        "ngen_{ngen}_npop_{npop}_nparam_{nparam}".format(ngen=ngen, npop=npop, nparam=nparam)
-    )
+#     path_to_subexp = os.path.join(
+#         result_path,
+#         "ngen_{ngen}_npop_{npop}_nparam_{nparam}".format(ngen=ngen, npop=npop, nparam=nparam)
+#     )
 
-    try:
-        os.makedirs(os.path.join(path_to_subexp, 'log'))
-    except:
-        pass
+#     try:
+#         os.makedirs(os.path.join(path_to_subexp, 'log'))
+#     except:
+#         pass
 
-    try:
-        os.makedirs(os.path.join(path_to_subexp, 'config'))
-    except:
-        pass
+#     try:
+#         os.makedirs(os.path.join(path_to_subexp, 'config'))
+#     except:
+#         pass
 
-    with open(os.path.join(path_to_subexp, 'log', "{fname}_{trans_name}.csv".format(fname=fname, trans_name=trans_name)), 'w') as f:
-        f.write('test')
+#     with open(os.path.join(path_to_subexp, 'log', "{fname}_{trans_name}.csv".format(fname=fname, trans_name=trans_name)), 'w') as f:
+#         f.write('test')
     
-    with open(os.path.join(path_to_subexp, 'config', "{fname}_{trans_name}.json".format(fname=fname, trans_name=trans_name)), 'w') as f:
-        f.write('test')
+#     with open(os.path.join(path_to_subexp, 'config', "{fname}_{trans_name}.json".format(fname=fname, trans_name=trans_name)), 'w') as f:
+#         f.write('test')
 
-    time.sleep(random.random() * 30 + 80)
+#     time.sleep(random.random() * 30 + 80)
 
 def run_ga(exp_desc, subexp_desc, paths, *args):
 
@@ -59,7 +59,7 @@ def run_ga(exp_desc, subexp_desc, paths, *args):
     trans_name, trans_id = subexp_desc
     input_file, result_path = paths
 
-    with open(args.input, 'rb') as f:
+    with open(input_file, 'rb') as f:
         data = f.read()
 
     ga = GeneticAlgorithmForGabac(
@@ -181,6 +181,7 @@ def main(args):
     if args.algorithm == 'ga':
         callback_f = run_ga
     elif args.algorith == 'sa':
+        raise NotImplementedError('SA is not implemented yet')
         callback_f = run_sa
     # callback_f = dummy_ga
 
