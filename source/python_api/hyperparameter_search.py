@@ -53,14 +53,14 @@ from gabac_ga import GeneticAlgorithmForGabac
 
 #     time.sleep(random.random() * 30 + 80)
 
-def run_ga(exp_desc, subexp_desc, paths, *args):
+def run_ga(data, exp_desc, subexp_desc, paths, *args):
 
     ngen, npop, nparam = exp_desc
     trans_name, trans_id = subexp_desc
     input_file, result_path = paths
 
-    with open(input_file, 'rb') as f:
-        data = f.read()
+    # with open(input_file, 'rb') as f:
+    #     data = f.read()
 
     ga = GeneticAlgorithmForGabac(
         data, 
@@ -120,10 +120,17 @@ def worker(lock, queue, callback_f):
             else:
                 queue_entry = queue.get()
 
+                exp_desc, subexp_desc, paths = queue_entry
+
+                with open(paths[0], 'rb') as f:
+                    data = f.read()
+
         finally:
             lock.release()
 
-        callback_f(*queue_entry)
+        # callback_f(*queue_entry)
+        callback_f(data, exp_desc, subexp_desc, paths)
+        del data
         
         if end_proc:
             break
