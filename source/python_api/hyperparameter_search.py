@@ -225,7 +225,7 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Hyperparameter Search')
 
-    parser.add_argument('-j' , '--num_processes', required=False, default=None, type=str, help='Number of processes')
+    parser.add_argument('-j' , '--num_processes', required=False, default=None, type=int, help='Number of processes')
     parser.add_argument('-i' , '--data_path', required=True, type=str, help='Path to data')
     parser.add_argument('-o' , '--result_path', required=True, type=str, help='Path to result')
     parser.add_argument('-a' , '--algorithm', required=True, type=str, choices=['ga', 'sa'], help='Algorithm used for searching the best config')
