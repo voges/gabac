@@ -84,6 +84,8 @@ def run_ga(exp_desc, subexp_desc, paths, *args):
         os.makedirs(os.path.join(result_path, 'config'))
     except:
         pass
+
+    del data
         
     with open(
         os.path.join(
@@ -103,6 +105,8 @@ def run_ga(exp_desc, subexp_desc, paths, *args):
         ),
         os.path.basename(input_file)
     )
+
+    del ga
 
 def worker(lock, queue, callback_f):
 
@@ -198,7 +202,11 @@ def main(args):
 
         for subexp_param in avail_transform.items():
             for fname in fnames:
-                queue.put([exp_param, subexp_param, [os.path.join(data_path, fname), result_path]])
+                queue.put([
+                    exp_param, 
+                    subexp_param, 
+                    [os.path.join(data_path, fname), result_path, "ngen_{ngen}_npop_{npop}_nparam_{nparam}",format(ngen=ngen, npop=npop, nparam=nparam)]
+                ])
 
     procs = [ 
         mp.Process(
