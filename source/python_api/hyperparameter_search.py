@@ -75,16 +75,6 @@ def run_ga(exp_desc, subexp_desc, paths, *args):
 
     s,E = ga.start()
 
-    with open(
-        os.path.join(
-            result_path,
-            'config', 
-            "{fname}_{trans_name}.json".format(fname=os.path.basename(input_file), trans_name=trans_name)
-        ),
-        'w'
-    ) as f:
-        json.dump(s, f, indent=4)
-
     try:
         os.makedirs(os.path.join(result_path, 'log'))
     except:
@@ -94,6 +84,16 @@ def run_ga(exp_desc, subexp_desc, paths, *args):
         os.makedirs(os.path.join(result_path, 'config'))
     except:
         pass
+        
+    with open(
+        os.path.join(
+            result_path,
+            'config', 
+            "{fname}_{trans_name}.json".format(fname=os.path.basename(input_file), trans_name=trans_name)
+        ),
+        'w'
+    ) as f:
+        json.dump(s, f, indent=4)
 
     ga.result_as_csv(
         os.path.join(
