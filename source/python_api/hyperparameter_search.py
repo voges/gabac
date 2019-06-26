@@ -162,7 +162,7 @@ def main(args):
 
     total_tests_per_exp = 200
     npops = [10, 20, 25, 50]
-    ngens = [total_tests_per_exp/npop for npop in npops]
+    ngens = [total_tests_per_exp // npop for npop in npops]
     nparams =  range(1, 6)
 
     result_path = args.result_path
