@@ -205,7 +205,10 @@ def main(args):
                 queue.put([
                     exp_param, 
                     subexp_param, 
-                    [os.path.join(data_path, fname), result_path, "ngen_{ngen}_npop_{npop}_nparam_{nparam}",format(ngen=ngen, npop=npop, nparam=nparam)]
+                    [
+                        os.path.join(data_path, fname), 
+                        os.path.join(result_path,"ngen_{ngen}_npop_{npop}_nparam_{nparam}".format(ngen=ngen, npop=npop, nparam=nparam))
+                    ]
                 ])
 
     procs = [ 
