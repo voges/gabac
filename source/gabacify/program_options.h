@@ -25,6 +25,9 @@ class ProgramOptions
     std::string task;
     size_t blocksize;
 
+    uint64_t maxVal;
+    uint8_t wordSize;
+
  private:
     void processCommandLine(
             int argc,

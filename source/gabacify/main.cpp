@@ -38,7 +38,9 @@ int main(
             gabacify::analyze(
                     programOptions.inputFilePath,
                     programOptions.outputFilePath,
-                    programOptions.blocksize
+                    programOptions.blocksize,
+                    programOptions.maxVal,
+                    programOptions.wordSize
             );
         } else {
             GABAC_DIE("Invalid task: " + std::string(programOptions.task));

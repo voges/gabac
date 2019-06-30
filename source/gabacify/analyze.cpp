@@ -8,7 +8,9 @@
 namespace gabacify {
 void analyze(const std::string& inputFilePath,
              const std::string& configurationFilePath,
-             size_t blocksize
+             size_t blocksize,
+             uint64_t max_val,
+             uint8_t word_size
 ){
     std::ifstream inputFile;
     std::ofstream configurationFile;
@@ -43,7 +45,10 @@ void analyze(const std::string& inputFilePath,
     };
 
 
-    gabac::analyze(ioConf, gabac::getCandidateConfig());
+    auto aconf = gabac::getCandidateConfig();
+    aconf.wordSize = word_size;
+    aconf.maxValue = max_val;
+    gabac::analyze(ioConf, aconf);
     /* GABACIFY_LOG_INFO << "Wrote smallest bytestream of size "
                       << bestByteStream.size()
                       << " to: "

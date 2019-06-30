@@ -149,12 +149,12 @@ std::string TransformedSequenceConfiguration::toPrintableString() const{
 
 bool TransformedSequenceConfiguration::operator==(const TransformedSequenceConfiguration& conf) const {
     return conf.diffCodingEnabled == this->diffCodingEnabled
-    && conf.lutOrder == this->lutOrder
+    && (conf.lutTransformationEnabled ? conf.lutOrder == this->lutOrder : true)
     && conf.lutTransformationEnabled == this->lutTransformationEnabled
     && conf.binarizationId == this->binarizationId
     && conf.binarizationParameters == this->binarizationParameters
     && conf.contextSelectionId == this->contextSelectionId
-    && conf.lutBits == this->lutBits;
+    && (conf.lutTransformationEnabled ? conf.lutBits == this->lutBits : true);
 }
 bool TransformedSequenceConfiguration::operator!=(const TransformedSequenceConfiguration& conf) const {
     return !(*this == conf);
@@ -484,6 +484,5 @@ std::ostream& IOConfiguration::log(const LogLevel& l) const{
     }
     return nullstr;
 }
-
 
 }  // namespace gabac

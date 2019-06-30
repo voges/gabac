@@ -50,6 +50,12 @@ void ProgramOptions::processCommandLine(
     this->blocksize = 0;
     app.add_option("-b,--block_size", this->blocksize, "Block size - 0 means infinite");
 
+    this->maxVal = 0;
+    app.add_option("-v,--value_max", this->maxVal, "Maximum value - 0 means automatic");
+
+    this->wordSize = 0;
+    app.add_option("-w,--word_size", this->wordSize, "Word size - 0 means automatic");
+
     app.positionals_at_end(false);
 
     try {

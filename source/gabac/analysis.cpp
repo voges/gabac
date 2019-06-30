@@ -103,7 +103,9 @@ const AnalysisConfiguration& getCandidateConfig(){
             {  // LUT order
                     0,
                        1
-            }
+            },
+            0,
+            0
     };
     return config;
 }
@@ -156,12 +158,31 @@ static void getMinMax(const gabac::DataBlock& b, uint64_t *umin, uint64_t *umax,
     }
 }
 
+//------------------------------------------------------------------------------
+
+static uint64_t getMaxOfStream(SequenceTransformationId trans, uint8_t stream, uint64_t max) {
+    if((trans == SequenceTransformationId::rle_coding || trans == SequenceTransformationId::match_coding) && stream > 0)
+        return std::numeric_limits<uint32_t>::max();
+    if(trans == SequenceTransformationId::equality_coding && stream == 1)
+        return 1;
+    return max;
+}
+
+//------------------------------------------------------------------------------
+
 void getOptimumOfBinarization(const AnalysisConfiguration& aconf,
                               TraversalInfo *info
 ){
     uint64_t min, max;
     int64_t smin, smax;
-    getMinMax(info->stack.top().streams.front(), &min, &max, &smin, &smax);
+    if(aconf.maxValue == 0) {
+        getMinMax(info->stack.top().streams.front(), &min, &max, &smin, &smax);
+    } else {
+        max = getMaxOfStream(info->currConfig.sequenceTransformationId, info->currStreamIndex, aconf.maxValue);
+        min = 0;
+        smax = max;
+        smin = -smax;
+    }
 
     const unsigned BIPARAM = (max > 0) ? unsigned(std::floor(std::log2(max)) + 1) : 1;
     const unsigned TUPARAM = (max > 0) ? unsigned(std::min(max, uint64_t(256))) : 1;
@@ -175,11 +196,11 @@ void getOptimumOfBinarization(const AnalysisConfiguration& aconf,
 
     for (const auto& transID : candidates[unsigned(id)]) {
         if (!getBinarization(id).isSigned) {
-            if (!getBinarization(id).sbCheck(min, max, 0)) {
+            if (!getBinarization(id).sbCheck(min, max, transID)) {
                 continue;
             }
         } else {
-            if (!getBinarization(id).sbCheck(uint64_t(smin), uint64_t(smax), 0)) {
+            if (!getBinarization(id).sbCheck(uint64_t(smin), uint64_t(smax), transID)) {
                 continue;
             }
         }
@@ -257,7 +278,14 @@ void getOptimumOfLutEnabled(const AnalysisConfiguration& aconf,
         unsigned bits0 = 0;
         uint64_t min, max;
         int64_t smin, smax;
-        getMinMax(info->stack.top().streams[1], &min, &max, &smin, &smax);
+        if(aconf.maxValue == 0) {
+            getMinMax(info->stack.top().streams.front(), &min, &max, &smin, &smax);
+        } else {
+            max = getMaxOfStream(info->currConfig.sequenceTransformationId, info->currStreamIndex, aconf.maxValue);
+            min = 0;
+            smax = max;
+            smin = -smax;
+        }
         bits0 = unsigned(std::ceil(std::log2(max + 1)));
         if (max <= 1) {
             bits0 = 1;
@@ -418,7 +446,13 @@ void analyze(const IOConfiguration& ioconf, const AnalysisConfiguration& aconf){
         gabac::StreamHandler::readBytes(*ioconf.inputStream, ioconf.blocksize, &info.stack.top().streams.front());
     }
 
-    for (const auto& w : aconf.candidateWordsizes) {
+    auto wordsize_cand = aconf.candidateWordsizes;
+    if(aconf.wordSize != 0) {
+        wordsize_cand.clear();
+        wordsize_cand.push_back(aconf.wordSize);
+    }
+
+    for (const auto& w : wordsize_cand) {
         ioconf.log(gabac::IOConfiguration::LogLevel::INFO) << "Wordsize " << w << "..." << std::endl;
         if (info.stack.top().streams.front().getRawSize() % w != 0) {
             ioconf.log(gabac::IOConfiguration::LogLevel::WARNING) << "Input stream size "

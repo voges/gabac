@@ -214,6 +214,9 @@ struct AnalysisConfiguration
     std::vector<unsigned> candidateBinarizationParameters;  /**< @brief Which bin parameters to test */
     std::vector<gabac::ContextSelectionId> candidateContextSelectionIds;  /**< @brief Which cabac contexts to test */
     std::vector<unsigned> candidateLutOrder;  /**< @brief Which LUT orders to test */
+
+    uint64_t maxValue;
+    uint8_t wordSize;
 };
 
 }  // namespace gabac
