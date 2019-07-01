@@ -48,6 +48,8 @@ struct TraversalInfo
     size_t currTotalSize{};
     size_t bestTotalSize{};
 
+    int numConfigs{};
+
     std::stack<Snapshot> stack;
 };
 
@@ -55,14 +57,14 @@ const AnalysisConfiguration& getCandidateConfig(){
     static const AnalysisConfiguration config = {
             {  // Wordsizes
                     1,
-                       2,
-                          4,
-                             8
+                       //2,
+                          //4,
+                             //8
             },
             {  // Sequence Transformations
                     gabac::SequenceTransformationId::no_transform,
                        gabac::SequenceTransformationId::equality_coding,
-                          gabac::SequenceTransformationId::match_coding,
+                          //gabac::SequenceTransformationId::match_coding,
                              gabac::SequenceTransformationId::rle_coding
             },
             {  // Match coding window sizes
@@ -81,8 +83,8 @@ const AnalysisConfiguration& getCandidateConfig(){
                        true
             },
             {  // Binarizations (unsigned)
-                    gabac::BinarizationId::BI,
-                       gabac::BinarizationId::TU,
+                    //gabac::BinarizationId::BI,
+                       //gabac::BinarizationId::TU,
                           gabac::BinarizationId::EG,
                              gabac::BinarizationId::TEG
             },
@@ -121,6 +123,8 @@ void getOptimumOfBinarizationParameter(const AnalysisConfiguration& aconf,
         size_t maxSize =
                 std::min(info->bestSequenceSize - info->currSequenceSize, info->bestTotalSize - info->currTotalSize) -
                 sizeof(uint32_t);
+
+        info->numConfigs += 1;
         gabac::encode_cabac(
                 info->currConfig.transformedSequenceConfigurations[info->currStreamIndex].binarizationId,
                 info->currConfig.transformedSequenceConfigurations[info->currStreamIndex].binarizationParameters,
@@ -294,6 +298,7 @@ void getOptimumOfLutEnabled(const AnalysisConfiguration& aconf,
 
         info->currConfig.transformedSequenceConfigurations[info->currStreamIndex].lutBits = bits0;
 
+        info->numConfigs += 1;
         gabac::encode_cabac(
                 gabac::BinarizationId::BI,
                 {bits0},
@@ -306,6 +311,8 @@ void getOptimumOfLutEnabled(const AnalysisConfiguration& aconf,
 
         if (info->currConfig.transformedSequenceConfigurations[info->currStreamIndex].lutOrder > 0) {
             bits1 = unsigned(std::ceil(std::log2(bits1)));
+
+            info->numConfigs += 1;
             gabac::encode_cabac(
                     gabac::BinarizationId::BI,
                     {bits1},
@@ -415,6 +422,7 @@ void getOptimumOfSymbolSequence(const AnalysisConfiguration& aconf,
                                 TraversalInfo *info
 ){
     for (const auto& transID : aconf.candidateSequenceTransformationIds) {
+
         info->ioconf->log(gabac::IOConfiguration::LogLevel::INFO)
                 << "Transformation "
                 << unsigned(transID)
@@ -440,6 +448,8 @@ void analyze(const IOConfiguration& ioconf, const AnalysisConfiguration& aconf){
     info.stack.emplace();
     info.stack.top().streams.emplace_back(ioconf.blocksize, 1);
     info.bestTotalSize = std::numeric_limits<size_t>::max();
+    info.numConfigs = 0;
+
     if (!ioconf.blocksize) {
         gabac::StreamHandler::readFull(*ioconf.inputStream, &info.stack.top().streams.front());
     } else {
@@ -478,11 +488,14 @@ void analyze(const IOConfiguration& ioconf, const AnalysisConfiguration& aconf){
     DataBlock confBlock(&confString);
     gabac::StreamHandler::writeBytes(*ioconf.outputStream, &confBlock);
 
-    ioconf.log(gabac::IOConfiguration::LogLevel::INFO)
-            << "Success! Best configuration will compress down to "
-            << info.bestTotalSize
-            << " bytes."
-            << std::endl;
+    // ioconf.log(gabac::IOConfiguration::LogLevel::INFO)
+    //         << "Success! Best configuration will compress down to "
+    //         << info.bestTotalSize
+    //         << " bytes."
+    //         << std::endl;
+
+    ioconf.log(gabac::IOConfiguration::LogLevel::INFO) << "RESULT" << std::endl;
+    ioconf.log(gabac::IOConfiguration::LogLevel::INFO) << "filesize:" << info.bestTotalSize << ",num_configs:" << info.numConfigs;
 }
 
 //------------------------------------------------------------------------------

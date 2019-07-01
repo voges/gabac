@@ -34,23 +34,26 @@ with open(os.path.join(root_path, 'tmp', 'gabac', 'mpeg-g-descriptor-streams', '
 
 sa = SimulatedAnnealingForGabac(
     data, 
-    # GABAC_TRANSFORM.RLE,
-    # GABAC_TRANSFORM.EQUALITY,
-    # GABAC_TRANSFORM.MATCH,
-    GABAC_TRANSFORM.NONE,
-    ena_roundtrip=False,
-    kmax=200,
+    GABAC_TRANSFORM.RLE,
+    #GABAC_TRANSFORM.EQUALITY,
+    #GABAC_TRANSFORM.MATCH,
+    #GABAC_TRANSFORM.NONE,
+    kmax=100,
     kt=1,
-    verbose=False
+    ena_roundtrip=True,
+    verbose=True,
+    debug=True
 )
 
 s,E = sa.start()
 
 print(E)
-print(json.dumps(s, indent=4))
+# print(json.dumps(s, indent=4))
+# with open('best_config.json', 'w') as f:
+#     json.dump(s, f, indent=4)
 
 sa.show_plot()
-sa.result_as_csv('res.csv')
+sa.result_as_csv('res.csv', '9827_2#49.bam_filtered.gpair.cropped')
 
 # Best result kt=1 kmax=1000 : 0.9880580902099609
 # Best result kt=1 : 0.9880714416503906

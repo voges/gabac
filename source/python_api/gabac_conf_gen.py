@@ -26,14 +26,14 @@ class GabacConfiguration():
             False, 
             True
         ],
-        lut_transformation_parameter = 0,
+        lut_transformation_parameter = [0, 1],
         diff_coding_enabled = [
             False, 
             True
         ],
         binarization_id = [
-            # GABAC_BINARIZATION.BI, 
-            # GABAC_BINARIZATION.TU,
+            #GABAC_BINARIZATION.BI, 
+            #GABAC_BINARIZATION.TU,
             GABAC_BINARIZATION.SEG,
             GABAC_BINARIZATION.EG,
             GABAC_BINARIZATION.STEG,
@@ -41,6 +41,7 @@ class GabacConfiguration():
         ],
         # binarization_parameters = [ v.item() for v in np.power(2, np.arange(5)) ],
         binarization_parameters = [ v.item() for v in np.arange(32) ],
+        #binarization_parameters = [1, 2, 3, 5, 7, 9, 15, 30, 255 ],
         context_selection_id = [
             GABAC_CONTEXT_SELECT.BYPASS,
             GABAC_CONTEXT_SELECT.ADAPTIVE_ORDER_0,
@@ -54,11 +55,6 @@ class GabacConfiguration():
     ]
 
     main_conf_template = {
-        # "word_size" : [
-        #     # [ v.item() for v in np.power(2, np.arange(6)) ]
-        #     # [ v.item() for v in np.power(2, np.arange(4)) ]
-        #     v.item() for v in np.power(2, np.arange(3))
-        # ],
         "word_size" : 1,
         "sequence_transformation_id" : None,
         "sequence_transformation_parameter" : None,
@@ -97,6 +93,7 @@ class GabacConfiguration():
     def __init__(
         self,
         seq_transform_id,
+        data,
         ena_roundtrip=True,
     ):
 
@@ -125,94 +122,184 @@ class GabacConfiguration():
         for value in self.transformed_seq_conf_params_w_var_values:
             self.conf_params_w_var_values.append(value)
 
+        self.max_val = 0
+        for word in data:
+            if word > self.max_val:
+                self.max_val = word
+
+        self.bi_param_value = np.ceil(np.log2(self.max_val + + 1)).astype(int).item()
+        self.tu_param_value = self.max_val
+
+    def adjust_config(self, config):
+        '''
+        Adjust (generated) config so all parameter values are valid
+        '''
+        for trans_seq_idx in range(len(config["transformed_sequences"])):
+            if config["transformed_sequences"][trans_seq_idx]['binarization_id'] == GABAC_BINARIZATION.BI:
+                config["transformed_sequences"][trans_seq_idx]['binarization_parameters'] = [self.bi_param_value]
+
+            elif config["transformed_sequences"][trans_seq_idx]['binarization_id'] == GABAC_BINARIZATION.TU:
+                config["transformed_sequences"][trans_seq_idx]['binarization_parameters'] = [self.tu_param_value]
+            
+            else:
+                if not config["transformed_sequences"][trans_seq_idx]['binarization_parameters'] in self.transformed_seq_conf_template['binarization_parameters']:
+                    config["transformed_sequences"][trans_seq_idx]['binarization_parameters'] = [
+                        random.choice(self.transformed_seq_conf_template['binarization_parameters'])
+                    ]
+
     def generate_random_neighbor(self, 
         config
     ):
+        """
+        For config optimization such as Simulated Annealing
+        """
+
         new_config = copy.deepcopy(config)
 
-        chosen_param = random.choice(self.conf_params_w_var_values)
+        while True:
+            chosen_param = random.choice(self.conf_params_w_var_values)
 
-        # print(chosen_param)
-
-        try:
-            while True:
+            try:
                 param_value = random.choice(self.transformed_seq_conf_template[chosen_param[0]])
 
                 if chosen_param[0] in self.transformed_seq_parameter_value_as_list:
                     param_value = [param_value]
 
+                self.adjust_config(new_config)
+
                 if param_value != new_config["transformed_sequences"][chosen_param[1]][chosen_param[0]]:
                     new_config["transformed_sequences"][chosen_param[1]][chosen_param[0]] = param_value
-                    break
-             
-        except:
-            param_value = random.choice(self.variant_config_template[chosen_param])
+                    
+                    new_config_cchar = self.json_to_cchar(new_config)
+                    if libgabac.gabac_config_is_general(
+                        new_config_cchar, 
+                        len(new_config_cchar),
+                        self.max_val,
+                        1,
+                    ):
+                        break
 
-            new_config[chosen_param] = param_value
-        
+            except:
+                param_value = random.choice(self.variant_config_template[chosen_param])
+
+                self.adjust_config(new_config)
+
+                if new_config[chosen_param] != param_value:
+                    new_config[chosen_param] = param_value
+
+                    new_config_cchar = self.json_to_cchar(new_config)
+                    if libgabac.gabac_config_is_general(
+                        new_config_cchar, 
+                        len(new_config_cchar),
+                        self.max_val,
+                        1,
+                    ):
+                        break
+
         return new_config
+
+    def mutate_nparams(self,
+        config,
+        nparams=None
+    ):
+        i_param = 0
+
+        new_config = copy.deepcopy(config)
+
+        while i_param < nparams:
+            temp_config = copy.deepcopy(new_config)
+
+            chosen_param = random.choice(self.conf_params_w_var_values)
+
+            try:
+                param_value = random.choice(self.transformed_seq_conf_template[chosen_param[0]])
+
+                if chosen_param[0] in self.transformed_seq_parameter_value_as_list:
+                    param_value = [param_value]
+
+                self.adjust_config(temp_config)
+
+                if param_value != new_config["transformed_sequences"][chosen_param[1]][chosen_param[0]]:
+                    new_config["transformed_sequences"][chosen_param[1]][chosen_param[0]] = param_value
+
+                    # new_config_cchar = self.json_to_cchar(new_config)
+                    # if libgabac.gabac_config_is_general(
+                    #     new_config_cchar, 
+                    #     len(new_config_cchar),
+                    #     self.max_val,
+                    #     1,
+                    # ):
+                    #     i_param += 1
+                    #     new_config = temp_config
+
+                    i_param += 1
+                    new_config = temp_config
+
+            except:
+                param_value = random.choice(self.variant_config_template[chosen_param])
+
+                self.adjust_config(temp_config)
+
+                if new_config[chosen_param] != param_value:
+                    new_config[chosen_param] = param_value
+
+                    # new_config_cchar = self.json_to_cchar(new_config)
+                    # if libgabac.gabac_config_is_general(
+                    #     new_config_cchar, 
+                    #     len(new_config_cchar),
+                    #     self.max_val,
+                    #     1,
+                    # ):
+                    #     i_param += 1
+                    #     new_config = temp_config
+
+                    i_param += 1
+                    new_config = temp_config
+
+        return new_config
+
 
     def generate_random_config(self):
 
-        conf = copy.deepcopy(self.variant_config_template)
-        
-        for key in self.main_config_params_w_var_values:
-            conf[key] = random.choice(self.variant_config_template[key])
+        is_new_config_valid = False
+        while not is_new_config_valid:
+            conf = copy.deepcopy(self.variant_config_template)
+            
+            for key in self.main_config_params_w_var_values:
+                conf[key] = random.choice(self.variant_config_template[key])
 
-        conf["transformed_sequences"] = []
+            conf["transformed_sequences"] = []
 
-        for _ in range(self.num_transformed_seq[self.seq_transform_id]):
-            transformed_seq_conf = copy.deepcopy(self.transformed_seq_conf_template)
+            for _ in range(self.num_transformed_seq[self.seq_transform_id]):
+                transformed_seq_conf = copy.deepcopy(self.transformed_seq_conf_template)
 
-            for key in self.transformed_seq_conf_template.keys():
-                if isinstance(GabacConfiguration.transformed_seq_conf_template[key], list):
-                    if key in GabacConfiguration.transformed_seq_parameter_value_as_list:
-                        transformed_seq_conf[key] = [
-                            random.choice(
+                for key in self.transformed_seq_conf_template.keys():
+                    if isinstance(GabacConfiguration.transformed_seq_conf_template[key], list):
+                        if key in GabacConfiguration.transformed_seq_parameter_value_as_list:
+                            transformed_seq_conf[key] = [
+                                random.choice(
+                                    GabacConfiguration.transformed_seq_conf_template[key]
+                                )
+                            ]
+                        else:
+                            transformed_seq_conf[key] = random.choice(
                                 GabacConfiguration.transformed_seq_conf_template[key]
                             )
-                        ]
-                    else:
-                        transformed_seq_conf[key] = random.choice(
-                            GabacConfiguration.transformed_seq_conf_template[key]
-                        )
-            
-            conf["transformed_sequences"].append(transformed_seq_conf)
+                
+                conf["transformed_sequences"].append(transformed_seq_conf)
 
+            self.adjust_config(conf)
+
+            conf_cchar = self.json_to_cchar(conf)
+            # is_new_config_valid = libgabac.gabac_config_is_general(
+            #     conf_cchar, 
+            #     len(conf_cchar),
+            #     self.max_val,
+            #     1,
+            # )
+        
+            is_new_config_valid = True
         return conf
-
-    # @staticmethod
-    # def generate_random_config(
-    #     seq_transform_id
-    # ):
-    #     conf_template = GabacConfiguration.available_variant[seq_transform_id]
-
-    #     conf = copy.deepcopy(conf_template)
-    #     conf["transformed_sequences"] = []
-
-    #     for key in conf_template.keys():
-    #         if isinstance(conf_template[key], list):
-    #             conf[key] = random.choice(*conf_template[key])
-
-    #     for _ in range(GabacConfiguration.num_transformed_seq[seq_transform_id]):
-    #         transformed_seq_conf = copy.deepcopy(GabacConfiguration.transformed_seq_conf_template)
-
-    #         for key in GabacConfiguration.transformed_seq_conf_template.keys():
-    #             if isinstance(GabacConfiguration.transformed_seq_conf_template[key], list):
-    #                 if key in GabacConfiguration.transformed_seq_parameter_value_as_list:
-    #                     transformed_seq_conf[key] = [
-    #                         random.choice(
-    #                             GabacConfiguration.transformed_seq_conf_template[key]
-    #                         )
-    #                     ]
-    #                 else:
-    #                     transformed_seq_conf[key] = random.choice(
-    #                         GabacConfiguration.transformed_seq_conf_template[key]
-    #                     )
-            
-    #         conf["transformed_sequences"].append(transformed_seq_conf)
-
-    #     return conf
 
     def json_to_cchar(
         self,
@@ -244,7 +331,6 @@ class GabacConfiguration():
 
         io_config = gabac_io_config()
         in_block = gabac_data_block()
-        copy_in_block = gabac_data_block()
 
         logfilename = array(ct.c_char, "log.txt")
 
@@ -258,13 +344,16 @@ class GabacConfiguration():
         ):
             return GABAC_RETURN.FAILURE, np.Infinity, np.Infinity
 
-        if libgabac.gabac_data_block_copy(
-            copy_in_block,
-            in_block
-        ):
-            return GABAC_RETURN.FAILURE, np.Infinity, np.Infinity
+        if self.ena_roundtrip:
+            copy_in_block = gabac_data_block()
 
-        original_length = in_block.values_size * in_block.word_size
+            if libgabac.gabac_data_block_copy(
+                copy_in_block,
+                in_block
+            ):
+                return GABAC_RETURN.FAILURE, np.Infinity, np.Infinity
+
+        #original_length = in_block.values_size * in_block.word_size
 
         if libgabac.gabac_stream_create_buffer(
             io_config.input,
