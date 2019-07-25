@@ -4,19 +4,11 @@
 # macOS Finder directory attributes files
 .DS_Store
 
-# Python bytecode files
-*.pyc
-
 # CMake build directories
 build/
+cmake-build/
 cmake-build-debug/
+cmake-build-release/
 
 # CLion project directory
 .idea/
-
-# External tools directory
-external_tools/
-
-# Jupyter notebook checkpoint directories
-.ipynb_checkpoints/
-
