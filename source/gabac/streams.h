@@ -11,7 +11,7 @@
 #include <istream>
 #include <ostream>
 
-#include "gabac/data_block.h"
+#include "data-block.h"
 
 namespace gabac {
 
