@@ -6,8 +6,6 @@ cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 
 project("gabac")
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Release)
     message(STATUS "Using fall-back build type '${CMAKE_BUILD_TYPE}'")
