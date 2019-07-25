@@ -23,25 +23,25 @@ const uint8_t gabac_sequence_transform_params[] = {
         0,
         4
 };
-const uint8_t gabac_sequence_transform_streams[] = {
-        1,
-        2,
-        3,
-        2,
-        3,
-        1,
-        1
-};
+// const uint8_t gabac_sequence_transform_streams[] = {
+//         1,
+//         2,
+//         3,
+//         2,
+//         3,
+//         1,
+//         1
+// };
 
-const uint8_t gabac_sequence_transform_word_sizes[][3] = {
-        {0, 255, 255},
-        {0, 1,   255},
-        {0, 4,   4},
-        {0, 4,   255},
-        {0, 0,   0},
-        {0, 255, 255},
-        {0, 255, 255}
-};
+// const uint8_t gabac_sequence_transform_word_sizes[][3] = {
+//         {0, 255, 255},
+//         {0, 1,   255},
+//         {0, 4,   4},
+//         {0, 4,   255},
+//         {0, 0,   0},
+//         {0, 255, 255},
+//         {0, 255, 255}
+// };
 
 int gabac_data_block_swap(
         gabac_data_block *stream1,
