@@ -4,7 +4,9 @@ Genomics-oriented Context-Adaptive Binary Arithmetic Coding
 
 [![Build Status](https://travis-ci.org/mitogen/gabac.svg?branch=master)](https://travis-ci.org/mitogen/gabac)
 
-**First off, we refer the reader to ``USAGE_POLICY.md``.**
+**We refer the reader to ``USAGE_POLICY.md``.**
+
+**The GABAC development is continued within the Genie project (https://github.com/mitogen/genie).**
 
 ---
 
