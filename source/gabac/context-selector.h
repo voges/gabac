@@ -1,3 +1,9 @@
+/**
+ * @file
+ * @copyright This file is part of GABAC. See LICENSE and/or
+ * https://github.com/mitogen/gabac for more details.
+ */
+
 #ifndef GABAC_CONTEXT_SELECTOR_H_
 #define GABAC_CONTEXT_SELECTOR_H_
 

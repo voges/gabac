@@ -1,3 +1,9 @@
+/**
+ * @file
+ * @copyright This file is part of GABAC. See LICENSE and/or
+ * https://github.com/mitogen/gabac for more details.
+ */
+
 #ifndef GABAC_ANALYSIS_H_
 #define GABAC_ANALYSIS_H_
 

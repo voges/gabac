@@ -1,3 +1,9 @@
+/**
+ * @file
+ * @copyright This file is part of GABAC. See LICENSE and/or
+ * https://github.com/mitogen/gabac for more details.
+ */
+
 #ifndef GABAC_C_INTERFACE_H_
 #define GABAC_C_INTERFACE_H_
 
