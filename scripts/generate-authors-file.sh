@@ -7,8 +7,9 @@
 set -euo pipefail
 
 git rev-parse --git-dir 1>/dev/null # exit if not inside Git repo
+readonly git_root_dir="$(git rev-parse --show-toplevel)"
 
 git shortlog --summary --email \
   | perl -spe 's/^\s+\d+\s+//' \
   | sed -e '/^CommitSyncScript.*$/d' \
-  > AUTHORS
+  > "${git_root_dir}/AUTHORS"
