@@ -4,7 +4,7 @@ Genomics-oriented Context-Adaptive Binary Arithmetic Coding
 
 [![Build Status](https://travis-ci.org/mitogen/gabac.svg?branch=master)](https://travis-ci.org/mitogen/gabac)
 
-**We refer the reader to ``USAGE_POLICY.md``.**
+**We refer the reader to the file ``USAGE_POLICY.md``.**
 
 **The GABAC development is continued within the Genie project (https://github.com/mitogen/genie).**
 
@@ -25,7 +25,7 @@ Build the GABAC library and the gabacify application:
 
 This will generate the gabacify application at ``build/bin/gabacify``.
 
-Perform test roundtrips with ``ci/test_roundtrips.sh``.
+Perform test roundtrips with the Bash script ``ci/test_roundtrips.sh``.
 
 ## Continuous integration
 
