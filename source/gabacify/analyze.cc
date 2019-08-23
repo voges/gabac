@@ -42,15 +42,6 @@ void analyze(const std::string &inputFilePath,
     aconf.wordSize = word_size;
     aconf.maxValue = max_val;
     gabac::analyze(ioConf, aconf);
-    /* GABACIFY_LOG_INFO << "Wrote smallest bytestream of size "
-                      << bestByteStream.size()
-                      << " to: "
-                      << outputFilePath;*/
-
-    // Write the best configuration as JSON
-    /* GABACIFY_LOG_DEBUG << "with configuration: \n"
-                       << bestConfig.toPrintableString();
-    // GABACIFY_LOG_INFO << "Wrote best configuration to: " <<
-    configurationFilePath;*/
 }
+
 }  // namespace gabacify

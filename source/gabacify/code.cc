@@ -9,7 +9,7 @@
 
 namespace gabacify {
 
-//------------------------------------------------------------------------------
+void code(const std::string &inputFilePath,
 
 void code(const std::string& inputFilePath,
           const std::string& configurationFilePath,
@@ -70,16 +70,7 @@ void code(const std::string& inputFilePath,
     }
 
     gabac::run(ioconf, configuration, decode);
-
-    /* GABACIFY_LOG_INFO << "Wrote buffer of size "
-                      << outStream.bytesWritten()
-                      << " to: "
-                      << outputFilePath;*/
 }
-
-//------------------------------------------------------------------------------
 
 }  // namespace gabacify
 
-//------------------------------------------------------------------------------
-//------------------------------------------------------------------------------

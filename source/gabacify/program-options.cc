@@ -68,7 +68,7 @@ void ProgramOptions::processCommandLine(int argc, char *argv[]) {
     validate();
 }
 
-void ProgramOptions::validate(void) {
+void ProgramOptions::validate() {
     // Do stuff depending on the task
     if (this->task == "encode" || this->task == "decode") {
         // It's fine not to provide a configuration file path for encoding.
