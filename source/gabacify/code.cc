@@ -1,13 +1,6 @@
 #include "code.h"
 
-#include <algorithm>
-#include <cassert>
-#include <cmath>
-#include <functional>
-#include <iomanip>
 #include <iostream>
-#include <limits>
-#include <utility>
 #include <vector>
 #include <fstream>
 

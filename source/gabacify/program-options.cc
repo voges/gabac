@@ -4,8 +4,6 @@
 
 #include <cli11/cli11.h>
 
-#include <cassert>
-#include <fstream>
 
 namespace gabacify {
 
@@ -20,7 +18,9 @@ ProgramOptions::ProgramOptions(int argc, char *argv[])
       inputFilePath(),
       outputFilePath(),
       task() {
-    processCommandLine(argc, argv);
+              blocksize(0),
+              maxVal(0),
+              wordSize(0) {
 }
 
 ProgramOptions::~ProgramOptions() = default;
