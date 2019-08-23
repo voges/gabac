@@ -4,7 +4,6 @@
 
 #include <cli11/cli11.h>
 
-
 namespace gabacify {
 
 static bool fileExists(const std::string &path) {

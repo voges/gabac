@@ -18,7 +18,6 @@ class ProgramOptions {
     std::string outputFilePath;
     std::string task;
     size_t blocksize;
-
     uint64_t maxVal;
     uint8_t wordSize;
 
