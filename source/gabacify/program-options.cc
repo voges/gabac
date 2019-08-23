@@ -17,10 +17,11 @@ ProgramOptions::ProgramOptions(int argc, char *argv[])
       logLevel(),
       inputFilePath(),
       outputFilePath(),
-      task() {
-              blocksize(0),
-              maxVal(0),
-              wordSize(0) {
+      task(),
+      blocksize(0),
+      maxVal(0),
+      wordSize(0) {
+    processCommandLine(argc, argv);
 }
 
 ProgramOptions::~ProgramOptions() = default;
