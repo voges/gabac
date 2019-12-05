@@ -4,11 +4,8 @@
 # macOS Finder directory attributes files
 .DS_Store
 
-# CMake build directories
+# CMake build directory
 build/
-cmake-build/
-cmake-build-debug/
-cmake-build-release/
 
 # CLion project directory
 .idea/
