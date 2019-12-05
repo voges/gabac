@@ -12,4 +12,4 @@ fi
 
 cd "${build_dir}"
 cmake ..
-make
+make --jobs

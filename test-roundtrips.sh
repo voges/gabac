@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -euxo pipefail
+set -euo pipefail
 
 git rev-parse --git-dir 1>/dev/null # exit if not inside Git repo
 readonly git_root_dir="$(git rev-parse --show-toplevel)"
@@ -56,3 +56,5 @@ for i in "${!input_files[@]}"; do
 done
 
 rm -rf "${tmp_dir}"
+
+echo "success"
