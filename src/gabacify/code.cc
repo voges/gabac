@@ -8,9 +8,8 @@
 
 namespace gabacify {
 
-void code(const std::string &inputFilePath,
-          const std::string &configurationFilePath,
-          const std::string &outputFilePath, size_t blocksize, bool decode) {
+void code(const std::string &inputFilePath, const std::string &configurationFilePath, const std::string &outputFilePath,
+          size_t blocksize, bool decode) {
     std::ifstream inputFile;
     std::ofstream outputFile;
     gabac::NullStream nullstream;
@@ -40,8 +39,7 @@ void code(const std::string &inputFilePath,
         logstream = &nullstream;
     }
 
-    gabac::IOConfiguration ioconf = {istream, ostream, blocksize, logstream,
-                                     gabac::IOConfiguration::LogLevel::INFO};
+    gabac::IOConfiguration ioconf = {istream, ostream, blocksize, logstream, gabac::IOConfiguration::LogLevel::INFO};
 
     // Read the entire configuration file as a string and convert the JSON
     // input string to the internal GABAC configuration
@@ -49,15 +47,13 @@ void code(const std::string &inputFilePath,
     {
         std::ifstream configurationFile;
         if (!configurationFilePath.empty()) {
-            configurationFile =
-                std::ifstream(configurationFilePath, std::ios::binary);
+            configurationFile = std::ifstream(configurationFilePath, std::ios::binary);
             if (!configurationFile) {
                 GABAC_DIE("Could not open configuration file");
             }
             confstream = &configurationFile;
         }
-        std::string jsonInput =
-            std::string(std::istreambuf_iterator<char>(*confstream), {});
+        std::string jsonInput = std::string(std::istreambuf_iterator<char>(*confstream), {});
         configuration = gabac::EncodingConfiguration(jsonInput);
     }
 
