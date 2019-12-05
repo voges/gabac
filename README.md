@@ -16,7 +16,7 @@ Clone the GABAC repository:
 
     git clone https://github.com/mitogen/gabac.git
 
-Build the GABAC library and the gabacify application by executing ``build.sh''.
+Build the GABAC library and the gabacify application by executing ``build.sh``.
 
 This will generate the gabacify application at ``build/bin/gabacify``.
 
