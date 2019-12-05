@@ -10,6 +10,17 @@ Genomics-oriented Context-Adaptive Binary Arithmetic Coding
 
 ---
 
+As a public service, the GABAC codec developed by
+
+* Leibniz University Hannover (LUH), Institut fuer Informationsverarbeitung (TNT)
+* Ghent University (UGent), Internet & Data Lab (IDLab)
+* University of Illinois at Urbana-Champaign (UIUC), Carl R. Woese Institute for Genomic Biology (IGB)
+
+is provided in good faith, but without any express or implied warranties.
+We also refer the reader to our ``LICENSE``.
+
+The goal of our policy is that early release should enable the progress of science.
+
 ## Quick start on Linux
 
 Clone the GABAC repository:
