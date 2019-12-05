@@ -2,23 +2,12 @@
 
 Genomics-oriented Context-Adaptive Binary Arithmetic Coding
 
-[![Build Status](https://travis-ci.org/mitogen/gabac.svg?branch=master)](https://travis-ci.org/mitogen/gabac)
-
-**We refer the reader to the file ``USAGE_POLICY.md``.**
-
 **The GABAC development is continued within the Genie project (https://github.com/mitogen/genie).**
 
 ---
 
-As a public service, the GABAC codec developed by
-
-* Leibniz University Hannover (LUH), Institut fuer Informationsverarbeitung (TNT)
-* Ghent University (UGent), Internet & Data Lab (IDLab)
-* University of Illinois at Urbana-Champaign (UIUC), Carl R. Woese Institute for Genomic Biology (IGB)
-
-is provided in good faith, but without any express or implied warranties.
+As a public service, the GABAC codec is provided in good faith, but without any express or implied warranties.
 We also refer the reader to our ``LICENSE``.
-
 The goal of our policy is that early release should enable the progress of science.
 
 ## Quick start on Linux
@@ -36,46 +25,7 @@ Build the GABAC library and the gabacify application:
 
 This will generate the gabacify application at ``build/bin/gabacify``.
 
-Perform test roundtrips with the Bash script ``ci/test_roundtrips.sh``.
-
-## Continuous integration
-
-Commits to this repository are continuously tested on **Travis CI** (https://travis-ci.org/voges/gabac). Take a look at the file ``.travis.yml`` to see what is being done on Travis' (virtual) machines.
-
-## Build system
-
-We use **CMake** (https://cmake.org) as build system.
-
-## Version control system
-
-### Branching
-
-We use **Git** and we use the **Gitflow** workflow (https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow).
-
-That means:
-
-* The ``master`` branch contains only *release* commits.
-* Every commit on the master branch is *tagged* according to **Semantic Versioning 2.0.0** (see below).
-* Development generally takes place on the ``develop`` branch.
-* Actual development takes place in *feature* branches, e.g., ``feature/my_fancy_feature``.
-* Once a *feature* is completed, its branch can be merged back into the ``develop`` branch.
-
-### Version numbers
-
-We use the Semantic Versioning 2.0.0 (https://semver.org).
-
-That means:
-
-* The **release** version number format is: MAJOR.MINOR.PATCH
-* We increment the
-  * MAJOR version when making incompatible API changes,
-  * MINOR version when adding functionality in a backwards-compatible manner, and
-  * PATCH version when making backwards-compatible bug fixes.
-* **Pre-release** versions are denoted by appending a hyphen and a series of dot separated identifiers immediately following the patch version.
-  * Example 1: 1.0.0-alpha.1 ("alpha version 1 of the planned major release 1")
-  * Example 2: 1.0.0-beta.1 ("beta version 1 of the planned major release 1")
-  * Example 3: 1.0.0-rc.1 ("release candidate (rc) 1 of the planned major release 1")
-  * Note: 1.0.0-alpha.1 < 1.0.0-beta.1 < 1.0.0-rc.1 by definition (see https://semver.org)
+Perform test roundtrips with the Bash script ``ci/test-roundtrips.sh``.
 
 ## Who do I talk to?
 
