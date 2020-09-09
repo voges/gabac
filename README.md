@@ -2,27 +2,17 @@
 
 Genomics-oriented Context-Adaptive Binary Arithmetic Coding
 
-**The GABAC development is continued within the Genie project (https://github.com/mitogen/genie).**
-
 ---
 
-As a public service, the GABAC codec is provided in good faith, but without any express or implied warranties.
-We also refer the reader to our ``LICENSE``.
-The goal of our policy is that early release should enable the progress of science.
+**The GABAC development is continued within the [Genie](https://github.com/mitogen/genie) project.**
 
-## Quick start on Linux
+## Publication
 
-Clone the GABAC repository:
+The GABAC technology is described in:
 
-    git clone https://github.com/mitogen/gabac.git
+Jan Voges, Tom Paridaens, Fabian Müntefering, Liudmila S Mainzer, Brian Bliss, Mingyu Yang, Idoia Ochoa, Jan Fostier, Jörn Ostermann, Mikel Hernaez, GABAC: an arithmetic coding solution for genomic data, Bioinformatics, Volume 36, Issue 7, 1 April 2020, Pages 2275–2277, https://doi.org/10.1093/bioinformatics/btz922
 
-Build the GABAC library and the gabacify application by executing ``build.sh``.
-
-This will generate the gabacify application at ``build/bin/gabacify``.
-
-Perform test roundtrips with the Bash script ``test-roundtrips.sh``.
-
-## Who do I talk to?
+## Contact
 
 Jan Voges <[voges@tnt.uni-hannover.de](mailto:voges@tnt.uni-hannover.de)>
 
