@@ -1,6 +1,6 @@
 # GABAC
 
-Genomics-oriented Context-Adaptive Binary Arithmetic Coding
+Genomics-Oriented Context-Adaptive Binary Arithmetic Coding
 
 ---
 
@@ -10,7 +10,7 @@ Genomics-oriented Context-Adaptive Binary Arithmetic Coding
 
 The GABAC technology is described in:
 
-Jan Voges, Tom Paridaens, Fabian Müntefering, Liudmila S Mainzer, Brian Bliss, Mingyu Yang, Idoia Ochoa, Jan Fostier, Jörn Ostermann, Mikel Hernaez, GABAC: an arithmetic coding solution for genomic data, Bioinformatics, Volume 36, Issue 7, 1 April 2020, Pages 2275–2277, https://doi.org/10.1093/bioinformatics/btz922
+J. Voges, T. Paridaens, F. Müntefering, L. S. Mainzer, B. Bliss, M. Yang, I. Ochoa, J. Fostier, J. Ostermann, M. Hernaez, "GABAC: an arithmetic coding solution for genomic data", Bioinformatics, Volume 36, Issue 7, Pages 2275–2277, 2020, DOI: [10.1093/bioinformatics/btz922](https://doi.org/10.1093/bioinformatics/btz922).
 
 ## Contact
 
